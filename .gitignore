@@ -1,2 +1,7 @@
 /target
 **/*.rs.bk
+
+scripts/binding/*
+scripts/cbg/*
+
+src/binding.rs
