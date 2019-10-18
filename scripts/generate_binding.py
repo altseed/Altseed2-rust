@@ -21,3 +21,9 @@ bindingGenerator.namespace = 'Altseed2'
 bindingGenerator.structsReplaceMap = {
 }
 bindingGenerator.generate()
+
+print('generated binding')
+print('lang: ' + lang)
+print('output_path: ' + os.path.abspath(bindingGenerator.output_path))
+print('dll_name: ' + bindingGenerator.dll_name)
+print('namespace: ' + bindingGenerator.namespace)
