@@ -3,7 +3,7 @@ import os, sys
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from binding.definitions import define
+from bindings import define
 from cbg import BindingGeneratorRust
 
 args = sys.argv

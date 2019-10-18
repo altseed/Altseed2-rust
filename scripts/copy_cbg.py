@@ -3,20 +3,29 @@ import os, shutil, ntpath, glob
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-outDir = './binding'
+outDir = './bindings'
 cbgDir = './cbg'
 
 def createIfNotFound(dir):
-    if not os.path.exists(dir):
+    if os.path.exists(dir):
+        for path in glob.glob(dir + '/*.py'):
+            os.remove(path)
+            print('removed ' + path)
+    else:
         os.mkdir(dir)
+        print('Created directory ' + dir)
+    
 
 createIfNotFound(outDir)
 createIfNotFound(cbgDir)
 
 def copyFile(path, dir):
-    shutil.copy(path, '{}/{}'.format(dir, ntpath.split(path)[1]))
+    oPath = '{}/{}'.format(dir, ntpath.split(path)[1])
+    shutil.copy(path, oPath)
+    print('copied file from {} to {}'.format(path, oPath))
 
-copyFile('../Core/scripts/wrapper/definitions.py', outDir)
+for path in glob.glob('../Core/scripts/bindings/*.py'):
+    copyFile(path, outDir)
 
 for path in glob.glob('../CBG/cbg/*.py'):
-    copyFile(path, './cbg')
+    copyFile(path, cbgDir)
