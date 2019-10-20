@@ -1,5 +1,6 @@
 /target
 **/*.rs.bk
+Cargo.lock
 
 scripts/bindings/*
 scripts/cbg/*
