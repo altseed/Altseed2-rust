@@ -13,3 +13,4 @@ include = [
 
 [dependencies]
 "lazy_static"="1.4.0"
+num = "0.2"
