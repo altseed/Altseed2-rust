@@ -1,6 +1,3 @@
-[submodule "CBG"]
-	path = CBG
-	url = git@github.com:altseed/CppBindingGenerator.git
 [submodule "Core"]
 	path = Core
 	url = git@github.com:altseed/Altseed2.git

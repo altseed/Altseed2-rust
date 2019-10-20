@@ -4,7 +4,7 @@ import os, sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from bindings import define
-from cbg import BindingGeneratorRust
+from bindings.CppBindingGenerator import BindingGeneratorRust
 
 args = sys.argv
 lang = 'en'
