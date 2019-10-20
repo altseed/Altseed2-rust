@@ -1,6 +1,7 @@
 use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
+use num::{Zero, One};
 
-#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Default, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default, Debug)]
 pub struct Vec4<T> {
     pub x : T,
     pub y : T,
@@ -14,8 +15,32 @@ impl<T> Vec4<T> {
     }
 }
 
+impl<T> Zero for Vec4<T> where T : Copy + Add<T, Output=T> + Zero + PartialEq {
+    fn zero() -> Self {
+        let a = Zero::zero();
+        Vec4::new(a, a, a, a)
+    }
+
+    fn is_zero(&self) -> bool {
+        let a = Zero::zero();
+        self.x == a && self.y == a && self.z == a && self.z == a
+    }
+}
+
+impl<T> One for Vec4<T> where T : Copy + Add<T, Output=T> + One + PartialEq {
+    fn one() -> Self {
+        let a = One::one();
+        Vec4::new(a, a, a, a)
+    }
+
+    fn is_one(&self) -> bool {
+        let a = One::one();
+        self.x == a && self.y == a && self.z == a && self.w == a
+    }
+}
+
 impl<T> Neg for Vec4<T> where T : Copy + Neg<Output = T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn neg(self) -> Self::Output {
         Vec4 {
             x : -self.x,
@@ -27,7 +52,7 @@ impl<T> Neg for Vec4<T> where T : Copy + Neg<Output = T> {
 }
 
 impl<T> Add for Vec4<T> where T : Copy + Add<Output = T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn add(self, other : Vec4<T>) -> Self::Output {
         Vec4 {
             x : self.x + other.x,
@@ -39,7 +64,7 @@ impl<T> Add for Vec4<T> where T : Copy + Add<Output = T> {
 }
 
 impl<T> Sub for Vec4<T> where T : Copy + Sub<Output = T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn sub(self, other : Vec4<T>) -> Self::Output {
         Vec4 {
             x : self.x - other.x,
@@ -63,7 +88,7 @@ impl<T> Mul for Vec4<T> where T : Copy + Mul<Output = T> {
 }
 
 impl<T> Mul<T> for Vec4<T> where T : Copy + Mul<Output=T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn mul(self, other : T) -> Self::Output {
         Vec4 {
             x : self.x * other,
@@ -75,7 +100,7 @@ impl<T> Mul<T> for Vec4<T> where T : Copy + Mul<Output=T> {
 }
 
 impl<T> Div for Vec4<T> where T : Copy + Div<Output = T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn div(self, other : Vec4<T>) -> Self::Output {
         Vec4 {
             x : self.x / other.x,
@@ -87,7 +112,7 @@ impl<T> Div for Vec4<T> where T : Copy + Div<Output = T> {
 }
 
 impl<T> Div<T> for Vec4<T> where T : Copy + Div<Output = T> {
-    type Output = Vec4<T>;
+    type Output = Self;
     fn div(self, other : T) -> Self::Output {
         Vec4 {
             x : self.x / other,
@@ -131,31 +156,5 @@ impl<T> DivAssign<Vec4<T>> for Vec4<T> where T : Copy + Div<Output = T> {
 impl<T> DivAssign<T> for Vec4<T> where T : Copy + Div<Output = T> {
     fn div_assign(&mut self, other : T) {
         *self = *self / other;
-    }
-}
-
-use num::{Zero, One};
-
-impl<T> Zero for Vec4<T> where T : Copy + Add<T, Output=T> + Zero + PartialEq {
-    fn zero() -> Self {
-        let a = Zero::zero();
-        Vec4::new(a, a, a, a)
-    }
-
-    fn is_zero(&self) -> bool {
-        let a = Zero::zero();
-        self.x == a && self.y == a && self.z == a && self.z == a
-    }
-}
-
-impl<T> One for Vec4<T> where T : Copy + Add<T, Output=T> + One + PartialEq {
-    fn one() -> Self {
-        let a = One::one();
-        Vec4::new(a, a, a, a)
-    }
-
-    fn is_one(&self) -> bool {
-        let a = One::one();
-        self.x == a && self.y == a && self.z == a && self.w == a
     }
 }

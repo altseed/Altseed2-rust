@@ -1,9 +1,9 @@
 use std::ops::{Div};
-use num::Float;
+use num::{Zero, One, Float};
 
 use super::{Vec2, Vec3, Vec4};
 
-pub trait Vec<T> : Copy + Div<T, Output=Self> + Sized where T : Float {
+pub trait Vec<T> : Zero + One + Copy + Div<T, Output=Self> where T : Float {
     fn dot(&self, other: &Self) -> T;
 
     fn squared_len(&self) -> T {
@@ -19,19 +19,19 @@ pub trait Vec<T> : Copy + Div<T, Output=Self> + Sized where T : Float {
     }
 }
 
-impl<T> Vec<T> for Vec2<T> where T : Copy + Div<T, Output=T> + Sized + Float {
+impl<T> Vec<T> for Vec2<T> where T : Copy + Div<T, Output=T> + Float {
     fn dot(&self, other: &Vec2<T>) -> T {
         self.x * other.x + self.y * other.y
     }
 }
 
-impl<T> Vec<T> for Vec3<T> where T : Copy + Div<T, Output=T> + Sized + Float {
+impl<T> Vec<T> for Vec3<T> where T : Copy + Div<T, Output=T> + Float {
     fn dot(&self, other: &Vec3<T>) -> T {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 }
 
-impl<T> Vec<T> for Vec4<T> where T : Copy + Div<T, Output=T> + Sized + Float {
+impl<T> Vec<T> for Vec4<T> where T : Copy + Div<T, Output=T> + Float {
     fn dot(&self, other: &Vec4<T>) -> T {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
