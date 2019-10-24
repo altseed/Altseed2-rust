@@ -3,7 +3,7 @@ import os, sys
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from bindings import define
+from bindings import define, common
 from bindings.CppBindingGenerator import BindingGeneratorRust
 
 args = sys.argv
@@ -17,8 +17,9 @@ if len(args) >= 3 and args[1] == '-lang':
 bindingGenerator = BindingGeneratorRust(define, lang)
 bindingGenerator.output_path = '../src/binding.rs'
 bindingGenerator.dll_name = 'Altseed_Core'
-bindingGenerator.namespace = 'Altseed2'
+bindingGenerator.module = ''
 bindingGenerator.structsReplaceMap = {
+    # common.Vector2DI, "crate::Vec2<i32>"
 }
 bindingGenerator.generate()
 
@@ -26,4 +27,4 @@ print('generated binding')
 print('lang: ' + lang)
 print('output_path: ' + os.path.abspath(bindingGenerator.output_path))
 print('dll_name: ' + bindingGenerator.dll_name)
-print('namespace: ' + bindingGenerator.namespace)
+print('module: ' + bindingGenerator.module)
