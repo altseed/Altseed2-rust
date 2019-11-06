@@ -1,7 +1,7 @@
 use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
 use num::{Zero, One};
 
-use super::Vec2;
+use super::vec::Vec2;
 
 #[derive(Clone, Copy, Eq, PartialEq, Default, Debug)]
 pub struct Mat22<T> {

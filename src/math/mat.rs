@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul};
 use num::{Zero, One};
 
-use super::{Mat22};
+use super::mat22::Mat22;
 
 pub trait Mat : Zero + One {
     fn transpose(&self) -> Self;
