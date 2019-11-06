@@ -2,7 +2,7 @@
 extern crate lazy_static;
 extern crate num;
 
-mod binding;
+pub mod binding;
 pub mod math;
 
 

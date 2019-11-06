@@ -19,7 +19,7 @@ bindingGenerator.output_path = '../src/binding.rs'
 bindingGenerator.dll_name = 'Altseed_Core'
 bindingGenerator.module = ''
 bindingGenerator.structsReplaceMap = {
-    # common.Vector2DI, "crate::Vec2<i32>"
+    common.Vector2DI, "crate::math::vec2::Vec2<i32>"
 }
 bindingGenerator.generate()
 

@@ -5,4 +5,4 @@ Cargo.lock
 scripts/bindings/*
 scripts/cbg/*
 
-src/binding.rs
+# src/binding.rs
