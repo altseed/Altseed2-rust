@@ -2,7 +2,7 @@ use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssi
 use num::{Zero, One, Float};
 use super::Dot;
 
-pub trait Vector<T> : Dot<Self, Output=T> + Zero + One + Copy + Div<T, Output=Self> where T : Float {
+pub trait Vector<T : Float> : Dot<Self, Output=T> + Copy + Div<T, Output=Self> {
     fn squared_len(&self) -> T {
         self.dot(self.clone())
     }
@@ -16,8 +16,9 @@ pub trait Vector<T> : Dot<Self, Output=T> + Zero + One + Copy + Div<T, Output=Se
     }
 }
 
-impl<T, U> Vector<T> for U where U : Zero + One + Copy + Div<T, Output=Self> + Dot<U, Output=T>, T : Float {}
-
+// implement for Vector structs `to_array` method which converts `Vector` to array
+// get the length of repetation pattern using recursive
+// https://stackoverflow.com/questions/32817193/how-to-get-index-of-macro-repetition-single-element
 macro_rules! vector_to_array {
     (@step $idx:expr, [$($x:ident,)*],) => {
         #[inline(always)]
@@ -37,6 +38,7 @@ macro_rules! vector_to_array {
     };
 }
 
+// define `Vector` structs
 macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
     #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Default, Debug)]
     pub struct $name<T> {
@@ -62,6 +64,8 @@ macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
             $( (self.$x * other.$x)+ )+ Zero::zero()
         }
     }
+
+    impl<T> Vector<T> for $name<T> where T : Float {}
 
     impl<T> Zero for $name<T> where T : Zero + Copy + PartialEq {
         fn zero() -> Self {
@@ -173,7 +177,6 @@ macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
     }
 };}
 
-// define_vector!(Vec1[x]);
 define_vector!(Vector2[x, y]);
 define_vector!(Vector3[x, y, z]);
 define_vector!(Vector4[x, y, z, w]);

@@ -1,3 +1,4 @@
+// Inner product
 pub trait Dot<T> {
     type Output;
 

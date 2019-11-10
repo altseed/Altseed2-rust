@@ -7,6 +7,7 @@ pub trait Matrix {
     fn inverse(&self) -> Self;
 }
 
+// define `Matrix` structs
 macro_rules! define_matrix { ($name:ident, $nx:expr, $ny:expr) => {
     #[derive(Clone, Copy, Eq, PartialEq, Default, Debug)]
     pub struct $name<T> {
@@ -169,6 +170,8 @@ macro_rules! define_matrix { ($name:ident, $nx:expr, $ny:expr) => {
     }
 };}
 
+// define `Square Matrix` structs
+// calling define_matrix inside
 macro_rules! define_square_matrix { ($name:ident, $n:expr) => {
     define_matrix!($name, $n, $n);
 
@@ -190,13 +193,14 @@ macro_rules! define_square_matrix { ($name:ident, $n:expr) => {
     }
 };}
 
-macro_rules! dot_vector {
+// Define `Dot` with vector for `Square Matrix`
+macro_rules! define_dot_vector {
     ($matrix:ident, $vector:ident[$($x:ident),+]) => {
-        dot_vector!(@step 0usize, $matrix, $vector[], $($x,)+);
+        define_dot_vector!(@step 0usize, $matrix, $vector[], $($x,)+);
     };
 
     (@step $idx:expr, $matrix:ident, $vector:ident[$( ($x:ident, $i:expr) ),*], $head:ident, $($tail:ident,)*) => {
-        dot_vector!(@step $idx + 1usize, $matrix, $vector[$( ($x, $i), )* ($head, $idx)], $($tail,)*);
+        define_dot_vector!(@step $idx + 1usize, $matrix, $vector[$( ($x, $i), )* ($head, $idx)], $($tail,)*);
     };
 
     (@step $_idx:expr, $matrix:ident, $vector:ident[$( ($x:ident, $i:expr) ),+], ) => {
@@ -241,6 +245,6 @@ use crate::math::vector::{Vector2, Vector3, Vector4};
 define_square_matrix!(Matrix2x2, 2);
 define_square_matrix!(Matrix3x3, 3);
 define_square_matrix!(Matrix4x4, 4);
-dot_vector!(Matrix2x2, Vector2[x, y]);
-dot_vector!(Matrix3x3, Vector3[x, y, z]);
-dot_vector!(Matrix4x4, Vector4[x, y, z, w]);
+define_dot_vector!(Matrix2x2, Vector2[x, y]);
+define_dot_vector!(Matrix3x3, Vector3[x, y, z]);
+define_dot_vector!(Matrix4x4, Vector4[x, y, z, w]);
