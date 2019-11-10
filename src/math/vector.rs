@@ -1,11 +1,10 @@
 use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
 use num::{Zero, One, Float};
+use super::Dot;
 
-pub trait Vec<T> : Zero + One + Copy + Div<T, Output=Self> where T : Float {
-    fn dot(&self, other: &Self) -> T;
-
+pub trait Vector<T> : Dot<Self, Output=T> + Zero + One + Copy + Div<T, Output=Self> where T : Float {
     fn squared_len(&self) -> T {
-        self.dot(self)
+        self.dot(self.clone())
     }
 
     fn len(&self) -> T {
@@ -17,8 +16,29 @@ pub trait Vec<T> : Zero + One + Copy + Div<T, Output=Self> where T : Float {
     }
 }
 
-macro_rules! define_vec {($name:ident[$( $x:ident ),+]) => {
-    #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, Default, Debug)]
+impl<T, U> Vector<T> for U where U : Zero + One + Copy + Div<T, Output=Self> + Dot<U, Output=T>, T : Float {}
+
+macro_rules! vector_to_array {
+    (@step $idx:expr, [$($x:ident,)*],) => {
+        #[inline(always)]
+        pub fn to_array(&self) -> [T; $idx] {
+            [$(self.$x,)+]
+        }
+    };
+
+    (@step $idx:expr, [$($x:ident,)+], $head:ident, $($tail:ident,)*) => {
+        vector_to_array!(@step $idx + 1usize, [$($x,)+], $($tail,)*);
+    };
+
+    ($name:ident[$($n:ident),+]) => {
+        impl<T> $name<T> where T : Copy {
+            vector_to_array!(@step 0usize, [$($n,)+], $($n,)+);
+        }
+    };
+}
+
+macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
+    #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Default, Debug)]
     pub struct $name<T> {
         $(
             pub $x : T,
@@ -27,19 +47,23 @@ macro_rules! define_vec {($name:ident[$( $x:ident ),+]) => {
 
     impl<T> $name<T> {
         pub fn new( $($x : T),+) -> Self {
-            $name{
+            $name {
                 $( $x ),+
             }
         }
+
     }
 
-    impl<T> Vec<T> for $name<T> where T : Copy + Div<T, Output=T> + Float {
-        fn dot(&self, other: &$name<T>) -> T {
+    vector_to_array!($name[$($x),+]);
+
+    impl<T> Dot<$name<T>> for $name<T> where T : Copy + Zero + Add<T, Output=T> + Mul<T, Output=T> {
+        type Output = T;
+        fn dot(self, other: $name<T>) -> Self::Output {
             $( (self.$x * other.$x)+ )+ Zero::zero()
         }
     }
 
-    impl<T> Zero for $name<T> where T : Copy + Add<T, Output=T> + Zero + PartialEq {
+    impl<T> Zero for $name<T> where T : Zero + Copy + PartialEq {
         fn zero() -> Self {
             let a = Zero::zero();
             $name { $($x : a),+ }
@@ -51,7 +75,7 @@ macro_rules! define_vec {($name:ident[$( $x:ident ),+]) => {
         }
     }
 
-    impl<T> One for $name<T> where T : Copy + Add<T, Output=T> + One + PartialEq {
+    impl<T> One for $name<T> where T : One + Copy + PartialEq {
         fn one() -> Self {
             let a = One::one();
             $name { $($x : a),+ }
@@ -149,20 +173,20 @@ macro_rules! define_vec {($name:ident[$( $x:ident ),+]) => {
     }
 };}
 
-define_vec!(Vec1[x]);
-define_vec!(Vec2[x, y]);
-define_vec!(Vec3[x, y, z]);
-define_vec!(Vec4[x, y, z, w]);
+// define_vector!(Vec1[x]);
+define_vector!(Vector2[x, y]);
+define_vector!(Vector3[x, y, z]);
+define_vector!(Vector4[x, y, z, w]);
 
-impl<T> Vec2<T> where T : Float {
+impl<T> Vector2<T> where T : Float {
     pub fn angle(&self) -> T {
         self.y.atan2(self.x)
     }
 }
 
-impl<T> Vec3<T> where T : Float {
-    pub fn cross(&self, other : &Vec3<T>) -> Vec3<T> {
-        Vec3 {
+impl<T> Vector3<T> where T : Float {
+    pub fn cross(&self, other : &Vector3<T>) -> Vector3<T> {
+        Vector3 {
             x : self.y * other.z - self.z * other.y,
             y : self.z * other.x - self.x * other.z,
             z : self.x * other.y - self.y * other.x,
