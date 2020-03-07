@@ -40,7 +40,7 @@ macro_rules! vector_to_array {
 
 // define `Vector` structs
 macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
-    #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Default, Debug)]
+    #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Debug)]
     pub struct $name<T> {
         $(
             pub $x : T,
@@ -88,6 +88,12 @@ macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
         fn is_one(&self) -> bool {
             let a = One::one();
             $(self.$x == a)&&+
+        }
+    }
+
+    impl<T> Default for $name<T> where T : Default {
+        fn default() -> Self {
+            $name { $($x : T::default()),+ }
         }
     }
 

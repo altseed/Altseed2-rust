@@ -4,5 +4,4 @@ Cargo.lock
 
 scripts/bindings/*
 scripts/cbg/*
-
-# src/binding.rs
+**/Log.txt
