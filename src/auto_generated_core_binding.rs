@@ -9,6 +9,7 @@
 use std::os::raw::*;
 use std::ffi::{ c_void };
 
+const NULLPTR : *mut RawPtr = 0 as *mut RawPtr;
 
 #[allow(dead_code)]
 fn decode_string(source: *const u16) -> String {
@@ -551,7 +552,7 @@ extern {
     
     fn cbg_Joystick_GetJoystickName(self_ptr : *mut RawPtr, index : c_int) -> *const u16;
     
-    fn cbg_Joystick_SetVibration(self_ptr : *mut RawPtr, index : c_int, high_freq : c_float, low_freq : c_float, high_amp : c_float, low_amp : c_float, life_time : c_int) -> ();
+    fn cbg_Joystick_Vibrate(self_ptr : *mut RawPtr, index : c_int, frequency : c_float, amplitude : c_float) -> ();
     
     fn cbg_Joystick_Release(self_ptr : *mut RawPtr) -> ();
     
@@ -1065,8 +1066,9 @@ pub struct Configuration {
 
 impl Configuration {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Configuration>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Configuration {
             self_ptr,
             is_fullscreen_mode : None,
@@ -1075,12 +1077,12 @@ impl Configuration {
             enabled_file_logging : None,
             log_filename : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static CONFIGURATION_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Configuration>>>> = RefCell::new(HashMap::new());
         }
@@ -1089,25 +1091,23 @@ impl Configuration {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
-    pub fn new() -> Rc<RefCell<Configuration>> {
+    pub fn new() -> Option<Rc<RefCell<Configuration>>> {
         Self::cbg_create_raw(unsafe{ cbg_Configuration_Constructor_0() })
     }
     
     /// 全画面モードかどうかを取得または設定します。
     pub fn get_is_fullscreen_mode(&mut self) -> bool {
-        if let Some(value) = self.is_fullscreen_mode.clone() {
-            return value;
-        }
+        if let Some(value) = self.is_fullscreen_mode.clone() { return value; }
         let ret = unsafe { cbg_Configuration_GetIsFullscreenMode(self.self_ptr) };
         ret
     }
@@ -1118,9 +1118,7 @@ impl Configuration {
     
     /// 画面サイズ可変かどうかを取得または設定します。
     pub fn get_is_resizable(&mut self) -> bool {
-        if let Some(value) = self.is_resizable.clone() {
-            return value;
-        }
+        if let Some(value) = self.is_resizable.clone() { return value; }
         let ret = unsafe { cbg_Configuration_GetIsResizable(self.self_ptr) };
         ret
     }
@@ -1131,9 +1129,7 @@ impl Configuration {
     
     /// ログをコンソールに出力するかどうかを取得または設定します。
     pub fn get_enabled_console_logging(&mut self) -> bool {
-        if let Some(value) = self.enabled_console_logging.clone() {
-            return value;
-        }
+        if let Some(value) = self.enabled_console_logging.clone() { return value; }
         let ret = unsafe { cbg_Configuration_GetEnabledConsoleLogging(self.self_ptr) };
         ret
     }
@@ -1144,9 +1140,7 @@ impl Configuration {
     
     /// ログをファイルに出力するかどうかを取得または設定します。
     pub fn get_enabled_file_logging(&mut self) -> bool {
-        if let Some(value) = self.enabled_file_logging.clone() {
-            return value;
-        }
+        if let Some(value) = self.enabled_file_logging.clone() { return value; }
         let ret = unsafe { cbg_Configuration_GetEnabledFileLogging(self.self_ptr) };
         ret
     }
@@ -1157,9 +1151,7 @@ impl Configuration {
     
     /// ログファイル名を取得または設定します。
     pub fn get_log_filename(&mut self) -> String {
-        if let Some(value) = self.log_filename.clone() {
-            return value;
-        }
+        if let Some(value) = self.log_filename.clone() { return value; }
         let ret = unsafe { cbg_Configuration_GetLogFilename(self.self_ptr) };
         decode_string(ret)
     }
@@ -1185,19 +1177,20 @@ pub struct Core {
 
 impl Core {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Core>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Core {
             self_ptr,
             target_f_p_s : None,
             framerate_mode : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static CORE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Core>>>> = RefCell::new(HashMap::new());
         }
@@ -1206,13 +1199,13 @@ impl Core {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1239,7 +1232,7 @@ impl Core {
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Core>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Core>>> {
         let ret = unsafe { cbg_Core_GetInstance() };
         Core::try_get_from_cache(ret)
     }
@@ -1258,9 +1251,7 @@ impl Core {
     
     /// 目標のFPSを取得または設定します。
     pub fn get_target_f_p_s(&mut self) -> f32 {
-        if let Some(value) = self.target_f_p_s.clone() {
-            return value;
-        }
+        if let Some(value) = self.target_f_p_s.clone() { return value; }
         let ret = unsafe { cbg_Core_GetTargetFPS(self.self_ptr) };
         ret
     }
@@ -1271,9 +1262,7 @@ impl Core {
     
     /// フレームレートモードを取得または設定します。デフォルトでは可変フレームレートです。
     pub fn get_framerate_mode(&mut self) -> FramerateMode {
-        if let Some(value) = self.framerate_mode.clone() {
-            return value;
-        }
+        if let Some(value) = self.framerate_mode.clone() { return value; }
         let ret = unsafe { cbg_Core_GetFramerateMode(self.self_ptr) };
         unsafe { std::mem::transmute(ret) }
     }
@@ -1297,17 +1286,18 @@ pub struct Int8Array {
 
 impl Int8Array {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Int8Array>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Int8Array {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static INT8ARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Int8Array>>>> = RefCell::new(HashMap::new());
         }
@@ -1316,13 +1306,13 @@ impl Int8Array {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1373,7 +1363,7 @@ impl Int8Array {
     /// インスタンスを作成します。
     /// # Arguments
     /// * `size` - 要素数
-    pub fn create(size : i32) -> Rc<RefCell<Int8Array>> {
+    pub fn create(size : i32) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_Int8Array_Create(size) };
         Int8Array::try_get_from_cache(ret)
     }
@@ -1399,17 +1389,18 @@ pub struct Int32Array {
 
 impl Int32Array {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Int32Array>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Int32Array {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static INT32ARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Int32Array>>>> = RefCell::new(HashMap::new());
         }
@@ -1418,13 +1409,13 @@ impl Int32Array {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1475,7 +1466,7 @@ impl Int32Array {
     /// インスタンスを作成します。
     /// # Arguments
     /// * `size` - 要素数
-    pub fn create(size : i32) -> Rc<RefCell<Int32Array>> {
+    pub fn create(size : i32) -> Option<Rc<RefCell<Int32Array>>> {
         let ret = unsafe { cbg_Int32Array_Create(size) };
         Int32Array::try_get_from_cache(ret)
     }
@@ -1501,17 +1492,18 @@ pub struct VertexArray {
 
 impl VertexArray {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<VertexArray>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         VertexArray {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static VERTEXARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<VertexArray>>>> = RefCell::new(HashMap::new());
         }
@@ -1520,13 +1512,13 @@ impl VertexArray {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1577,7 +1569,7 @@ impl VertexArray {
     /// インスタンスを作成します。
     /// # Arguments
     /// * `size` - 要素数
-    pub fn create(size : i32) -> Rc<RefCell<VertexArray>> {
+    pub fn create(size : i32) -> Option<Rc<RefCell<VertexArray>>> {
         let ret = unsafe { cbg_VertexArray_Create(size) };
         VertexArray::try_get_from_cache(ret)
     }
@@ -1603,17 +1595,18 @@ pub struct FloatArray {
 
 impl FloatArray {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<FloatArray>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         FloatArray {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static FLOATARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<FloatArray>>>> = RefCell::new(HashMap::new());
         }
@@ -1622,13 +1615,13 @@ impl FloatArray {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1679,7 +1672,7 @@ impl FloatArray {
     /// インスタンスを作成します。
     /// # Arguments
     /// * `size` - 要素数
-    pub fn create(size : i32) -> Rc<RefCell<FloatArray>> {
+    pub fn create(size : i32) -> Option<Rc<RefCell<FloatArray>>> {
         let ret = unsafe { cbg_FloatArray_Create(size) };
         FloatArray::try_get_from_cache(ret)
     }
@@ -1705,17 +1698,18 @@ pub struct Resources {
 
 impl Resources {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Resources>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Resources {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RESOURCES_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Resources>>>> = RefCell::new(HashMap::new());
         }
@@ -1724,18 +1718,18 @@ impl Resources {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Resources>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Resources>>> {
         let ret = unsafe { cbg_Resources_GetInstance() };
         Resources::try_get_from_cache(ret)
     }
@@ -1773,17 +1767,18 @@ pub struct Keyboard {
 
 impl Keyboard {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Keyboard>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Keyboard {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static KEYBOARD_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Keyboard>>>> = RefCell::new(HashMap::new());
         }
@@ -1792,13 +1787,13 @@ impl Keyboard {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -1811,7 +1806,7 @@ impl Keyboard {
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Keyboard>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Keyboard>>> {
         let ret = unsafe { cbg_Keyboard_GetInstance() };
         Keyboard::try_get_from_cache(ret)
     }
@@ -1833,19 +1828,20 @@ pub struct Mouse {
 
 impl Mouse {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Mouse>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Mouse {
             self_ptr,
             position : None,
             cursor_mode : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static MOUSE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Mouse>>>> = RefCell::new(HashMap::new());
         }
@@ -1854,18 +1850,18 @@ impl Mouse {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Mouse>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Mouse>>> {
         let ret = unsafe { cbg_Mouse_GetInstance() };
         Mouse::try_get_from_cache(ret)
     }
@@ -1886,9 +1882,7 @@ impl Mouse {
     
     /// マウスカーソルの座標を取得または設定します。
     pub fn get_position(&mut self) -> crate::math::Vector2<f32> {
-        if let Some(value) = self.position.clone() {
-            return value;
-        }
+        if let Some(value) = self.position.clone() { return value; }
         let ret = unsafe { cbg_Mouse_GetPosition(self.self_ptr) };
         ret.into()
     }
@@ -1899,9 +1893,7 @@ impl Mouse {
     
     /// カーソルのモードを取得または設定します。
     pub fn get_cursor_mode(&mut self) -> CursorMode {
-        if let Some(value) = self.cursor_mode.clone() {
-            return value;
-        }
+        if let Some(value) = self.cursor_mode.clone() { return value; }
         let ret = unsafe { cbg_Mouse_GetCursorMode(self.self_ptr) };
         unsafe { std::mem::transmute(ret) }
     }
@@ -1925,17 +1917,18 @@ pub struct Joystick {
 
 impl Joystick {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Joystick>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Joystick {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static JOYSTICK_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Joystick>>>> = RefCell::new(HashMap::new());
         }
@@ -1944,18 +1937,18 @@ impl Joystick {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Joystick>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Joystick>>> {
         let ret = unsafe { cbg_Joystick_GetInstance() };
         Joystick::try_get_from_cache(ret)
     }
@@ -2025,16 +2018,13 @@ impl Joystick {
         decode_string(ret)
     }
     
-    /// 振動を設定します。
+    /// 指定したジョイスティックコントローラーを振動させます
     /// # Arguments
     /// * `index` - ジョイスティックのインデックス
-    /// * `high_freq` - 
-    /// * `low_freq` - 
-    /// * `high_amp` - 
-    /// * `low_amp` - 
-    /// * `life_time` - 
-    pub fn set_vibration(&mut self, index : i32, high_freq : f32, low_freq : f32, high_amp : f32, low_amp : f32, life_time : i32) -> () {
-        unsafe { cbg_Joystick_SetVibration(self.self_ptr, index, high_freq, low_freq, high_amp, low_amp, life_time) }
+    /// * `frequency` - 周波数
+    /// * `amplitude` - 振幅
+    pub fn vibrate(&mut self, index : i32, frequency : f32, amplitude : f32) -> () {
+        unsafe { cbg_Joystick_Vibrate(self.self_ptr, index, frequency, amplitude) }
     }
     
 }
@@ -2052,17 +2042,18 @@ pub struct Graphics {
 
 impl Graphics {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Graphics>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Graphics {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static GRAPHICS_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Graphics>>>> = RefCell::new(HashMap::new());
         }
@@ -2071,18 +2062,18 @@ impl Graphics {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Graphics>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Graphics>>> {
         let ret = unsafe { cbg_Graphics_GetInstance() };
         Graphics::try_get_from_cache(ret)
     }
@@ -2106,13 +2097,13 @@ impl Graphics {
     }
     
     /// コマンドリストを取得します。
-    pub fn get_command_list(&mut self) -> Rc<RefCell<CommandList>> {
+    pub fn get_command_list(&mut self) -> Option<Rc<RefCell<CommandList>>> {
         let ret = unsafe { cbg_Graphics_GetCommandList(self.self_ptr) };
         CommandList::try_get_from_cache(ret)
     }
     
     /// 組み込みのシェーダを取得します。
-    pub fn get_builtin_shader(&mut self) -> Rc<RefCell<BuiltinShader>> {
+    pub fn get_builtin_shader(&mut self) -> Option<Rc<RefCell<BuiltinShader>>> {
         let ret = unsafe { cbg_Graphics_GetBuiltinShader(self.self_ptr) };
         BuiltinShader::try_get_from_cache(ret)
     }
@@ -2132,17 +2123,18 @@ pub struct Texture2D {
 
 impl Texture2D {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Texture2D>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Texture2D {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static TEXTURE2D_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Texture2D>>>> = RefCell::new(HashMap::new());
         }
@@ -2151,20 +2143,20 @@ impl Texture2D {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// 指定したファイルからテクスチャを読み込みます。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
-    pub fn load(path : &str) -> Rc<RefCell<Texture2D>> {
+    pub fn load(path : &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Texture2D_Load(encode_string(&path).as_ptr()) };
         Texture2D::try_get_from_cache(ret)
     }
@@ -2197,18 +2189,19 @@ pub struct Material {
 
 impl Material {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Material>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Material {
             self_ptr,
             shader : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static MATERIAL_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Material>>>> = RefCell::new(HashMap::new());
         }
@@ -2217,18 +2210,18 @@ impl Material {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// 
-    pub fn new() -> Rc<RefCell<Material>> {
+    pub fn new() -> Option<Rc<RefCell<Material>>> {
         Self::cbg_create_raw(unsafe{ cbg_Material_Constructor_0() })
     }
     
@@ -2267,7 +2260,7 @@ impl Material {
     /// 
     /// # Arguments
     /// * `key` - 
-    pub fn get_texture(&mut self, key : &str) -> Rc<RefCell<Texture2D>> {
+    pub fn get_texture(&mut self, key : &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
         Texture2D::try_get_from_cache(ret)
     }
@@ -2281,10 +2274,8 @@ impl Material {
     }
     
     /// 
-    pub fn get_shader(&mut self) -> Rc<RefCell<Shader>> {
-        if let Some(value) = self.shader.clone() {
-            return value;
-        }
+    pub fn get_shader(&mut self) -> Option<Rc<RefCell<Shader>>> {
+        if let Some(value) = self.shader.clone() { return Some(value) }
         let ret = unsafe { cbg_Material_GetShader(self.self_ptr) };
         Shader::try_get_from_cache(ret)
     }
@@ -2308,17 +2299,18 @@ pub struct Renderer {
 
 impl Renderer {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Renderer>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Renderer {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDERER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Renderer>>>> = RefCell::new(HashMap::new());
         }
@@ -2327,18 +2319,18 @@ impl Renderer {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Renderer>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Renderer>>> {
         let ret = unsafe { cbg_Renderer_GetInstance() };
         Renderer::try_get_from_cache(ret)
     }
@@ -2387,17 +2379,18 @@ pub struct CommandList {
 
 impl CommandList {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<CommandList>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         CommandList {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static COMMANDLIST_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<CommandList>>>> = RefCell::new(HashMap::new());
         }
@@ -2406,13 +2399,13 @@ impl CommandList {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -2436,17 +2429,18 @@ pub struct Rendered {
 
 impl Rendered {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Rendered>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Rendered {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDERED_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Rendered>>>> = RefCell::new(HashMap::new());
         }
@@ -2455,13 +2449,13 @@ impl Rendered {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -2484,8 +2478,9 @@ pub struct RenderedSprite {
 
 impl RenderedSprite {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<RenderedSprite>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         RenderedSprite {
             self_ptr,
             texture : None,
@@ -2493,12 +2488,12 @@ impl RenderedSprite {
             transform : None,
             material : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDSPRITE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedSprite>>>> = RefCell::new(HashMap::new());
         }
@@ -2507,27 +2502,25 @@ impl RenderedSprite {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// スプライトを作成します。
-    pub fn create() -> Rc<RefCell<RenderedSprite>> {
+    pub fn create() -> Option<Rc<RefCell<RenderedSprite>>> {
         let ret = unsafe { cbg_RenderedSprite_Create() };
         RenderedSprite::try_get_from_cache(ret)
     }
     
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Rc<RefCell<Texture2D>> {
-        if let Some(value) = self.texture.clone() {
-            return value;
-        }
+    pub fn get_texture(&mut self) -> Option<Rc<RefCell<Texture2D>>> {
+        if let Some(value) = self.texture.clone() { return Some(value) }
         let ret = unsafe { cbg_RenderedSprite_GetTexture(self.self_ptr) };
         Texture2D::try_get_from_cache(ret)
     }
@@ -2538,9 +2531,7 @@ impl RenderedSprite {
     
     /// 描画範囲を取得または設定します。
     pub fn get_src(&mut self) -> crate::structs::rect::Rect<f32> {
-        if let Some(value) = self.src.clone() {
-            return value;
-        }
+        if let Some(value) = self.src.clone() { return value; }
         let ret = unsafe { cbg_RenderedSprite_GetSrc(self.self_ptr) };
         ret.into()
     }
@@ -2551,9 +2542,7 @@ impl RenderedSprite {
     
     /// 変換行列を取得または設定します。
     pub fn get_transform(&mut self) -> crate::math::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
-        }
+        if let Some(value) = self.transform.clone() { return value; }
         let ret = unsafe { cbg_RenderedSprite_GetTransform(self.self_ptr) };
         ret.into()
     }
@@ -2563,10 +2552,8 @@ impl RenderedSprite {
     }
     
     /// マテリアルを取得または設定します。
-    pub fn get_material(&mut self) -> Rc<RefCell<Material>> {
-        if let Some(value) = self.material.clone() {
-            return value;
-        }
+    pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
+        if let Some(value) = self.material.clone() { return Some(value) }
         let ret = unsafe { cbg_RenderedSprite_GetMaterial(self.self_ptr) };
         Material::try_get_from_cache(ret)
     }
@@ -2596,8 +2583,9 @@ pub struct RenderedText {
 
 impl RenderedText {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<RenderedText>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         RenderedText {
             self_ptr,
             transform : None,
@@ -2607,12 +2595,12 @@ impl RenderedText {
             weight : None,
             color : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDTEXT_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedText>>>> = RefCell::new(HashMap::new());
         }
@@ -2621,27 +2609,25 @@ impl RenderedText {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// テキストを作成します。
-    pub fn create() -> Rc<RefCell<RenderedText>> {
+    pub fn create() -> Option<Rc<RefCell<RenderedText>>> {
         let ret = unsafe { cbg_RenderedText_Create() };
         RenderedText::try_get_from_cache(ret)
     }
     
     /// 変換行列を取得または設定します。
     pub fn get_transform(&mut self) -> crate::math::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
-        }
+        if let Some(value) = self.transform.clone() { return value; }
         let ret = unsafe { cbg_RenderedText_GetTransform(self.self_ptr) };
         ret.into()
     }
@@ -2651,10 +2637,8 @@ impl RenderedText {
     }
     
     /// マテリアルを取得または設定します。
-    pub fn get_material(&mut self) -> Rc<RefCell<Material>> {
-        if let Some(value) = self.material.clone() {
-            return value;
-        }
+    pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
+        if let Some(value) = self.material.clone() { return Some(value) }
         let ret = unsafe { cbg_RenderedText_GetMaterial(self.self_ptr) };
         Material::try_get_from_cache(ret)
     }
@@ -2665,9 +2649,7 @@ impl RenderedText {
     
     /// テキストを取得または設定します。
     pub fn get_text(&mut self) -> String {
-        if let Some(value) = self.text.clone() {
-            return value;
-        }
+        if let Some(value) = self.text.clone() { return value; }
         let ret = unsafe { cbg_RenderedText_GetText(self.self_ptr) };
         decode_string(ret)
     }
@@ -2677,10 +2659,8 @@ impl RenderedText {
     }
     
     /// フォントを取得または設定します。
-    pub fn get_font(&mut self) -> Arc<Mutex<Font>> {
-        if let Some(value) = self.font.clone() {
-            return value;
-        }
+    pub fn get_font(&mut self) -> Option<Arc<Mutex<Font>>> {
+        if let Some(value) = self.font.clone() { return Some(value) }
         let ret = unsafe { cbg_RenderedText_GetFont(self.self_ptr) };
         Font::try_get_from_cache(ret)
     }
@@ -2691,9 +2671,7 @@ impl RenderedText {
     
     /// 文字の太さを取得または設定します。(0 ~ 255)
     pub fn get_weight(&mut self) -> f32 {
-        if let Some(value) = self.weight.clone() {
-            return value;
-        }
+        if let Some(value) = self.weight.clone() { return value; }
         let ret = unsafe { cbg_RenderedText_GetWeight(self.self_ptr) };
         ret
     }
@@ -2704,9 +2682,7 @@ impl RenderedText {
     
     /// 色を取得または設定します。
     pub fn get_color(&mut self) -> crate::structs::color::Color {
-        if let Some(value) = self.color.clone() {
-            return value;
-        }
+        if let Some(value) = self.color.clone() { return value; }
         let ret = unsafe { cbg_RenderedText_GetColor(self.self_ptr) };
         ret.into()
     }
@@ -2730,17 +2706,18 @@ pub struct RenderedCamera {
 
 impl RenderedCamera {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<RenderedCamera>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         RenderedCamera {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDCAMERA_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedCamera>>>> = RefCell::new(HashMap::new());
         }
@@ -2749,13 +2726,13 @@ impl RenderedCamera {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -2774,17 +2751,18 @@ pub struct BuiltinShader {
 
 impl BuiltinShader {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<BuiltinShader>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         BuiltinShader {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static BUILTINSHADER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<BuiltinShader>>>> = RefCell::new(HashMap::new());
         }
@@ -2793,20 +2771,20 @@ impl BuiltinShader {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// シェーダを取得します。
     /// # Arguments
     /// * `type_` - シェーダの種類
-    pub fn create(&mut self, type_ : BuiltinShaderType) -> Rc<RefCell<Shader>> {
+    pub fn create(&mut self, type_ : BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_BuiltinShader_Create(self.self_ptr, type_ as i32) };
         Shader::try_get_from_cache(ret)
     }
@@ -2826,17 +2804,18 @@ pub struct Shader {
 
 impl Shader {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Shader>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Shader {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SHADER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Shader>>>> = RefCell::new(HashMap::new());
         }
@@ -2845,13 +2824,13 @@ impl Shader {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -2868,23 +2847,24 @@ pub struct Glyph {
     self_ptr : *mut RawPtr,
 }
 
-    unsafe impl Send for Glyph { }
-    unsafe impl Sync for Glyph { }
+unsafe impl Send for Glyph { }
+unsafe impl Sync for Glyph { }
     
 
 impl Glyph {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Glyph>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Arc::new(Mutex::new(
         Glyph {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref GLYPH_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Glyph>>>> = RwLock::new(HashMap::new());
         }
@@ -2892,13 +2872,13 @@ impl Glyph {
         let storage = RawPtrStorage(self_ptr);
         if let Some(x) = hash_map.get(&storage) {
             match x.upgrade() {
-                Some(o) => { return o; },
+                Some(o) => { return Some(o); },
                 None => { hash_map.remove(&storage); },
             }
         }
-        let o = Self::cbg_create_raw(self_ptr);
+        let o = Self::cbg_create_raw(self_ptr)?;
         hash_map.insert(storage, Arc::downgrade(&o));
-        o
+        Some(o)
     }
     
     /// 文字テクスチャのサイズを取得する
@@ -2950,23 +2930,24 @@ pub struct Font {
     self_ptr : *mut RawPtr,
 }
 
-    unsafe impl Send for Font { }
-    unsafe impl Sync for Font { }
+unsafe impl Send for Font { }
+unsafe impl Sync for Font { }
     
 
 impl Font {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Font>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Arc::new(Mutex::new(
         Font {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref FONT_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Font>>>> = RwLock::new(HashMap::new());
         }
@@ -2974,20 +2955,20 @@ impl Font {
         let storage = RawPtrStorage(self_ptr);
         if let Some(x) = hash_map.get(&storage) {
             match x.upgrade() {
-                Some(o) => { return o; },
+                Some(o) => { return Some(o); },
                 None => { hash_map.remove(&storage); },
             }
         }
-        let o = Self::cbg_create_raw(self_ptr);
+        let o = Self::cbg_create_raw(self_ptr)?;
         hash_map.insert(storage, Arc::downgrade(&o));
-        o
+        Some(o)
     }
     
     /// 動的にフォントを生成します
     /// # Arguments
     /// * `path` - 読み込むフォントのパス
     /// * `size` - フォントのサイズ
-    pub fn load_dynamic_font(path : &str, size : i32) -> Arc<Mutex<Font>> {
+    pub fn load_dynamic_font(path : &str, size : i32) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadDynamicFont(encode_string(&path).as_ptr(), size) };
         Font::try_get_from_cache(ret)
     }
@@ -2995,7 +2976,7 @@ impl Font {
     /// 静的にフォントを生成します
     /// # Arguments
     /// * `path` - 読み込むフォントのパス
-    pub fn load_static_font(path : &str) -> Arc<Mutex<Font>> {
+    pub fn load_static_font(path : &str) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadStaticFont(encode_string(&path).as_ptr()) };
         Font::try_get_from_cache(ret)
     }
@@ -3003,7 +2984,7 @@ impl Font {
     /// 文字情報を取得する
     /// # Arguments
     /// * `character` - 文字
-    pub fn get_glyph(&mut self, character : i32) -> Arc<Mutex<Glyph>> {
+    pub fn get_glyph(&mut self, character : i32) -> Option<Arc<Mutex<Glyph>>> {
         let ret = unsafe { cbg_Font_GetGlyph(self.self_ptr, character) };
         Glyph::try_get_from_cache(ret)
     }
@@ -3011,7 +2992,7 @@ impl Font {
     /// 文字列テクスチャを得る
     /// # Arguments
     /// * `index` - インデックス
-    pub fn get_font_texture(&mut self, index : i32) -> Rc<RefCell<Texture2D>> {
+    pub fn get_font_texture(&mut self, index : i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetFontTexture(self.self_ptr, index) };
         Texture2D::try_get_from_cache(ret)
     }
@@ -3038,7 +3019,7 @@ impl Font {
     /// テクスチャ追加対応フォントを生成します
     /// # Arguments
     /// * `base_font` - ベースとなるフォント
-    pub fn create_image_font(base_font : &mut Font) -> Arc<Mutex<Font>> {
+    pub fn create_image_font(base_font : &mut Font) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_CreateImageFont(base_font.self_ptr) };
         Font::try_get_from_cache(ret)
     }
@@ -3054,7 +3035,7 @@ impl Font {
     /// テクスチャ文字を取得する
     /// # Arguments
     /// * `character` - 文字
-    pub fn get_image_glyph(&mut self, character : i32) -> Rc<RefCell<Texture2D>> {
+    pub fn get_image_glyph(&mut self, character : i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetImageGlyph(self.self_ptr, character) };
         Texture2D::try_get_from_cache(ret)
     }
@@ -3098,17 +3079,18 @@ pub struct Tool {
 
 impl Tool {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Tool>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Tool {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static TOOL_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Tool>>>> = RefCell::new(HashMap::new());
         }
@@ -3117,17 +3099,17 @@ impl Tool {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
-    pub(crate) fn get_instance() -> Rc<RefCell<Tool>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Tool>>> {
         let ret = unsafe { cbg_Tool_GetInstance() };
         Tool::try_get_from_cache(ret)
     }
@@ -3636,23 +3618,24 @@ pub struct StreamFile {
     self_ptr : *mut RawPtr,
 }
 
-    unsafe impl Send for StreamFile { }
-    unsafe impl Sync for StreamFile { }
+unsafe impl Send for StreamFile { }
+unsafe impl Sync for StreamFile { }
     
 
 impl StreamFile {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<StreamFile>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Arc::new(Mutex::new(
         StreamFile {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref STREAMFILE_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<StreamFile>>>> = RwLock::new(HashMap::new());
         }
@@ -3660,19 +3643,19 @@ impl StreamFile {
         let storage = RawPtrStorage(self_ptr);
         if let Some(x) = hash_map.get(&storage) {
             match x.upgrade() {
-                Some(o) => { return o; },
+                Some(o) => { return Some(o); },
                 None => { hash_map.remove(&storage); },
             }
         }
-        let o = Self::cbg_create_raw(self_ptr);
+        let o = Self::cbg_create_raw(self_ptr)?;
         hash_map.insert(storage, Arc::downgrade(&o));
-        o
+        Some(o)
     }
     
     /// 指定ファイルを読み込むStreamFileの新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
-    pub fn create(path : &str) -> Arc<Mutex<StreamFile>> {
+    pub fn create(path : &str) -> Option<Arc<Mutex<StreamFile>>> {
         let ret = unsafe { cbg_StreamFile_Create(encode_string(&path).as_ptr()) };
         StreamFile::try_get_from_cache(ret)
     }
@@ -3686,7 +3669,7 @@ impl StreamFile {
     }
     
     /// 現在読み込んでいるファイルのデータを取得します。
-    pub(crate) fn get_temp_buffer(&mut self) -> Rc<RefCell<Int8Array>> {
+    pub(crate) fn get_temp_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StreamFile_GetTempBuffer(self.self_ptr) };
         Int8Array::try_get_from_cache(ret)
     }
@@ -3734,23 +3717,24 @@ pub struct StaticFile {
     self_ptr : *mut RawPtr,
 }
 
-    unsafe impl Send for StaticFile { }
-    unsafe impl Sync for StaticFile { }
+unsafe impl Send for StaticFile { }
+unsafe impl Sync for StaticFile { }
     
 
 impl StaticFile {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
-        Arc::new(Mutex::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<StaticFile>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Arc::new(Mutex::new(
         StaticFile {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Arc<Mutex<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref STATICFILE_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<StaticFile>>>> = RwLock::new(HashMap::new());
         }
@@ -3758,25 +3742,25 @@ impl StaticFile {
         let storage = RawPtrStorage(self_ptr);
         if let Some(x) = hash_map.get(&storage) {
             match x.upgrade() {
-                Some(o) => { return o; },
+                Some(o) => { return Some(o); },
                 None => { hash_map.remove(&storage); },
             }
         }
-        let o = Self::cbg_create_raw(self_ptr);
+        let o = Self::cbg_create_raw(self_ptr)?;
         hash_map.insert(storage, Arc::downgrade(&o));
-        o
+        Some(o)
     }
     
     /// 指定ファイルを読み込んだStaticFileの新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
-    pub fn create(path : &str) -> Arc<Mutex<StaticFile>> {
+    pub fn create(path : &str) -> Option<Arc<Mutex<StaticFile>>> {
         let ret = unsafe { cbg_StaticFile_Create(encode_string(&path).as_ptr()) };
         StaticFile::try_get_from_cache(ret)
     }
     
     /// 読み込んだファイルのデータを取得します。
-    pub(crate) fn get_buffer(&mut self) -> Rc<RefCell<Int8Array>> {
+    pub(crate) fn get_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StaticFile_GetBuffer(self.self_ptr) };
         Int8Array::try_get_from_cache(ret)
     }
@@ -3820,17 +3804,18 @@ pub struct File {
 
 impl File {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<File>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         File {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static FILE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<File>>>> = RefCell::new(HashMap::new());
         }
@@ -3839,18 +3824,18 @@ impl File {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<File>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<File>>> {
         let ret = unsafe { cbg_File_GetInstance() };
         File::try_get_from_cache(ret)
     }
@@ -3930,20 +3915,21 @@ pub struct Sound {
 
 impl Sound {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Sound>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Sound {
             self_ptr,
             loop_starting_point : None,
             loop_end_point : None,
             is_looping_mode : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SOUND_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Sound>>>> = RefCell::new(HashMap::new());
         }
@@ -3952,13 +3938,13 @@ impl Sound {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
@@ -3966,16 +3952,14 @@ impl Sound {
     /// # Arguments
     /// * `path` - 
     /// * `is_decompressed` - 
-    pub fn load(path : &str, is_decompressed : bool) -> Rc<RefCell<Sound>> {
+    pub fn load(path : &str, is_decompressed : bool) -> Option<Rc<RefCell<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
         Sound::try_get_from_cache(ret)
     }
     
     /// ループ開始地点(秒)を取得または設定します。
     pub fn get_loop_starting_point(&mut self) -> f32 {
-        if let Some(value) = self.loop_starting_point.clone() {
-            return value;
-        }
+        if let Some(value) = self.loop_starting_point.clone() { return value; }
         let ret = unsafe { cbg_Sound_GetLoopStartingPoint(self.self_ptr) };
         ret
     }
@@ -3986,9 +3970,7 @@ impl Sound {
     
     /// ループ終了地点(秒)を取得または設定します。
     pub fn get_loop_end_point(&mut self) -> f32 {
-        if let Some(value) = self.loop_end_point.clone() {
-            return value;
-        }
+        if let Some(value) = self.loop_end_point.clone() { return value; }
         let ret = unsafe { cbg_Sound_GetLoopEndPoint(self.self_ptr) };
         ret
     }
@@ -3999,9 +3981,7 @@ impl Sound {
     
     /// ループするかどうかを取得または設定します。
     pub fn get_is_looping_mode(&mut self) -> bool {
-        if let Some(value) = self.is_looping_mode.clone() {
-            return value;
-        }
+        if let Some(value) = self.is_looping_mode.clone() { return value; }
         let ret = unsafe { cbg_Sound_GetIsLoopingMode(self.self_ptr) };
         ret
     }
@@ -4031,17 +4011,18 @@ pub struct SoundMixer {
 
 impl SoundMixer {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<SoundMixer>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         SoundMixer {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SOUNDMIXER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<SoundMixer>>>> = RefCell::new(HashMap::new());
         }
@@ -4050,17 +4031,17 @@ impl SoundMixer {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
-    pub(crate) fn get_instance() -> Rc<RefCell<SoundMixer>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<SoundMixer>>> {
         let ret = unsafe { cbg_SoundMixer_GetInstance() };
         SoundMixer::try_get_from_cache(ret)
     }
@@ -4228,17 +4209,18 @@ pub struct Log {
 
 impl Log {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Log>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Log {
             self_ptr,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static LOG_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Log>>>> = RefCell::new(HashMap::new());
         }
@@ -4247,18 +4229,18 @@ impl Log {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Log>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Log>>> {
         let ret = unsafe { cbg_Log_GetInstance() };
         Log::try_get_from_cache(ret)
     }
@@ -4327,18 +4309,19 @@ pub struct Window {
 
 impl Window {
     #[allow(dead_code)]
-    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Window>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
         Window {
             self_ptr,
             title : None,
         }
-        ))
+        )))
     }
     
     
     #[allow(dead_code)]
-    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Rc<RefCell<Self>> {
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static WINDOW_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Window>>>> = RefCell::new(HashMap::new());
         }
@@ -4347,26 +4330,24 @@ impl Window {
             let storage = RawPtrStorage(self_ptr);
             if let Some(x) = hash_map.get(&storage) {
                 match x.upgrade() {
-                    Some(o) => { return o; },
+                    Some(o) => { return Some(o); },
                     None => { hash_map.remove(&storage); },
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr);
+            let o = Self::cbg_create_raw(self_ptr)?;
             hash_map.insert(storage, Rc::downgrade(&o));
-            o
+            Some(o)
         })
     }
     
     /// インスタンスを取得します。
-    pub(crate) fn get_instance() -> Rc<RefCell<Window>> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Window>>> {
         let ret = unsafe { cbg_Window_GetInstance() };
         Window::try_get_from_cache(ret)
     }
     
     pub fn get_title(&mut self) -> String {
-        if let Some(value) = self.title.clone() {
-            return value;
-        }
+        if let Some(value) = self.title.clone() { return value; }
         let ret = unsafe { cbg_Window_GetTitle(self.self_ptr) };
         decode_string(ret)
     }

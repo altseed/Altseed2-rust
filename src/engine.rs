@@ -25,18 +25,18 @@ impl Engine {
     pub fn initialize_with(title: &str, width: i32, height: i32, config: &mut Configuration) -> Option<Engine> {
         if Core::initialize(title, width, height, config) {
             Some(Engine {
-                core: Core::get_instance(),
-                graphics: Graphics::get_instance(),
-                renderer: Renderer::get_instance(),
-                resources: Resources::get_instance(),
-                window: Window::get_instance(),
-                file: File::get_instance(),
-                keyboard: Keyboard::get_instance(),
-                mouse: Mouse::get_instance(),
-                joystick: Joystick::get_instance(),
-                sound: SoundMixer::get_instance(),
-                log: Log::get_instance(),
-                tool: Tool::get_instance(),
+                core: Core::get_instance()?,
+                graphics: Graphics::get_instance()?,
+                renderer: Renderer::get_instance()?,
+                resources: Resources::get_instance()?,
+                window: Window::get_instance()?,
+                file: File::get_instance()?,
+                keyboard: Keyboard::get_instance()?,
+                mouse: Mouse::get_instance()?,
+                joystick: Joystick::get_instance()?,
+                sound: SoundMixer::get_instance()?,
+                log: Log::get_instance()?,
+                tool: Tool::get_instance()?,
             })
         } else {
             None
@@ -48,7 +48,7 @@ impl Engine {
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
     pub fn initialize(title: &str, width: i32, height: i32) -> Option<Engine> {
-        let config = Configuration::new();
+        let config = Configuration::new()?;
         Engine::initialize_with(title, width, height, &mut config.clone().borrow_mut())
     }
 
@@ -69,11 +69,12 @@ impl Engine {
     pub fn update(&mut self) -> bool {
         if !self.graphics.borrow_mut().begin_frame() { return false; }
 
-        let cmd_list = self.graphics.borrow_mut().get_command_list();
-
-        cmd_list.borrow_mut().set_render_target_with_screen();
-
-        self.renderer.borrow_mut().render(&mut cmd_list.borrow_mut());
+        if let Some(cmd_list) = self.graphics.borrow_mut().get_command_list() {
+            cmd_list.borrow_mut().set_render_target_with_screen();
+            self.renderer.borrow_mut().render(&mut cmd_list.borrow_mut());
+        } else {
+            return false;
+        }
 
         if !self.graphics.borrow_mut().end_frame() { return false; }
 
