@@ -81,7 +81,7 @@ impl Engine {
     }
 
     /// ウインドウのタイトルを取得します。
-    pub fn get_window_title(&self) -> String {
+    pub fn get_window_title(&mut self) -> String {
         self.window.borrow_mut().get_title()
     }
 
@@ -91,7 +91,7 @@ impl Engine {
     }
 
     /// フレームレートの制御方法を取得します。
-    pub fn get_framerate_mode(&self) -> FramerateMode {
+    pub fn get_framerate_mode(&mut self) -> FramerateMode {
         self.core.borrow_mut().get_framerate_mode()
     }
 
@@ -101,7 +101,7 @@ impl Engine {
     }
 
     /// 目標フレームレートを取得します。
-    pub fn get_target_fps(&self) -> f32 {
+    pub fn get_target_fps(&mut self) -> f32 {
         self.core.borrow_mut().get_target_f_p_s()
     }
 
@@ -111,7 +111,7 @@ impl Engine {
     }
 
     /// 現在のFPSを取得します。
-    pub fn get_current_fps(&self) -> f32 {
+    pub fn get_current_fps(&mut self) -> f32 {
         self.core.borrow_mut().get_current_f_p_s()
     }
 
