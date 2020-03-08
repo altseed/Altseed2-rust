@@ -1822,7 +1822,7 @@ impl Drop for Keyboard {
 #[derive(Debug)]
 pub struct Mouse {
     self_ptr : *mut RawPtr,
-    position : Option<crate::math::Vector2<f32>>,
+    position : Option<crate::prelude::Vector2<f32>>,
     cursor_mode : Option<CursorMode>,
 }
 
@@ -1881,12 +1881,12 @@ impl Mouse {
     }
     
     /// マウスカーソルの座標を取得または設定します。
-    pub fn get_position(&mut self) -> crate::math::Vector2<f32> {
+    pub fn get_position(&mut self) -> crate::prelude::Vector2<f32> {
         if let Some(value) = self.position.clone() { return value; }
         let ret = unsafe { cbg_Mouse_GetPosition(self.self_ptr) };
         ret.into()
     }
-    pub fn set_position(&mut self, value : crate::math::Vector2<f32>) {
+    pub fn set_position(&mut self, value : crate::prelude::Vector2<f32>) {
         self.position = Some(value.clone());
         unsafe { cbg_Mouse_SetPosition(self.self_ptr, value.into()) }
     }
@@ -2168,7 +2168,7 @@ impl Texture2D {
     }
     
     /// テクスチャの大きさ(ピクセル)を取得します。
-    pub fn get_size(&mut self) -> crate::math::Vector2<i32> {
+    pub fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
         ret.into()
     }
@@ -2228,7 +2228,7 @@ impl Material {
     /// 
     /// # Arguments
     /// * `key` - 
-    pub fn get_vector4_f(&mut self, key : &str) -> crate::math::Vector4<f32> {
+    pub fn get_vector4_f(&mut self, key : &str) -> crate::prelude::Vector4<f32> {
         let ret = unsafe { cbg_Material_GetVector4F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
@@ -2237,14 +2237,14 @@ impl Material {
     /// # Arguments
     /// * `key` - 
     /// * `value` - 
-    pub fn set_vector4_f(&mut self, key : &str, value : crate::math::Vector4<f32>) -> () {
+    pub fn set_vector4_f(&mut self, key : &str, value : crate::prelude::Vector4<f32>) -> () {
         unsafe { cbg_Material_SetVector4F(self.self_ptr, encode_string(&key).as_ptr(), value.into()) }
     }
     
     /// 
     /// # Arguments
     /// * `key` - 
-    pub fn get_matrix44_f(&mut self, key : &str) -> crate::math::Matrix44<f32> {
+    pub fn get_matrix44_f(&mut self, key : &str) -> crate::prelude::Matrix44<f32> {
         let ret = unsafe { cbg_Material_GetMatrix44F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
@@ -2253,7 +2253,7 @@ impl Material {
     /// # Arguments
     /// * `key` - 
     /// * `value` - 
-    pub fn set_matrix44_f(&mut self, key : &str, value : crate::math::Matrix44<f32>) -> () {
+    pub fn set_matrix44_f(&mut self, key : &str, value : crate::prelude::Matrix44<f32>) -> () {
         unsafe { cbg_Material_SetMatrix44F(self.self_ptr, encode_string(&key).as_ptr(), value.into()) }
     }
     
@@ -2472,7 +2472,7 @@ pub struct RenderedSprite {
     self_ptr : *mut RawPtr,
     texture : Option<Rc<RefCell<Texture2D>>>,
     src : Option<crate::structs::rect::Rect<f32>>,
-    transform : Option<crate::math::Matrix44<f32>>,
+    transform : Option<crate::prelude::Matrix44<f32>>,
     material : Option<Rc<RefCell<Material>>>,
 }
 
@@ -2541,12 +2541,12 @@ impl RenderedSprite {
     }
     
     /// 変換行列を取得または設定します。
-    pub fn get_transform(&mut self) -> crate::math::Matrix44<f32> {
+    pub fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() { return value; }
         let ret = unsafe { cbg_RenderedSprite_GetTransform(self.self_ptr) };
         ret.into()
     }
-    pub fn set_transform(&mut self, value : crate::math::Matrix44<f32>) {
+    pub fn set_transform(&mut self, value : crate::prelude::Matrix44<f32>) {
         self.transform = Some(value.clone());
         unsafe { cbg_RenderedSprite_SetTransform(self.self_ptr, value.into()) }
     }
@@ -2573,7 +2573,7 @@ impl Drop for RenderedSprite {
 #[derive(Debug)]
 pub struct RenderedText {
     self_ptr : *mut RawPtr,
-    transform : Option<crate::math::Matrix44<f32>>,
+    transform : Option<crate::prelude::Matrix44<f32>>,
     material : Option<Rc<RefCell<Material>>>,
     text : Option<String>,
     font : Option<Arc<Mutex<Font>>>,
@@ -2626,12 +2626,12 @@ impl RenderedText {
     }
     
     /// 変換行列を取得または設定します。
-    pub fn get_transform(&mut self) -> crate::math::Matrix44<f32> {
+    pub fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() { return value; }
         let ret = unsafe { cbg_RenderedText_GetTransform(self.self_ptr) };
         ret.into()
     }
-    pub fn set_transform(&mut self, value : crate::math::Matrix44<f32>) {
+    pub fn set_transform(&mut self, value : crate::prelude::Matrix44<f32>) {
         self.transform = Some(value.clone());
         unsafe { cbg_RenderedText_SetTransform(self.self_ptr, value.into()) }
     }
@@ -2882,7 +2882,7 @@ impl Glyph {
     }
     
     /// 文字テクスチャのサイズを取得する
-    pub fn get_texture_size(&mut self) -> crate::math::Vector2<i32> {
+    pub fn get_texture_size(&mut self) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Glyph_GetTextureSize(self.self_ptr) };
         ret.into()
     }
@@ -2894,19 +2894,19 @@ impl Glyph {
     }
     
     /// 文字の座標を取得する
-    pub fn get_position(&mut self) -> crate::math::Vector2<i32> {
+    pub fn get_position(&mut self) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Glyph_GetPosition(self.self_ptr) };
         ret.into()
     }
     
     /// 文字のサイズを取得する
-    pub fn get_size(&mut self) -> crate::math::Vector2<i32> {
+    pub fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Glyph_GetSize(self.self_ptr) };
         ret.into()
     }
     
     /// 文字のオフセットを取得する
-    pub fn get_offset(&mut self) -> crate::math::Vector2<i32> {
+    pub fn get_offset(&mut self) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Glyph_GetOffset(self.self_ptr) };
         ret.into()
     }
@@ -3011,7 +3011,7 @@ impl Font {
     /// * `text` - テキスト
     /// * `direction` - 文字列の方向
     /// * `is_enable_kerning` - カーニングの有無
-    pub fn calc_texture_size(&mut self, text : &str, direction : WritingDirection, is_enable_kerning : bool) -> crate::math::Vector2<i32> {
+    pub fn calc_texture_size(&mut self, text : &str, direction : WritingDirection, is_enable_kerning : bool) -> crate::prelude::Vector2<i32> {
         let ret = unsafe { cbg_Font_CalcTextureSize(self.self_ptr, encode_string(&text).as_ptr(), direction as i32, is_enable_kerning) };
         ret.into()
     }
@@ -3128,7 +3128,7 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn dummy(&mut self, size : crate::math::Vector2<f32>) -> () {
+    pub fn dummy(&mut self, size : crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_Dummy(self.self_ptr, size.into()) }
     }
     
@@ -3152,7 +3152,7 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn text_colored(&mut self, color : crate::math::Vector4<f32>, text : &str) -> () {
+    pub fn text_colored(&mut self, color : crate::prelude::Vector4<f32>, text : &str) -> () {
         unsafe { cbg_Tool_TextColored(self.self_ptr, color.into(), encode_string(&text).as_ptr()) }
     }
     
@@ -3208,7 +3208,7 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn button(&mut self, label : &str, size : crate::math::Vector2<f32>) -> bool {
+    pub fn button(&mut self, label : &str, size : crate::prelude::Vector2<f32>) -> bool {
         let ret = unsafe { cbg_Tool_Button(self.self_ptr, encode_string(&label).as_ptr(), size.into()) };
         ret
     }
@@ -3236,7 +3236,7 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn invisible_button(&mut self, label : &str, size : crate::math::Vector2<f32>) -> bool {
+    pub fn invisible_button(&mut self, label : &str, size : crate::prelude::Vector2<f32>) -> bool {
         let ret = unsafe { cbg_Tool_InvisibleButton(self.self_ptr, encode_string(&label).as_ptr(), size.into()) };
         ret
     }
@@ -3285,14 +3285,14 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn v_slider_int(&mut self, label : &str, size : crate::math::Vector2<f32>, value : &i32, value_min : i32, value_max : i32) -> bool {
+    pub fn v_slider_int(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &i32, value_min : i32, value_max : i32) -> bool {
         let ret = unsafe { cbg_Tool_VSliderInt(self.self_ptr, encode_string(&label).as_ptr(), size.into(), value as *const c_int, value_min, value_max) };
         ret
     }
     
     /// 
     /// # Arguments
-    pub fn v_slider_float(&mut self, label : &str, size : crate::math::Vector2<f32>, value : &f32, value_min : f32, value_max : f32) -> bool {
+    pub fn v_slider_float(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &f32, value_min : f32, value_max : f32) -> bool {
         let ret = unsafe { cbg_Tool_VSliderFloat(self.self_ptr, encode_string(&label).as_ptr(), size.into(), value as *const c_float, value_min, value_max) };
         ret
     }
@@ -3338,7 +3338,7 @@ impl Tool {
     
     /// `EndChild()` を呼び出してください
     /// # Arguments
-    pub fn begin_child(&mut self, label : &str, size : crate::math::Vector2<f32>, border : bool, flags : ToolWindow) -> bool {
+    pub fn begin_child(&mut self, label : &str, size : crate::prelude::Vector2<f32>, border : bool, flags : ToolWindow) -> bool {
         let ret = unsafe { cbg_Tool_BeginChild(self.self_ptr, encode_string(&label).as_ptr(), size.into(), border, flags as i32) };
         ret
     }
@@ -3544,14 +3544,14 @@ impl Tool {
     }
     
     /// 
-    pub fn get_window_size(&mut self) -> crate::math::Vector2<f32> {
+    pub fn get_window_size(&mut self) -> crate::prelude::Vector2<f32> {
         let ret = unsafe { cbg_Tool_GetWindowSize(self.self_ptr) };
         ret.into()
     }
     
     /// 
     /// # Arguments
-    pub fn set_window_size(&mut self, size : crate::math::Vector2<f32>) -> () {
+    pub fn set_window_size(&mut self, size : crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetWindowSize(self.self_ptr, size.into()) }
     }
     
@@ -3576,7 +3576,7 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn get_mouse_drag_delta(&mut self, button : i32) -> crate::math::Vector2<f32> {
+    pub fn get_mouse_drag_delta(&mut self, button : i32) -> crate::prelude::Vector2<f32> {
         let ret = unsafe { cbg_Tool_GetMouseDragDelta(self.self_ptr, button) };
         ret.into()
     }
@@ -3589,19 +3589,19 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn set_next_window_content_size(&mut self, size : crate::math::Vector2<f32>) -> () {
+    pub fn set_next_window_content_size(&mut self, size : crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowContentSize(self.self_ptr, size.into()) }
     }
     
     /// 
     /// # Arguments
-    pub fn set_next_window_size(&mut self, size : crate::math::Vector2<f32>) -> () {
+    pub fn set_next_window_size(&mut self, size : crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowSize(self.self_ptr, size.into()) }
     }
     
     /// 
     /// # Arguments
-    pub fn set_next_window_pos(&mut self, pos : crate::math::Vector2<f32>) -> () {
+    pub fn set_next_window_pos(&mut self, pos : crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowPos(self.self_ptr, pos.into()) }
     }
     

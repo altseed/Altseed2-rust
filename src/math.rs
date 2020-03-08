@@ -8,8 +8,9 @@ pub trait Dot<T> {
 pub mod easing;
 pub mod vector;
 pub mod matrix;
-pub use vector::{Vector2, Vector3, Vector4};
-pub use matrix::{Matrix44};
+
+use vector::*;
+use matrix::*;
 
 // bindings to ffi structs
 macro_rules! vector_to_ffi {($name:ident<$t:ty>[$( $x:ident ),+], $target:ident) => {

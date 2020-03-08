@@ -1,11 +1,12 @@
+use crate::prelude::*;
 use super::color::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vertex {
-    pub pos : crate::math::Vector3<f32>,
+    pub pos : Vector3<f32>,
     pub col : Color,
-    pub u_v1 : crate::math::Vector2<f32>,
-    pub u_v2 : crate::math::Vector2<f32>,
+    pub u_v1 : Vector2<f32>,
+    pub u_v2 : Vector2<f32>,
 }
 
 impl From<super::Vertex> for Vertex {

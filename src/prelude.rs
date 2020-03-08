@@ -1,4 +1,5 @@
-pub use crate::math::*;
+pub use crate::math::vector::{Vector2, Vector3, Vector4};
+pub use crate::math::matrix::{Matrix33, Matrix44};
 
 pub use crate::engine::Engine;
 
