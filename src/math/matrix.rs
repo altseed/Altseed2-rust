@@ -147,6 +147,10 @@ macro_rules! define_matrix { ($name:ident, $nx:expr, $ny:expr) => {
 macro_rules! define_square_matrix { ($name:ident, $n:expr) => {
     define_matrix!($name, $n, $n);
 
+    impl<T> $name<T> where T : Zero + One + Copy + PartialEq + Default + Add<T, Output=T> + Mul<T, Output=T> {
+        pub fn identity() -> Self { Self::one() }
+    }
+
     impl<T> One for $name<T> where T : Zero + One + Copy + PartialEq + Default + Add<T, Output=T> + Mul<T, Output=T> {
         fn one() -> Self {
             let z = T::zero();
@@ -228,7 +232,7 @@ define_square_matrix!(Matrix44, 4);
 
 impl Matrix44<f32> {
     /// 平行移動行列を取得する。
-    pub fn translation(v: &Vector3<f32>) -> Self {
+    pub fn translation(v: Vector3<f32>) -> Self {
         let mut m = Self::one();
         m.values[3][0] = v.x;
         m.values[3][1] = v.y;
@@ -238,7 +242,7 @@ impl Matrix44<f32> {
     }
     
     // 拡大行列を取得する。
-    pub fn scale(v: &Vector3<f32>) -> Self {
+    pub fn scale(v: Vector3<f32>) -> Self {
         let mut m = Self::one();
         m.values[0][0] = v.x;
         m.values[1][1] = v.y;
@@ -250,7 +254,7 @@ impl Matrix44<f32> {
     /// Z軸回転行列(右手)を取得する。
     /// # Arguments
     /// * angle - Z軸回転量(ラジアン)
-    pub fn rotation(angle: f32) -> Self {
+    pub fn rotation_z(angle: f32) -> Self {
         let s = angle.sin();
         let c = angle.cos();
 
@@ -265,7 +269,7 @@ impl Matrix44<f32> {
     }
 
     /// 2次元ベクトルを変形させる。
-    pub fn transform_3d(&self, v: &Vector3<f32>) -> Vector3<f32> {
+    pub fn transform_3d(&self, v: Vector3<f32>) -> Vector3<f32> {
         let mut values = [0.0; 3];
         
         for i in 0..3 {
@@ -276,7 +280,7 @@ impl Matrix44<f32> {
     }
 
     /// 3次元ベクトルを変形させる。
-    pub fn transform_4d(&self, v: &Vector4<f32>) -> Vector4<f32> {
+    pub fn transform_4d(&self, v: Vector4<f32>) -> Vector4<f32> {
         let mut values = [0.0; 4];
         
         for i in 0..4 {
