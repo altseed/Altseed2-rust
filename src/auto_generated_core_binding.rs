@@ -1,9 +1,12 @@
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!                                          !!
-// !!  THIS FILE IS AUTO GENERATED.            !!
-// !!  YOUR COMMIT ON THIS FILE WILL BE WIPED. !!
-// !!                                          !!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//
+//   このファイルは自動生成されました。
+//   このファイルへの変更は消失することがあります。
+//
+//   THIS FILE IS AUTO GENERATED.
+//   YOUR COMMITMENT ON THIS FILE WILL BE WIPED. 
+//
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #[allow(unused_imports)]
 use std::os::raw::*;
@@ -363,6 +366,7 @@ pub enum LogLevel {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LogCategory {
+    Core = 0,
     Engine = 1,
     User = 2,
 }
@@ -501,6 +505,27 @@ extern {
     
     
     fn cbg_FloatArray_Release(self_ptr : *mut RawPtr) -> ();
+    
+    fn cbg_Vector2FArray_Clear(self_ptr : *mut RawPtr) -> ();
+    
+    fn cbg_Vector2FArray_Resize(self_ptr : *mut RawPtr, size : c_int) -> ();
+    
+    fn cbg_Vector2FArray_GetData(self_ptr : *mut RawPtr) -> c_void;
+    
+    fn cbg_Vector2FArray_Assign(self_ptr : *mut RawPtr, ptr : c_void, size : c_int) -> ();
+    
+    fn cbg_Vector2FArray_CopyTo(self_ptr : *mut RawPtr, ptr : c_void) -> ();
+    
+    fn cbg_Vector2FArray_GetAt(self_ptr : *mut RawPtr, index : c_int) -> crate::structs::Vector2F;
+    
+    fn cbg_Vector2FArray_SetAt(self_ptr : *mut RawPtr, index : c_int, value : crate::structs::Vector2F) -> ();
+    
+    fn cbg_Vector2FArray_Create(size : c_int) -> *mut RawPtr;
+    
+    fn cbg_Vector2FArray_GetCount(self_ptr : *mut RawPtr) -> c_int;
+    
+    
+    fn cbg_Vector2FArray_Release(self_ptr : *mut RawPtr) -> ();
     
     fn cbg_Resources_GetInstance() -> *mut RawPtr;
     
@@ -667,6 +692,32 @@ extern {
     
     fn cbg_RenderedText_Release(self_ptr : *mut RawPtr) -> ();
     
+    fn cbg_RenderedPolygon_Create() -> *mut RawPtr;
+    
+    fn cbg_RenderedPolygon_GetVertexes(self_ptr : *mut RawPtr) -> *mut RawPtr;
+    
+    fn cbg_RenderedPolygon_SetVertexes(self_ptr : *mut RawPtr, vertexes : *mut RawPtr) -> ();
+    
+    fn cbg_RenderedPolygon_SetVertexesByVector2F(self_ptr : *mut RawPtr, vertexes : *mut RawPtr) -> ();
+    
+    fn cbg_RenderedPolygon_GetTexture(self_ptr : *mut RawPtr) -> *mut RawPtr;
+    fn cbg_RenderedPolygon_SetTexture(self_ptr : *mut RawPtr, value : *mut RawPtr) -> ();
+    
+    
+    fn cbg_RenderedPolygon_GetSrc(self_ptr : *mut RawPtr) -> crate::structs::RectF;
+    fn cbg_RenderedPolygon_SetSrc(self_ptr : *mut RawPtr, value : crate::structs::RectF) -> ();
+    
+    
+    fn cbg_RenderedPolygon_GetTransform(self_ptr : *mut RawPtr) -> crate::structs::Matrix44F;
+    fn cbg_RenderedPolygon_SetTransform(self_ptr : *mut RawPtr, value : crate::structs::Matrix44F) -> ();
+    
+    
+    fn cbg_RenderedPolygon_GetMaterial(self_ptr : *mut RawPtr) -> *mut RawPtr;
+    fn cbg_RenderedPolygon_SetMaterial(self_ptr : *mut RawPtr, value : *mut RawPtr) -> ();
+    
+    
+    fn cbg_RenderedPolygon_Release(self_ptr : *mut RawPtr) -> ();
+    
     fn cbg_RenderedCamera_Release(self_ptr : *mut RawPtr) -> ();
     
     fn cbg_BuiltinShader_Create(self_ptr : *mut RawPtr, type_ : c_int) -> *mut RawPtr;
@@ -704,6 +755,8 @@ extern {
     fn cbg_Font_GetFontTexture(self_ptr : *mut RawPtr, index : c_int) -> *mut RawPtr;
     
     fn cbg_Font_GetKerning(self_ptr : *mut RawPtr, c1 : c_int, c2 : c_int) -> c_int;
+    
+    fn cbg_Font_GetPath(self_ptr : *mut RawPtr) -> *const u16;
     
     fn cbg_Font_CalcTextureSize(self_ptr : *mut RawPtr, text : *const u16, direction : c_int, isEnableKerning : bool) -> crate::structs::Vector2I;
     
@@ -899,6 +952,8 @@ extern {
     
     fn cbg_StreamFile_GetTempBuffer(self_ptr : *mut RawPtr) -> *mut RawPtr;
     
+    fn cbg_StreamFile_GetPath(self_ptr : *mut RawPtr) -> *const u16;
+    
     fn cbg_StreamFile_Reload(self_ptr : *mut RawPtr) -> bool;
     
     fn cbg_StreamFile_GetSize(self_ptr : *mut RawPtr) -> c_int;
@@ -951,6 +1006,10 @@ extern {
     fn cbg_File_Release(self_ptr : *mut RawPtr) -> ();
     
     fn cbg_Sound_Load(path : *const u16, isDecompressed : bool) -> *mut RawPtr;
+    
+    fn cbg_Sound_GetPath(self_ptr : *mut RawPtr) -> *const u16;
+    
+    fn cbg_Sound_GetIsDecompressed(self_ptr : *mut RawPtr) -> bool;
     
     fn cbg_Sound_GetLoopStartingPoint(self_ptr : *mut RawPtr) -> c_float;
     fn cbg_Sound_SetLoopStartingPoint(self_ptr : *mut RawPtr, value : c_float) -> ();
@@ -1169,9 +1228,9 @@ impl Drop for Configuration {
 }
 
 #[derive(Debug)]
-pub struct Core {
+pub(crate) struct Core {
     self_ptr : *mut RawPtr,
-    target_f_p_s : Option<f32>,
+    target_fps : Option<f32>,
     framerate_mode : Option<FramerateMode>,
 }
 
@@ -1182,7 +1241,7 @@ impl Core {
         Some(Rc::new(RefCell::new(
         Core {
             self_ptr,
-            target_f_p_s : None,
+            target_fps : None,
             framerate_mode : None,
         }
         )))
@@ -1244,19 +1303,19 @@ impl Core {
     }
     
     /// 現在のFPSを取得します。
-    pub fn get_current_f_p_s(&mut self) -> f32 {
+    pub fn get_current_fps(&mut self) -> f32 {
         let ret = unsafe { cbg_Core_GetCurrentFPS(self.self_ptr) };
         ret
     }
     
     /// 目標のFPSを取得または設定します。
-    pub fn get_target_f_p_s(&mut self) -> f32 {
-        if let Some(value) = self.target_f_p_s.clone() { return value; }
+    pub fn get_target_fps(&mut self) -> f32 {
+        if let Some(value) = self.target_fps.clone() { return value; }
         let ret = unsafe { cbg_Core_GetTargetFPS(self.self_ptr) };
         ret
     }
-    pub fn set_target_f_p_s(&mut self, value : f32) {
-        self.target_f_p_s = Some(value.clone());
+    pub fn set_target_fps(&mut self, value : f32) {
+        self.target_fps = Some(value.clone());
         unsafe { cbg_Core_SetTargetFPS(self.self_ptr, value) }
     }
     
@@ -1692,7 +1751,110 @@ impl Drop for FloatArray {
 }
 
 #[derive(Debug)]
-pub struct Resources {
+pub struct Vector2FArray {
+    self_ptr : *mut RawPtr,
+}
+
+impl Vector2FArray {
+    #[allow(dead_code)]
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Vector2FArray>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
+        Vector2FArray {
+            self_ptr,
+        }
+        )))
+    }
+    
+    
+    #[allow(dead_code)]
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static VECTOR2FARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Vector2FArray>>>> = RefCell::new(HashMap::new());
+        }
+        VECTOR2FARRAY_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => { return Some(o); },
+                    None => { hash_map.remove(&storage); },
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+    
+    /// データをクリアします。
+    pub fn clear(&mut self) -> () {
+        unsafe { cbg_Vector2FArray_Clear(self.self_ptr) }
+    }
+    
+    /// サイズを変更します。
+    /// # Arguments
+    /// * `size` - 要素数
+    pub fn resize(&mut self, size : i32) -> () {
+        unsafe { cbg_Vector2FArray_Resize(self.self_ptr, size) }
+    }
+    
+    pub fn get_data(&mut self) -> c_void {
+        let ret = unsafe { cbg_Vector2FArray_GetData(self.self_ptr) };
+        ret
+    }
+    
+    pub fn assign(&mut self, ptr : c_void, size : i32) -> () {
+        unsafe { cbg_Vector2FArray_Assign(self.self_ptr, ptr, size) }
+    }
+    
+    /// データを指定したポインタにコピーします。
+    /// # Arguments
+    /// * `ptr` - ポインタ
+    pub fn copy_to(&mut self, ptr : c_void) -> () {
+        unsafe { cbg_Vector2FArray_CopyTo(self.self_ptr, ptr) }
+    }
+    
+    /// インデックスアクセス
+    /// # Arguments
+    /// * `index` - インデックス
+    pub fn get_at(&mut self, index : i32) -> crate::prelude::Vector2<f32> {
+        let ret = unsafe { cbg_Vector2FArray_GetAt(self.self_ptr, index) };
+        ret.into()
+    }
+    
+    /// インデックスアクセス
+    /// # Arguments
+    /// * `index` - インデックス
+    /// * `value` - 値
+    pub fn set_at(&mut self, index : i32, value : crate::prelude::Vector2<f32>) -> () {
+        unsafe { cbg_Vector2FArray_SetAt(self.self_ptr, index, value.into()) }
+    }
+    
+    /// インスタンスを作成します。
+    /// # Arguments
+    /// * `size` - 要素数
+    pub fn create(size : i32) -> Option<Rc<RefCell<Vector2FArray>>> {
+        let ret = unsafe { cbg_Vector2FArray_Create(size) };
+        Vector2FArray::try_get_from_cache(ret)
+    }
+    
+    /// 格納されている要素の数を取得します。
+    pub fn get_count(&mut self) -> i32 {
+        let ret = unsafe { cbg_Vector2FArray_GetCount(self.self_ptr) };
+        ret
+    }
+    
+}
+
+impl Drop for Vector2FArray {
+    fn drop(&mut self) {
+        unsafe { cbg_Vector2FArray_Release(self.self_ptr) };
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct Resources {
     self_ptr : *mut RawPtr,
 }
 
@@ -2036,7 +2198,7 @@ impl Drop for Joystick {
 }
 
 #[derive(Debug)]
-pub struct Graphics {
+pub(crate) struct Graphics {
     self_ptr : *mut RawPtr,
 }
 
@@ -2228,7 +2390,7 @@ impl Material {
     /// 
     /// # Arguments
     /// * `key` - 
-    pub fn get_vector4_f(&mut self, key : &str) -> crate::prelude::Vector4<f32> {
+    pub fn get_vector4f(&mut self, key : &str) -> crate::prelude::Vector4<f32> {
         let ret = unsafe { cbg_Material_GetVector4F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
@@ -2237,14 +2399,14 @@ impl Material {
     /// # Arguments
     /// * `key` - 
     /// * `value` - 
-    pub fn set_vector4_f(&mut self, key : &str, value : crate::prelude::Vector4<f32>) -> () {
+    pub fn set_vector4f(&mut self, key : &str, value : crate::prelude::Vector4<f32>) -> () {
         unsafe { cbg_Material_SetVector4F(self.self_ptr, encode_string(&key).as_ptr(), value.into()) }
     }
     
     /// 
     /// # Arguments
     /// * `key` - 
-    pub fn get_matrix44_f(&mut self, key : &str) -> crate::prelude::Matrix44<f32> {
+    pub fn get_matrix44f(&mut self, key : &str) -> crate::prelude::Matrix44<f32> {
         let ret = unsafe { cbg_Material_GetMatrix44F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
@@ -2253,7 +2415,7 @@ impl Material {
     /// # Arguments
     /// * `key` - 
     /// * `value` - 
-    pub fn set_matrix44_f(&mut self, key : &str, value : crate::prelude::Matrix44<f32>) -> () {
+    pub fn set_matrix44f(&mut self, key : &str, value : crate::prelude::Matrix44<f32>) -> () {
         unsafe { cbg_Material_SetMatrix44F(self.self_ptr, encode_string(&key).as_ptr(), value.into()) }
     }
     
@@ -2293,7 +2455,7 @@ impl Drop for Material {
 }
 
 #[derive(Debug)]
-pub struct Renderer {
+pub(crate) struct Renderer {
     self_ptr : *mut RawPtr,
 }
 
@@ -2468,7 +2630,7 @@ impl Drop for Rendered {
 }
 
 #[derive(Debug)]
-pub struct RenderedSprite {
+pub(crate) struct RenderedSprite {
     self_ptr : *mut RawPtr,
     texture : Option<Rc<RefCell<Texture2D>>>,
     src : Option<crate::structs::rect::Rect<f32>>,
@@ -2571,7 +2733,7 @@ impl Drop for RenderedSprite {
 }
 
 #[derive(Debug)]
-pub struct RenderedText {
+pub(crate) struct RenderedText {
     self_ptr : *mut RawPtr,
     transform : Option<crate::prelude::Matrix44<f32>>,
     material : Option<Rc<RefCell<Material>>>,
@@ -2700,7 +2862,128 @@ impl Drop for RenderedText {
 }
 
 #[derive(Debug)]
-pub struct RenderedCamera {
+pub(crate) struct RenderedPolygon {
+    self_ptr : *mut RawPtr,
+    texture : Option<Rc<RefCell<Texture2D>>>,
+    src : Option<crate::structs::rect::Rect<f32>>,
+    transform : Option<crate::prelude::Matrix44<f32>>,
+    material : Option<Rc<RefCell<Material>>>,
+}
+
+impl RenderedPolygon {
+    #[allow(dead_code)]
+    fn cbg_create_raw(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<RenderedPolygon>>> {
+        if self_ptr == NULLPTR { return None; }
+        Some(Rc::new(RefCell::new(
+        RenderedPolygon {
+            self_ptr,
+            texture : None,
+            src : None,
+            transform : None,
+            material : None,
+        }
+        )))
+    }
+    
+    
+    #[allow(dead_code)]
+    fn try_get_from_cache(self_ptr : *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static RENDEREDPOLYGON_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedPolygon>>>> = RefCell::new(HashMap::new());
+        }
+        RENDEREDPOLYGON_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => { return Some(o); },
+                    None => { hash_map.remove(&storage); },
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+    
+    /// ポリゴンを作成します。
+    pub fn create() -> Option<Rc<RefCell<RenderedPolygon>>> {
+        let ret = unsafe { cbg_RenderedPolygon_Create() };
+        RenderedPolygon::try_get_from_cache(ret)
+    }
+    
+    /// 頂点情報を取得します。
+    pub fn get_vertexes(&mut self) -> Option<Rc<RefCell<VertexArray>>> {
+        let ret = unsafe { cbg_RenderedPolygon_GetVertexes(self.self_ptr) };
+        VertexArray::try_get_from_cache(ret)
+    }
+    
+    /// 頂点情報
+    /// # Arguments
+    pub fn set_vertexes(&mut self, vertexes : &mut VertexArray) -> () {
+        unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, vertexes.self_ptr) }
+    }
+    
+    /// 頂点情報
+    /// # Arguments
+    pub fn set_vertexes_by_vector2f(&mut self, vertexes : &mut Vector2FArray) -> () {
+        unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr) }
+    }
+    
+    /// テクスチャを取得または設定します。
+    pub fn get_texture(&mut self) -> Option<Rc<RefCell<Texture2D>>> {
+        if let Some(value) = self.texture.clone() { return Some(value) }
+        let ret = unsafe { cbg_RenderedPolygon_GetTexture(self.self_ptr) };
+        Texture2D::try_get_from_cache(ret)
+    }
+    pub fn set_texture(&mut self, value : Rc<RefCell<Texture2D>>) {
+        self.texture = Some(value.clone());
+        unsafe { cbg_RenderedPolygon_SetTexture(self.self_ptr, value.borrow_mut().self_ptr) }
+    }
+    
+    /// 描画範囲を取得または設定します。
+    pub fn get_src(&mut self) -> crate::structs::rect::Rect<f32> {
+        if let Some(value) = self.src.clone() { return value; }
+        let ret = unsafe { cbg_RenderedPolygon_GetSrc(self.self_ptr) };
+        ret.into()
+    }
+    pub fn set_src(&mut self, value : crate::structs::rect::Rect<f32>) {
+        self.src = Some(value.clone());
+        unsafe { cbg_RenderedPolygon_SetSrc(self.self_ptr, value.into()) }
+    }
+    
+    /// 変換行列を取得または設定します。
+    pub fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
+        if let Some(value) = self.transform.clone() { return value; }
+        let ret = unsafe { cbg_RenderedPolygon_GetTransform(self.self_ptr) };
+        ret.into()
+    }
+    pub fn set_transform(&mut self, value : crate::prelude::Matrix44<f32>) {
+        self.transform = Some(value.clone());
+        unsafe { cbg_RenderedPolygon_SetTransform(self.self_ptr, value.into()) }
+    }
+    
+    /// マテリアルを取得または設定します。
+    pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
+        if let Some(value) = self.material.clone() { return Some(value) }
+        let ret = unsafe { cbg_RenderedPolygon_GetMaterial(self.self_ptr) };
+        Material::try_get_from_cache(ret)
+    }
+    pub fn set_material(&mut self, value : Rc<RefCell<Material>>) {
+        self.material = Some(value.clone());
+        unsafe { cbg_RenderedPolygon_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr) }
+    }
+    
+}
+
+impl Drop for RenderedPolygon {
+    fn drop(&mut self) {
+        unsafe { cbg_RenderedPolygon_Release(self.self_ptr) };
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct RenderedCamera {
     self_ptr : *mut RawPtr,
 }
 
@@ -3006,6 +3289,12 @@ impl Font {
         ret
     }
     
+    /// 読み込んだファイルのパスを取得します。
+    pub(crate) fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Font_GetPath(self.self_ptr) };
+        decode_string(ret)
+    }
+    
     /// テキストを描画したときのサイズを取得します
     /// # Arguments
     /// * `text` - テキスト
@@ -3028,7 +3317,7 @@ impl Font {
     /// # Arguments
     /// * `character` - 文字
     /// * `texture` - テクスチャ
-    pub fn add_image_glyph(&mut self, character : i32, texture : &mut Texture2D) -> () {
+    pub(crate) fn add_image_glyph(&mut self, character : i32, texture : &mut Texture2D) -> () {
         unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr) }
     }
     
@@ -3285,14 +3574,14 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn v_slider_int(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &i32, value_min : i32, value_max : i32) -> bool {
+    pub fn vslider_int(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &i32, value_min : i32, value_max : i32) -> bool {
         let ret = unsafe { cbg_Tool_VSliderInt(self.self_ptr, encode_string(&label).as_ptr(), size.into(), value as *const c_int, value_min, value_max) };
         ret
     }
     
     /// 
     /// # Arguments
-    pub fn v_slider_float(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &f32, value_min : f32, value_max : f32) -> bool {
+    pub fn vslider_float(&mut self, label : &str, size : crate::prelude::Vector2<f32>, value : &f32, value_min : f32, value_max : f32) -> bool {
         let ret = unsafe { cbg_Tool_VSliderFloat(self.self_ptr, encode_string(&label).as_ptr(), size.into(), value as *const c_float, value_min, value_max) };
         ret
     }
@@ -3495,12 +3784,12 @@ impl Tool {
     
     /// 
     /// # Arguments
-    pub fn push_i_d(&mut self, id : i32) -> () {
+    pub fn push_id(&mut self, id : i32) -> () {
         unsafe { cbg_Tool_PushID(self.self_ptr, id) }
     }
     
     /// 
-    pub fn pop_i_d(&mut self) -> () {
+    pub fn pop_id(&mut self) -> () {
         unsafe { cbg_Tool_PopID(self.self_ptr) }
     }
     
@@ -3672,6 +3961,12 @@ impl StreamFile {
     pub(crate) fn get_temp_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StreamFile_GetTempBuffer(self.self_ptr) };
         Int8Array::try_get_from_cache(ret)
+    }
+    
+    /// 読み込んだファイルのパスを取得します。
+    pub(crate) fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_StreamFile_GetPath(self.self_ptr) };
+        decode_string(ret)
     }
     
     /// 再読み込みを行います。
@@ -3955,6 +4250,18 @@ impl Sound {
     pub fn load(path : &str, is_decompressed : bool) -> Option<Rc<RefCell<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
         Sound::try_get_from_cache(ret)
+    }
+    
+    /// 読み込んだファイルのパスを取得します。
+    pub(crate) fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Sound_GetPath(self.self_ptr) };
+        decode_string(ret)
+    }
+    
+    /// 音源を解凍するかどうかを取得する
+    pub(crate) fn get_is_decompressed(&mut self) -> bool {
+        let ret = unsafe { cbg_Sound_GetIsDecompressed(self.self_ptr) };
+        ret
     }
     
     /// ループ開始地点(秒)を取得または設定します。
@@ -4302,7 +4609,7 @@ impl Drop for Log {
 }
 
 #[derive(Debug)]
-pub struct Window {
+pub(crate) struct Window {
     self_ptr : *mut RawPtr,
     title : Option<String>,
 }

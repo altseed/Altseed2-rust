@@ -103,17 +103,17 @@ impl Engine {
 
     /// 目標フレームレートを取得します。
     pub fn get_target_fps(&mut self) -> f32 {
-        self.core.borrow_mut().get_target_f_p_s()
+        self.core.borrow_mut().get_target_fps()
     }
 
     /// 目標フレームレートを設定します。
     pub fn set_target_fps(&mut self, fps: f32) {
-        self.core.borrow_mut().set_target_f_p_s(fps);
+        self.core.borrow_mut().set_target_fps(fps);
     }
 
     /// 現在のFPSを取得します。
     pub fn get_current_fps(&mut self) -> f32 {
-        self.core.borrow_mut().get_current_f_p_s()
+        self.core.borrow_mut().get_current_fps()
     }
 
     /// 前のフレームからの経過時間(秒)を取得します。
