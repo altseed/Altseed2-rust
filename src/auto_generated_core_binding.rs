@@ -1413,7 +1413,6 @@ impl Core {
     }
 
     /// 初期化処理を行います。
-    /// # Arguments
     /// * `title` - ウィンドウの左上に表示されるウィンドウん名
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
@@ -1536,7 +1535,6 @@ impl Int8Array {
     }
 
     /// サイズを変更します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn resize(&mut self, size: i32) -> () {
         unsafe { cbg_Int8Array_Resize(self.self_ptr, size) }
@@ -1552,14 +1550,12 @@ impl Int8Array {
     }
 
     /// データを指定したポインタにコピーします。
-    /// # Arguments
     /// * `ptr` - ポインタ
     pub fn copy_to(&mut self, ptr: c_void) -> () {
         unsafe { cbg_Int8Array_CopyTo(self.self_ptr, ptr) }
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_at(&mut self, index: i32) -> u8 {
         let ret = unsafe { cbg_Int8Array_GetAt(self.self_ptr, index) };
@@ -1567,7 +1563,6 @@ impl Int8Array {
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     /// * `value` - 値
     pub fn set_at(&mut self, index: i32, value: u8) -> () {
@@ -1575,7 +1570,6 @@ impl Int8Array {
     }
 
     /// インスタンスを作成します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn create(size: i32) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_Int8Array_Create(size) };
@@ -1639,7 +1633,6 @@ impl Int32Array {
     }
 
     /// サイズを変更します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn resize(&mut self, size: i32) -> () {
         unsafe { cbg_Int32Array_Resize(self.self_ptr, size) }
@@ -1655,14 +1648,12 @@ impl Int32Array {
     }
 
     /// データを指定したポインタにコピーします。
-    /// # Arguments
     /// * `ptr` - ポインタ
     pub fn copy_to(&mut self, ptr: c_void) -> () {
         unsafe { cbg_Int32Array_CopyTo(self.self_ptr, ptr) }
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_at(&mut self, index: i32) -> i32 {
         let ret = unsafe { cbg_Int32Array_GetAt(self.self_ptr, index) };
@@ -1670,7 +1661,6 @@ impl Int32Array {
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     /// * `value` - 値
     pub fn set_at(&mut self, index: i32, value: i32) -> () {
@@ -1678,7 +1668,6 @@ impl Int32Array {
     }
 
     /// インスタンスを作成します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn create(size: i32) -> Option<Rc<RefCell<Int32Array>>> {
         let ret = unsafe { cbg_Int32Array_Create(size) };
@@ -1742,7 +1731,6 @@ impl VertexArray {
     }
 
     /// サイズを変更します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn resize(&mut self, size: i32) -> () {
         unsafe { cbg_VertexArray_Resize(self.self_ptr, size) }
@@ -1758,14 +1746,12 @@ impl VertexArray {
     }
 
     /// データを指定したポインタにコピーします。
-    /// # Arguments
     /// * `ptr` - ポインタ
     pub fn copy_to(&mut self, ptr: c_void) -> () {
         unsafe { cbg_VertexArray_CopyTo(self.self_ptr, ptr) }
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_at(&mut self, index: i32) -> crate::structs::vertex::Vertex {
         let ret = unsafe { cbg_VertexArray_GetAt(self.self_ptr, index) };
@@ -1773,7 +1759,6 @@ impl VertexArray {
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     /// * `value` - 値
     pub fn set_at(&mut self, index: i32, value: crate::structs::vertex::Vertex) -> () {
@@ -1781,7 +1766,6 @@ impl VertexArray {
     }
 
     /// インスタンスを作成します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn create(size: i32) -> Option<Rc<RefCell<VertexArray>>> {
         let ret = unsafe { cbg_VertexArray_Create(size) };
@@ -1845,7 +1829,6 @@ impl FloatArray {
     }
 
     /// サイズを変更します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn resize(&mut self, size: i32) -> () {
         unsafe { cbg_FloatArray_Resize(self.self_ptr, size) }
@@ -1861,14 +1844,12 @@ impl FloatArray {
     }
 
     /// データを指定したポインタにコピーします。
-    /// # Arguments
     /// * `ptr` - ポインタ
     pub fn copy_to(&mut self, ptr: c_void) -> () {
         unsafe { cbg_FloatArray_CopyTo(self.self_ptr, ptr) }
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_at(&mut self, index: i32) -> f32 {
         let ret = unsafe { cbg_FloatArray_GetAt(self.self_ptr, index) };
@@ -1876,7 +1857,6 @@ impl FloatArray {
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     /// * `value` - 値
     pub fn set_at(&mut self, index: i32, value: f32) -> () {
@@ -1884,7 +1864,6 @@ impl FloatArray {
     }
 
     /// インスタンスを作成します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn create(size: i32) -> Option<Rc<RefCell<FloatArray>>> {
         let ret = unsafe { cbg_FloatArray_Create(size) };
@@ -1948,7 +1927,6 @@ impl Vector2FArray {
     }
 
     /// サイズを変更します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn resize(&mut self, size: i32) -> () {
         unsafe { cbg_Vector2FArray_Resize(self.self_ptr, size) }
@@ -1964,14 +1942,12 @@ impl Vector2FArray {
     }
 
     /// データを指定したポインタにコピーします。
-    /// # Arguments
     /// * `ptr` - ポインタ
     pub fn copy_to(&mut self, ptr: c_void) -> () {
         unsafe { cbg_Vector2FArray_CopyTo(self.self_ptr, ptr) }
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_at(&mut self, index: i32) -> crate::prelude::Vector2<f32> {
         let ret = unsafe { cbg_Vector2FArray_GetAt(self.self_ptr, index) };
@@ -1979,7 +1955,6 @@ impl Vector2FArray {
     }
 
     /// インデックスアクセス
-    /// # Arguments
     /// * `index` - インデックス
     /// * `value` - 値
     pub fn set_at(&mut self, index: i32, value: crate::prelude::Vector2<f32>) -> () {
@@ -1987,7 +1962,6 @@ impl Vector2FArray {
     }
 
     /// インスタンスを作成します。
-    /// # Arguments
     /// * `size` - 要素数
     pub fn create(size: i32) -> Option<Rc<RefCell<Vector2FArray>>> {
         let ret = unsafe { cbg_Vector2FArray_Create(size) };
@@ -2052,7 +2026,6 @@ impl Resources {
     }
 
     /// 指定した種類のリソースの個数を返します。
-    /// # Arguments
     /// * `type_` - 個数を検索するリソースの種類
     pub fn get_resources_count(&mut self, type_: ResourceType) -> i32 {
         let ret = unsafe { cbg_Resources_GetResourcesCount(self.self_ptr, type_ as i32) };
@@ -2115,7 +2088,6 @@ impl Keyboard {
     }
 
     /// キーの状態を取得します。
-    /// # Arguments
     /// * `key` - キー
     pub fn get_key_state(&mut self, key: Keys) -> ButtonState {
         let ret = unsafe { cbg_Keyboard_GetKeyState(self.self_ptr, key as i32) };
@@ -2192,7 +2164,6 @@ impl Mouse {
     }
 
     /// マウスボタンの状態を取得します。
-    /// # Arguments
     /// * `button` - 状態を取得するマウスのボタン
     pub fn get_mouse_button_state(&mut self, button: MouseButtons) -> ButtonState {
         let ret = unsafe { cbg_Mouse_GetMouseButtonState(self.self_ptr, button as i32) };
@@ -2277,7 +2248,6 @@ impl Joystick {
     }
 
     /// 指定したジョイスティックが親であるかどうかを取得します。
-    /// # Arguments
     /// * `joystick_index` - ジョイスティックのインデックス
     pub fn is_present(&mut self, joystick_index: i32) -> bool {
         let ret = unsafe { cbg_Joystick_IsPresent(self.self_ptr, joystick_index) };
@@ -2290,7 +2260,6 @@ impl Joystick {
     }
 
     /// ボタンの状態をインデックスで取得します。
-    /// # Arguments
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `button_index` - 状態を検索するボタンのインデックス
     pub fn get_button_state_by_index(
@@ -2305,7 +2274,6 @@ impl Joystick {
     }
 
     /// ボタンの状態を種類から取得します。
-    /// # Arguments
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索するボタンの種類
     pub fn get_button_state_by_type(
@@ -2320,7 +2288,6 @@ impl Joystick {
     }
 
     /// 指定インデックスのジョイスティックの種類を取得します。
-    /// # Arguments
     /// * `index` - 種類を取得するジョイスティックのインデックス
     pub fn get_joystick_type(&mut self, index: i32) -> JoystickType {
         let ret = unsafe { cbg_Joystick_GetJoystickType(self.self_ptr, index) };
@@ -2328,7 +2295,6 @@ impl Joystick {
     }
 
     /// 軸の状態をインデックスで取得します。
-    /// # Arguments
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `axis_index` - 状態を検索する軸のインデックス
     pub fn get_axis_state_by_index(&mut self, joystick_index: i32, axis_index: i32) -> f32 {
@@ -2338,7 +2304,6 @@ impl Joystick {
     }
 
     /// 軸の状態を軸の種類で取得します。
-    /// # Arguments
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索する軸の種類
     pub fn get_axis_state_by_type(&mut self, joystick_index: i32, type_: JoystickAxisType) -> f32 {
@@ -2348,7 +2313,6 @@ impl Joystick {
     }
 
     /// ジョイスティックの名前を取得します。
-    /// # Arguments
     /// * `index` - 名前を検索するジョイスティックのインデックス
     pub fn get_joystick_name(&mut self, index: i32) -> String {
         let ret = unsafe { cbg_Joystick_GetJoystickName(self.self_ptr, index) };
@@ -2356,7 +2320,6 @@ impl Joystick {
     }
 
     /// 指定したジョイスティックコントローラーを振動させます
-    /// # Arguments
     /// * `index` - ジョイスティックのインデックス
     /// * `frequency` - 周波数
     /// * `amplitude` - 振幅
@@ -2491,7 +2454,6 @@ impl Texture2D {
     }
 
     /// 指定したファイルからテクスチャを読み込みます。
-    /// # Arguments
     /// * `path` - 読み込むファイルのパス
     pub fn load(path: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Texture2D_Load(encode_string(&path).as_ptr()) };
@@ -2565,7 +2527,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     pub fn get_vector4f(&mut self, key: &str) -> crate::prelude::Vector4<f32> {
         let ret = unsafe { cbg_Material_GetVector4F(self.self_ptr, encode_string(&key).as_ptr()) };
@@ -2573,7 +2534,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     /// * `value` -
     pub fn set_vector4f(&mut self, key: &str, value: crate::prelude::Vector4<f32>) -> () {
@@ -2583,7 +2543,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     pub fn get_matrix44f(&mut self, key: &str) -> crate::prelude::Matrix44<f32> {
         let ret = unsafe { cbg_Material_GetMatrix44F(self.self_ptr, encode_string(&key).as_ptr()) };
@@ -2591,7 +2550,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     /// * `value` -
     pub fn set_matrix44f(&mut self, key: &str, value: crate::prelude::Matrix44<f32>) -> () {
@@ -2601,7 +2559,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     pub fn get_texture(&mut self, key: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
@@ -2609,7 +2566,6 @@ impl Material {
     }
 
     ///
-    /// # Arguments
     /// * `key` -
     /// * `value` -
     pub fn set_texture(&mut self, key: &str, value: &mut Texture2D) -> () {
@@ -2683,26 +2639,22 @@ impl Renderer {
     }
 
     /// スプライトを描画します。
-    /// # Arguments
     pub fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
         unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr) }
     }
 
     /// テキストを描画します。
-    /// # Arguments
     pub fn draw_text(&mut self, text: &mut RenderedText) -> () {
         unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr) }
     }
 
     /// コマンドリストを描画します。
-    /// # Arguments
     /// * `command_list` - コマンドリスト
     pub fn render(&mut self, command_list: &mut CommandList) -> () {
         unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr) }
     }
 
     /// ポリゴンを描画します
-    /// # Arguments
     /// * `vertex_buffer` - 頂点バッファ
     /// * `index_buffer` -
     /// * `texture` - テクスチャ
@@ -3149,13 +3101,11 @@ impl RenderedPolygon {
     }
 
     /// 頂点情報
-    /// # Arguments
     pub fn set_vertexes(&mut self, vertexes: &mut VertexArray) -> () {
         unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, vertexes.self_ptr) }
     }
 
     /// 頂点情報
-    /// # Arguments
     pub fn set_vertexes_by_vector2f(&mut self, vertexes: &mut Vector2FArray) -> () {
         unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr) }
     }
@@ -3303,7 +3253,6 @@ impl BuiltinShader {
     }
 
     /// シェーダを取得します。
-    /// # Arguments
     /// * `type_` - シェーダの種類
     pub fn create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_BuiltinShader_Create(self.self_ptr, type_ as i32) };
@@ -3486,7 +3435,6 @@ impl Font {
     }
 
     /// 動的にフォントを生成します
-    /// # Arguments
     /// * `path` - 読み込むフォントのパス
     /// * `size` - フォントのサイズ
     pub fn load_dynamic_font(path: &str, size: i32) -> Option<Arc<Mutex<Font>>> {
@@ -3495,7 +3443,6 @@ impl Font {
     }
 
     /// 静的にフォントを生成します
-    /// # Arguments
     /// * `path` - 読み込むフォントのパス
     pub fn load_static_font(path: &str) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadStaticFont(encode_string(&path).as_ptr()) };
@@ -3503,7 +3450,6 @@ impl Font {
     }
 
     /// 文字情報を取得する
-    /// # Arguments
     /// * `character` - 文字
     pub fn get_glyph(&mut self, character: i32) -> Option<Arc<Mutex<Glyph>>> {
         let ret = unsafe { cbg_Font_GetGlyph(self.self_ptr, character) };
@@ -3511,7 +3457,6 @@ impl Font {
     }
 
     /// 文字列テクスチャを得る
-    /// # Arguments
     /// * `index` - インデックス
     pub fn get_font_texture(&mut self, index: i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetFontTexture(self.self_ptr, index) };
@@ -3519,7 +3464,6 @@ impl Font {
     }
 
     /// カーニングを得る
-    /// # Arguments
     /// * `c1` - 文字1
     /// * `c2` - 文字2
     pub fn get_kerning(&mut self, c1: i32, c2: i32) -> i32 {
@@ -3534,7 +3478,6 @@ impl Font {
     }
 
     /// テキストを描画したときのサイズを取得します
-    /// # Arguments
     /// * `text` - テキスト
     /// * `direction` - 文字列の方向
     /// * `is_enable_kerning` - カーニングの有無
@@ -3556,7 +3499,6 @@ impl Font {
     }
 
     /// テクスチャ追加対応フォントを生成します
-    /// # Arguments
     /// * `base_font` - ベースとなるフォント
     pub fn create_image_font(base_font: &mut Font) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_CreateImageFont(base_font.self_ptr) };
@@ -3564,7 +3506,6 @@ impl Font {
     }
 
     /// テクスチャ文字を追加する
-    /// # Arguments
     /// * `character` - 文字
     /// * `texture` - テクスチャ
     pub(crate) fn add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
@@ -3572,7 +3513,6 @@ impl Font {
     }
 
     /// テクスチャ文字を取得する
-    /// # Arguments
     /// * `character` - 文字
     pub fn get_image_glyph(&mut self, character: i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetImageGlyph(self.self_ptr, character) };
@@ -3654,7 +3594,6 @@ impl Tool {
     }
 
     /// `End()` を呼び出してください。
-    /// # Arguments
     pub fn begin(&mut self, name: &str, flags: ToolWindow) -> bool {
         let ret =
             unsafe { cbg_Tool_Begin(self.self_ptr, encode_string(&name).as_ptr(), flags as i32) };
@@ -3667,49 +3606,41 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn dummy(&mut self, size: crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_Dummy(self.self_ptr, size.into()) }
     }
 
     ///
-    /// # Arguments
     pub fn text(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_Text(self.self_ptr, encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn text_unformatted(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_TextUnformatted(self.self_ptr, encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn text_wrapped(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_TextWrapped(self.self_ptr, encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn text_colored(&mut self, color: crate::prelude::Vector4<f32>, text: &str) -> () {
         unsafe { cbg_Tool_TextColored(self.self_ptr, color.into(), encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn text_disabled(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_TextDisabled(self.self_ptr, encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn bullet_text(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_BulletText(self.self_ptr, encode_string(&text).as_ptr()) }
     }
 
     ///
-    /// # Arguments
     pub fn label_text(&mut self, label: &str, text: &str) -> () {
         unsafe {
             cbg_Tool_LabelText(
@@ -3721,7 +3652,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn collapsing_header(&mut self, label: &str, flags: ToolTreeNode) -> bool {
         let ret = unsafe {
             cbg_Tool_CollapsingHeader(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
@@ -3730,14 +3660,12 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn tree_node(&mut self, label: &str) -> bool {
         let ret = unsafe { cbg_Tool_TreeNode(self.self_ptr, encode_string(&label).as_ptr()) };
         ret
     }
 
     ///
-    /// # Arguments
     pub fn tree_node_ex(&mut self, label: &str, flags: ToolTreeNode) -> bool {
         let ret = unsafe {
             cbg_Tool_TreeNodeEx(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
@@ -3751,13 +3679,11 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn set_next_item_open(&mut self, is_open: bool, cond: ToolCond) -> () {
         unsafe { cbg_Tool_SetNextItemOpen(self.self_ptr, is_open, cond as i32) }
     }
 
     ///
-    /// # Arguments
     pub fn button(&mut self, label: &str, size: crate::prelude::Vector2<f32>) -> bool {
         let ret =
             unsafe { cbg_Tool_Button(self.self_ptr, encode_string(&label).as_ptr(), size.into()) };
@@ -3765,7 +3691,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn check_box(&mut self, label: &str, is_open: &mut bool) -> bool {
         let ret = unsafe {
             cbg_Tool_CheckBox(
@@ -3778,7 +3703,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn radio_button(&mut self, label: &str, active: bool) -> bool {
         let ret =
             unsafe { cbg_Tool_RadioButton(self.self_ptr, encode_string(&label).as_ptr(), active) };
@@ -3786,7 +3710,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn arrow_button(&mut self, label: &str, dir: ToolDir) -> bool {
         let ret = unsafe {
             cbg_Tool_ArrowButton(self.self_ptr, encode_string(&label).as_ptr(), dir as i32)
@@ -3795,7 +3718,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn invisible_button(&mut self, label: &str, size: crate::prelude::Vector2<f32>) -> bool {
         let ret = unsafe {
             cbg_Tool_InvisibleButton(self.self_ptr, encode_string(&label).as_ptr(), size.into())
@@ -3804,7 +3726,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn selectable(&mut self, label: &str, selected: &bool, flags: ToolSelectable) -> bool {
         let ret = unsafe {
             cbg_Tool_Selectable(
@@ -3818,7 +3739,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn input_int(&mut self, label: &str, value: &i32) -> bool {
         let ret = unsafe {
             cbg_Tool_InputInt(
@@ -3831,7 +3751,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn input_float(&mut self, label: &str, value: &f32) -> bool {
         let ret = unsafe {
             cbg_Tool_InputFloat(
@@ -3844,7 +3763,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn slider_int(
         &mut self,
         label: &str,
@@ -3867,7 +3785,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn slider_float(
         &mut self,
         label: &str,
@@ -3890,7 +3807,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn slider_angle(&mut self, label: &str, angle: &f32) -> bool {
         let ret = unsafe {
             cbg_Tool_SliderAngle(
@@ -3903,7 +3819,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn vslider_int(
         &mut self,
         label: &str,
@@ -3926,7 +3841,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn vslider_float(
         &mut self,
         label: &str,
@@ -3949,7 +3863,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn drag_int(
         &mut self,
         label: &str,
@@ -3972,7 +3885,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn drag_float(
         &mut self,
         label: &str,
@@ -3995,20 +3907,17 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn open_popup(&mut self, label: &str) -> () {
         unsafe { cbg_Tool_OpenPopup(self.self_ptr, encode_string(&label).as_ptr()) }
     }
 
     /// `EndPopup()` を呼び出してください
-    /// # Arguments
     pub fn begin_popup(&mut self, label: &str) -> bool {
         let ret = unsafe { cbg_Tool_BeginPopup(self.self_ptr, encode_string(&label).as_ptr()) };
         ret
     }
 
     /// `EndPopup()` を呼び出してください
-    /// # Arguments
     pub fn begin_popup_modal(&mut self, label: &str) -> bool {
         let ret =
             unsafe { cbg_Tool_BeginPopupModal(self.self_ptr, encode_string(&label).as_ptr()) };
@@ -4021,7 +3930,6 @@ impl Tool {
     }
 
     /// `EndChild()` を呼び出してください
-    /// # Arguments
     pub fn begin_child(
         &mut self,
         label: &str,
@@ -4058,7 +3966,6 @@ impl Tool {
     }
 
     /// `EndMenu()` を呼び出してください
-    /// # Arguments
     pub fn begin_menu(&mut self, label: &str, enabled: bool) -> bool {
         let ret =
             unsafe { cbg_Tool_BeginMenu(self.self_ptr, encode_string(&label).as_ptr(), enabled) };
@@ -4071,7 +3978,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn menu_item(
         &mut self,
         label: &str,
@@ -4092,7 +3998,6 @@ impl Tool {
     }
 
     /// `EndTabBar()` を呼び出してください
-    /// # Arguments
     pub fn begin_tab_bar(&mut self, label: &str, flags: ToolTabBar) -> bool {
         let ret = unsafe {
             cbg_Tool_BeginTabBar(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
@@ -4106,7 +4011,6 @@ impl Tool {
     }
 
     /// `EndTabItem()` を呼び出してください
-    /// # Arguments
     pub fn begin_tab_item(&mut self, label: &str) -> bool {
         let ret = unsafe { cbg_Tool_BeginTabItem(self.self_ptr, encode_string(&label).as_ptr()) };
         ret
@@ -4133,7 +4037,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn set_tooltip(&mut self, text: &str) -> () {
         unsafe { cbg_Tool_SetTooltip(self.self_ptr, encode_string(&text).as_ptr()) }
     }
@@ -4159,7 +4062,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn push_text_wrap_pos(&mut self, wrap_local_pos_x: f32) -> () {
         unsafe { cbg_Tool_PushTextWrapPos(self.self_ptr, wrap_local_pos_x) }
     }
@@ -4170,13 +4072,11 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn set_next_item_width(&mut self, width: f32) -> () {
         unsafe { cbg_Tool_SetNextItemWidth(self.self_ptr, width) }
     }
 
     ///
-    /// # Arguments
     pub fn push_item_width(&mut self, width: f32) -> () {
         unsafe { cbg_Tool_PushItemWidth(self.self_ptr, width) }
     }
@@ -4187,7 +4087,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn push_button_repeat(&mut self, repeat: bool) -> () {
         unsafe { cbg_Tool_PushButtonRepeat(self.self_ptr, repeat) }
     }
@@ -4198,7 +4097,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn columns(&mut self, count: i32, border: bool) -> () {
         unsafe { cbg_Tool_Columns(self.self_ptr, count, border) }
     }
@@ -4209,7 +4107,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn push_id(&mut self, id: i32) -> () {
         unsafe { cbg_Tool_PushID(self.self_ptr, id) }
     }
@@ -4265,7 +4162,6 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn set_window_size(&mut self, size: crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetWindowSize(self.self_ptr, size.into()) }
     }
@@ -4283,39 +4179,33 @@ impl Tool {
     }
 
     ///
-    /// # Arguments
     pub fn is_mouse_double_clicked(&mut self, button: i32) -> bool {
         let ret = unsafe { cbg_Tool_IsMouseDoubleClicked(self.self_ptr, button) };
         ret
     }
 
     ///
-    /// # Arguments
     pub fn get_mouse_drag_delta(&mut self, button: i32) -> crate::prelude::Vector2<f32> {
         let ret = unsafe { cbg_Tool_GetMouseDragDelta(self.self_ptr, button) };
         ret.into()
     }
 
     ///
-    /// # Arguments
     pub fn reset_mouse_drag_delta(&mut self, button: i32) -> () {
         unsafe { cbg_Tool_ResetMouseDragDelta(self.self_ptr, button) }
     }
 
     ///
-    /// # Arguments
     pub fn set_next_window_content_size(&mut self, size: crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowContentSize(self.self_ptr, size.into()) }
     }
 
     ///
-    /// # Arguments
     pub fn set_next_window_size(&mut self, size: crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowSize(self.self_ptr, size.into()) }
     }
 
     ///
-    /// # Arguments
     pub fn set_next_window_pos(&mut self, pos: crate::prelude::Vector2<f32>) -> () {
         unsafe { cbg_Tool_SetNextWindowPos(self.self_ptr, pos.into()) }
     }
@@ -4368,7 +4258,6 @@ impl StreamFile {
     }
 
     /// 指定ファイルを読み込むStreamFileの新しいインスタンスを生成します。
-    /// # Arguments
     /// * `path` - 読み込むファイルのパス
     pub fn create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
         let ret = unsafe { cbg_StreamFile_Create(encode_string(&path).as_ptr()) };
@@ -4376,7 +4265,6 @@ impl StreamFile {
     }
 
     /// 指定した分ファイルを読み込む
-    /// # Arguments
     /// * `size` - この処理で読み込むデータサイズ
     pub fn read(&mut self, size: i32) -> i32 {
         let ret = unsafe { cbg_StreamFile_Read(self.self_ptr, size) };
@@ -4473,7 +4361,6 @@ impl StaticFile {
     }
 
     /// 指定ファイルを読み込んだStaticFileの新しいインスタンスを生成します。
-    /// # Arguments
     /// * `path` - 読み込むファイルのパス
     pub fn create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
         let ret = unsafe { cbg_StaticFile_Create(encode_string(&path).as_ptr()) };
@@ -4562,7 +4449,6 @@ impl File {
     }
 
     /// ファイル読み込み時に自動的に保管されるディレクトリを追加します。
-    /// # Arguments
     /// * `path` - 追加するディレクトリ
     pub fn add_root_directory(&mut self, path: &str) -> bool {
         let ret =
@@ -4571,7 +4457,6 @@ impl File {
     }
 
     /// ファイルパッケージをパスワード有りで読み込む
-    /// # Arguments
     /// * `path` - 読み込むファイルパッケージのパス
     /// * `password` - 読み込むファイルパッケージのパスワード
     pub fn add_root_package_with_password(&mut self, path: &str, password: &str) -> bool {
@@ -4586,7 +4471,6 @@ impl File {
     }
 
     /// ファイルパッケージをパスワード無しで読み込む
-    /// # Arguments
     /// * `path` - 読み込むファイルパッケージのパス
     pub fn add_root_package(&mut self, path: &str) -> bool {
         let ret = unsafe { cbg_File_AddRootPackage(self.self_ptr, encode_string(&path).as_ptr()) };
@@ -4599,7 +4483,6 @@ impl File {
     }
 
     /// 指定したファイルが存在するかどうかを検索します。
-    /// # Arguments
     /// * `path` - 存在を確認するファイルのパス
     pub fn exists(&mut self, path: &str) -> bool {
         let ret = unsafe { cbg_File_Exists(self.self_ptr, encode_string(&path).as_ptr()) };
@@ -4607,7 +4490,6 @@ impl File {
     }
 
     ///
-    /// # Arguments
     /// * `src_path` -
     /// * `dst_path` -
     pub fn pack(&mut self, src_path: &str, dst_path: &str) -> bool {
@@ -4622,7 +4504,6 @@ impl File {
     }
 
     ///
-    /// # Arguments
     /// * `src_path` -
     /// * `dst_path` -
     /// * `password` -
@@ -4692,7 +4573,6 @@ impl Sound {
     }
 
     ///
-    /// # Arguments
     /// * `path` -
     /// * `is_decompressed` -
     pub fn load(path: &str, is_decompressed: bool) -> Option<Rc<RefCell<Sound>>> {
@@ -4808,7 +4688,6 @@ impl SoundMixer {
     }
 
     /// 音を再生します。
-    /// # Arguments
     /// * `sound` - 音源データ
     pub fn play(&mut self, sound: &mut Sound) -> i32 {
         let ret = unsafe { cbg_SoundMixer_Play(self.self_ptr, sound.self_ptr) };
@@ -4816,7 +4695,6 @@ impl SoundMixer {
     }
 
     /// 指定した音が再生中であるかを取得します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn get_is_playing(&mut self, id: i32) -> bool {
         let ret = unsafe { cbg_SoundMixer_GetIsPlaying(self.self_ptr, id) };
@@ -4829,28 +4707,24 @@ impl SoundMixer {
     }
 
     /// 指定した音の再生を停止します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn stop(&mut self, id: i32) -> () {
         unsafe { cbg_SoundMixer_Stop(self.self_ptr, id) }
     }
 
     /// 指定した音の再生を一時停止します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn pause(&mut self, id: i32) -> () {
         unsafe { cbg_SoundMixer_Pause(self.self_ptr, id) }
     }
 
     /// 指定した音の再生を再開します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn resume(&mut self, id: i32) -> () {
         unsafe { cbg_SoundMixer_Resume(self.self_ptr, id) }
     }
 
     /// 指定した音の音量を変更します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `volume` - 音量(0.0〜1.0
     pub fn set_volume(&mut self, id: i32, volume: f32) -> () {
@@ -4858,7 +4732,6 @@ impl SoundMixer {
     }
 
     /// 指定した音をフェードインさせる
-    /// # Arguments
     /// * `id` -
     /// * `second` - フェードインに使用する時間(秒)
     pub fn fade_in(&mut self, id: i32, second: f32) -> () {
@@ -4866,7 +4739,6 @@ impl SoundMixer {
     }
 
     /// 指定した音をフェードアウトさせる
-    /// # Arguments
     /// * `id` - 音のID
     /// * `second` - フェードアウトに使用する時間(秒)
     pub fn fade_out(&mut self, id: i32, second: f32) -> () {
@@ -4874,7 +4746,6 @@ impl SoundMixer {
     }
 
     /// 指定した音の音量を一定時間かけて変更します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `second` - フェードに使用する時間(秒)
     /// * `targeted_volume` - 変更後の音量(0.0〜1.0)
@@ -4883,7 +4754,6 @@ impl SoundMixer {
     }
 
     /// 再生速度を変更するかを取得します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn get_is_playback_speed_enabled(&mut self, id: i32) -> bool {
         let ret = unsafe { cbg_SoundMixer_GetIsPlaybackSpeedEnabled(self.self_ptr, id) };
@@ -4891,7 +4761,6 @@ impl SoundMixer {
     }
 
     /// 再生速度を変更するかを設定します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `is_playback_speed_enabled` - 再生速度を変更するか?
     pub fn set_is_playback_speed_enabled(
@@ -4905,7 +4774,6 @@ impl SoundMixer {
     }
 
     /// 再生速度を取得します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn get_playback_speed(&mut self, id: i32) -> f32 {
         let ret = unsafe { cbg_SoundMixer_GetPlaybackSpeed(self.self_ptr, id) };
@@ -4913,7 +4781,6 @@ impl SoundMixer {
     }
 
     /// 再生速度を設定します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `playback_speed` - 変更後の再生速度
     pub fn set_playback_speed(&mut self, id: i32, playback_speed: f32) -> () {
@@ -4921,7 +4788,6 @@ impl SoundMixer {
     }
 
     /// パン位置を取得します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn get_panning_position(&mut self, id: i32) -> f32 {
         let ret = unsafe { cbg_SoundMixer_GetPanningPosition(self.self_ptr, id) };
@@ -4929,7 +4795,6 @@ impl SoundMixer {
     }
 
     /// パン位置を設定します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `panning_position` - パン位置 : 0.0で中央, -1.0で左, 1.0で右
     pub fn set_panning_position(&mut self, id: i32, panning_position: f32) -> () {
@@ -4937,7 +4802,6 @@ impl SoundMixer {
     }
 
     /// 指定した音の再生位置を取得します。
-    /// # Arguments
     /// * `id` - 音のID
     pub fn get_playback_position(&mut self, id: i32) -> f32 {
         let ret = unsafe { cbg_SoundMixer_GetPlaybackPosition(self.self_ptr, id) };
@@ -4945,7 +4809,6 @@ impl SoundMixer {
     }
 
     /// 指定した音の再生位置を変更します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `position` - 再生位置(秒)
     pub fn set_playback_position(&mut self, id: i32, position: f32) -> () {
@@ -4953,7 +4816,6 @@ impl SoundMixer {
     }
 
     /// 再生中の音のスペクトル情報を取得します。
-    /// # Arguments
     /// * `id` - 音のID
     /// * `spectrums` - 音のスペクトル情報を格納するための配列
     /// * `window` - フーリエ変換に用いる窓関数
@@ -5020,7 +4882,6 @@ impl Log {
     }
 
     /// ログを出力します。
-    /// # Arguments
     pub fn write(&mut self, category: LogCategory, level: LogLevel, message: &str) -> () {
         unsafe {
             cbg_Log_Write(
@@ -5033,7 +4894,6 @@ impl Log {
     }
 
     /// ログレベルTraceでログを出力します。
-    /// # Arguments
     pub fn trace(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Trace(
@@ -5045,7 +4905,6 @@ impl Log {
     }
 
     /// ログレベルDebugでログを出力します。
-    /// # Arguments
     pub fn debug(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Debug(
@@ -5057,7 +4916,6 @@ impl Log {
     }
 
     /// ログレベルInfoでログを出力します。
-    /// # Arguments
     pub fn info(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Info(
@@ -5069,7 +4927,6 @@ impl Log {
     }
 
     /// ログレベルWarningでログを出力します。
-    /// # Arguments
     pub fn warn(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Warn(
@@ -5081,7 +4938,6 @@ impl Log {
     }
 
     /// ログレベルErrorでログを出力します。
-    /// # Arguments
     pub fn error(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Error(
@@ -5093,7 +4949,6 @@ impl Log {
     }
 
     /// ログレベルCriticalでログを出力します。
-    /// # Arguments
     pub fn critical(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
             cbg_Log_Critical(
@@ -5105,7 +4960,6 @@ impl Log {
     }
 
     /// ログレベルを設定します。
-    /// # Arguments
     pub fn set_level(&mut self, category: LogCategory, level: LogLevel) -> () {
         unsafe { cbg_Log_SetLevel(self.self_ptr, category as i32, level as i32) }
     }
