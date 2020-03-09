@@ -10,4 +10,5 @@ build = "build.rs"
 
 [dependencies]
 "lazy_static"="1.4.0"
+bitflags="1.2.1"
 num = "0.2"

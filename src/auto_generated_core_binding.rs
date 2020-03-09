@@ -8,13 +8,13 @@
 //
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-use std::ffi::c_void;
+#![allow(dead_code)]
 #[allow(unused_imports)]
+use std::ffi::c_void;
 use std::os::raw::*;
 
 const NULLPTR: *mut RawPtr = 0 as *mut RawPtr;
 
-#[allow(dead_code)]
 fn decode_string(source: *const u16) -> String {
     unsafe {
         let len = (0..).take_while(|&i| *source.offset(i) != 0).count();
@@ -23,7 +23,6 @@ fn decode_string(source: *const u16) -> String {
     }
 }
 
-#[allow(dead_code)]
 fn encode_string(s: &str) -> Vec<u16> {
     let mut v: Vec<u16> = s.encode_utf16().collect();
     v.push(0);
@@ -32,6 +31,7 @@ fn encode_string(s: &str) -> Vec<u16> {
 
 enum RawPtr {}
 
+/// フレームレートモード
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FramerateMode {
@@ -39,6 +39,7 @@ pub enum FramerateMode {
     Constant,
 }
 
+/// リソースの種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ResourceType {
@@ -50,6 +51,7 @@ pub enum ResourceType {
     MAX,
 }
 
+/// キーボードのキーの種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Keys {
@@ -178,6 +180,7 @@ pub enum Keys {
     MAX,
 }
 
+/// ボタンの押下状態を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ButtonState {
@@ -187,6 +190,7 @@ pub enum ButtonState {
     Release = 2,
 }
 
+/// マウスのボタンの種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MouseButtons {
@@ -200,6 +204,7 @@ pub enum MouseButtons {
     SubButton5 = 7,
 }
 
+/// カーソルの状態を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CursorMode {
@@ -208,6 +213,7 @@ pub enum CursorMode {
     Disable = 212995,
 }
 
+/// ジョイスティックの種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JoystickType {
@@ -218,6 +224,7 @@ pub enum JoystickType {
     JoyconR = 8197,
 }
 
+/// ジョイスティックのボタンの種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JoystickButtonType {
@@ -247,6 +254,7 @@ pub enum JoystickButtonType {
     Max,
 }
 
+/// ジョイスティックの軸の種類を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JoystickAxisType {
@@ -275,6 +283,7 @@ pub enum WritingDirection {
     Horizontal,
 }
 
+/// ImGuiで使用する方向
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolDir {
@@ -285,61 +294,257 @@ pub enum ToolDir {
     Down = 3,
 }
 
+/// バイナリ演算子を使用して複数の値を結合しないでください
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolCond {
     None = 0,
+    /// 常に変数を設定します
     Always = 1,
+    /// ランタイムセッションごとに変数を1回設定します（成功した最初の呼び出しのみ）
+    Once = 2,
+    /// オブジェクト/ウィンドウに永続的に保存されたデータがない場合（.iniファイルにエントリがない場合）、変数を設定します
+    FirstUseEver = 4,
+    /// オブジェクト/ウィンドウが非表示/非アクティブになった後（または初めて）表示される場合は、変数を設定します
+    Appearing = 8,
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolTreeNode {
-    None = 0,
-    Selected = 1,
+bitflags! {
+    pub struct ToolTreeNode: i32 {
+        const NONE = 0;
+        /// Draw as selected
+        const SELECTED = 1;
+        ///
+        const FRAMED = 2;
+        ///
+        const ALLOW_ITEM_OVERLAP = 4;
+        ///
+        const NO_TREE_PUSH_ON_OPEN = 8;
+        ///
+        const NO_AUTO_OPEN_ON_LOG = 16;
+        ///
+        const DEFAULT_OPEN = 32;
+        ///
+        const OPEN_ON_DOUBLE_CLICK = 64;
+        ///
+        const OPEN_ON_ARROW = 128;
+        ///
+        const LEAF = 256;
+        ///
+        const BULLET = 512;
+        ///
+        const FRAME_PADDING = 1024;
+        ///
+        const SPAN_AVAIL_WIDTH = 2048;
+        ///
+        const SPAN_FULL_WIDTH = 4096;
+        ///
+        const NAV_LEFT_JUMPS_BACK_HERE = 8192;
+        const COLLAPSING_HEADER = 26;
+    }
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolInputText {
-    None = 0,
-    CharsDecimal = 1,
+bitflags! {
+    pub struct ToolInputText: i32 {
+        const NONE = 0;
+        /// 0123456789.+-*/ を許可します。
+        const CHARS_DECIMAL = 1;
+        /// 0123456789ABCDEFabcdef を許可します
+        const CHARS_HEXADECIMAL = 2;
+        /// a..z を A..Z に変換します
+        const CHARS_UPPERCASE = 4;
+        /// スペースとタブを除外します
+        const CHARS_NO_BLANK = 8;
+        /// 最初にマウスフォーカスしたときにテキスト全体を選択します
+        const AUTO_SELECT_ALL = 16;
+        /// （値が変更されるたびにではなく）Enterが押されたときに `true` を返します。 `IsItemDeactivatedAfterEdit()` 関数を調べることを検討してください。
+        const ENTER_RETURNS_TRUE = 32;
+        /// Tabキーを押したときのコールバック（完了処理のため）
+        const CALLBACK_COMPLETION = 64;
+        /// 上下矢印を押すとコールバック（履歴処理用）
+        const CALLBACK_HISTORY = 128;
+        /// 各反復でのコールバック。 ユーザーコードは、カーソル位置を照会し、テキストバッファーを変更できます。
+        const CALLBACK_ALWAYS = 256;
+        /// 置換または破棄する文字入力のコールバック。 'EventChar'を変更して置換または破棄するか、コールバックで1を返して破棄します。
+        const CALLBACK_CHAR_FILTER = 512;
+        /// Tabキーを押すと、テキストフィールドに'\t'という文字が入力されます。
+        const ALLOW_TAB_INPUT = 1024;
+        /// 複数行モードでは、Enterでフォーカスを外し、Ctrl + Enterで新しい行を追加します（デフォルトは反対です：Ctrl + Enterでフォーカスを外し、Enterで行を追加します）。
+        const CTRL_ENTER_FOR_NEW_LINE = 2048;
+        /// カーソルの水平方向のフォローを無効にする
+        const NO_HORIZONTAL_SCROLL = 4096;
+        /// インサートモード
+        const ALWAYS_INSERT_MODE = 8192;
+        /// 読み取り専用モード
+        const READ_ONLY = 16384;
+        /// パスワードモード。すべての文字を'*'として表示します。
+        const PASSWORD = 32768;
+        /// 元に戻す/やり直しを無効にします。 アクティブな間は入力テキストがテキストデータを所有していることに注意してください。独自の元に戻す/やり直しスタックを提供する場合は、たとえば ClearActiveID（）を呼び出します。
+        const NO_UNDO_REDO = 65536;
+        /// 0123456789.+-*/eE (科学表記法の入力) を許可します
+        const CHARS_SCIENTIFIC = 131072;
+        /// バッファ容量のコールバックはリクエストを変更し（'buf_size 'パラメータ値を超えて）、文字列が大きくなります。 文字列のサイズを変更する必要がある場合に通知します（サイズのキャッシュを保持する文字列タイプの場合）。 コールバックで新しいBufSizeが提供され、それを尊重する必要があります。
+        const CALLBACK_RESIZE = 262144;
+    }
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolColorEdit {
-    None = 0,
-    NoAlpha = 2,
+bitflags! {
+    pub struct ToolColorEdit: i32 {
+        const NONE = 0;
+        /// `ColorEdit, ColorPicker, ColorButton`: Alphaコンポーネントを無視します（入力ポインターから3つのコンポーネントのみを読み取ります）。
+        const NO_ALPHA = 2;
+        /// `ColorEdit`: 色付きの正方形をクリックしたときにピッカーを無効にします。
+        const NO_PICKER = 4;
+        /// `ColorEdit`: 入力/小さなプレビューを右クリックしたときのオプションメニューの切り替えを無効にします。
+        const NO_OPTIONS = 8;
+        /// `ColorEdit, ColorPicker`: 入力の横にある色付きの正方形プレビューを無効にします。 （例：入力のみを表示する）
+        const NO_SMALL_PREVIEW = 16;
+        /// `ColorEdit, ColorPicker: 入力スライダー/テキストウィジェットを無効にします（たとえば、小さなプレビューの色付きの四角形のみを表示します）。
+        const NO_INPUTS = 32;
+        /// `ColorEdit, ColorPicker, ColorButton`: プレビューをホバーするときにツールチップを無効にします。
+        const NO_TOOLTIP = 64;
+        /// `ColorEdit, ColorPicker`: インラインテキストラベルの表示を無効にします（ラベルは引き続きツールチップとピッカーに転送されます）。
+        const NO_LABEL = 128;
+        /// `ColorPicker`: ピッカーの右側の大きなカラープレビューを無効にし、代わりに小さな色付きの正方形プレビューを使用します。
+        const NO_SIDE_PREVIEW = 256;
+        /// `ColorEdit`: ドラッグアンドドロップターゲットを無効にします。 `ColorButton`: ドラッグアンドドロップソースを無効にします。
+        const NO_DRAG_DROP = 512;
+        /// `ColorEdit, ColorPicker`: ピッカーに垂直アルファバー/グラデーションを表示します。
+        const ALPHA_BAR = 65536;
+        /// `ColorEdit, ColorPicker, ColorButton`: プレビューを不透明ではなく、チェッカーボード上の透明色として表示します。
+        const ALPHA_PREVIEW = 131072;
+        /// `ColorEdit, ColorPicker, ColorButton`: 不透明ではなく、半不透明/半市松模様を表示します。
+        const ALPHA_PREVIEW_HALF = 262144;
+        /// `(WIP) ColorEdit`: 現在、RGBAエディションで0.0f..1.0fの制限のみを無効にします（注：おそらくFloatフラグも使用したいでしょう）。
+        const HDR = 524288;
+        /// `ColorEdit`: RGB/HSV/Hexの_display_タイプをオーバーライドします。 `ColorPicker`: 1つ以上のRGB/HSV/Hexを使用して任意の組み合わせを選択します。
+        const DISPLAY_RGB = 1048576;
+        ///
+        const DISPLAY_HSV = 2097152;
+        ///
+        const DISPLAY_HEX = 4194304;
+        /// `ColorEdit, ColorPicker, ColorButton`: 0..255としてフォーマットされた_display_値。
+        const UINT8 = 8388608;
+        /// `ColorEdit, ColorPicker, ColorButton`: _display_値は、0..255整数ではなく0.0f..1.0f浮動小数点としてフォーマットされます。 整数による値の往復はありません。
+        const FLOAT = 16777216;
+        /// `ColorPicker`: Hueのバー、Sat/Valueの長方形。
+        const PICKER_HUE_BAR = 33554432;
+        /// `ColorPicker`: Hueのホイール、Sat/Valueの三角形。
+        const PICKER_HUE_WHEEL = 67108864;
+        /// `ColorEdit, ColorPicker`: RGB形式の入出力データ
+        const INPUT_RGB = 134217728;
+        /// `ColorEdit, ColorPicker`: HSV形式の入力および出力データ。
+        const INPUT_HSV = 268435456;
+        /// デフォルトオプション。 `SetColorEditOptions()` を使用して、アプリケーションのデフォルトを設定できます。 意図はおそらくあなたの呼び出しのほとんどでそれらをオーバーライドしたくないことです。 ユーザーがオプションメニューから選択できるようにするか、起動時に`SetColorEditOptions()`を1回呼び出します。
+        const OPTIONS_DEFAULT = 177209344;
+    }
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolSelectable {
-    None = 0,
+bitflags! {
+    pub struct ToolSelectable: i32 {
+        ///
+        const NONE = 0;
+        /// このボタンをクリックしても、親ポップアップウィンドウは閉じません
+        const DONT_CLOSE_POPUPS = 1;
+        /// 選択可能なフレームはすべての列にまたがることができます（テキストは現在の列に収まります）
+        const SPAN_ALL_COLUMNS = 2;
+        /// ダブルクリックした場合もプレスイベントを生成
+        const ALLOW_DOUBLE_CLICK = 4;
+        /// 選択できません、グレー表示されたテキストを表示します
+        const DISABLED = 8;
+        /// (WIP) ヒットテストにより、後続のウィジェットがこのウィジェットとオーバーラップできるようにします
+        const ALLOW_ITEM_OVERLAP = 16;
+    }
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolWindow {
-    None = 0,
-    NoTitleBar = 1,
+bitflags! {
+    pub struct ToolWindow: i32 {
+        const NONE = 0;
+        /// タイトルバーを無効にする
+        const NO_TITLE_BAR = 1;
+        /// 右下のグリップを使ったユーザーのサイズ変更を無効にします
+        const NO_RESIZE = 2;
+        /// ユーザーがウィンドウを移動できないようにする
+        const NO_MOVE = 4;
+        /// スクロールバーを無効にします（ウィンドウはマウスまたはプログラムでスクロールできます）
+        const NO_SCROLLBAR = 8;
+        /// ユーザーがマウスホイールで垂直にスクロールできないようにします。 子ウィンドウでは、NoScrollbarも設定されていない限り、マウスホイールは親に転送されます。
+        const NO_SCROLL_WITH_MOUSE = 16;
+        /// ユーザー折りたたみウィンドウをダブルクリックして無効にします
+        const NO_COLLAPSE = 32;
+        /// フレームごとにコンテンツごとにウィンドウのサイズを変更します
+        const ALWAYS_AUTO_RESIZE = 64;
+        /// 描画背景色(`WindowBg`など)および外枠を無効にします。 `SetNextWindowBgAlpha(0.0f)`を使用する場合と同様です。
+        const NO_BACKGROUND = 128;
+        /// .iniファイルの設定をロード/保存しない
+        const NO_SAVED_SETTINGS = 256;
+        /// パススルーでテストをホバリング、キャッチマウスを無効にします。
+        const NO_MOUSE_INPUTS = 512;
+        /// メニューバーがあります
+        const MENU_BAR = 1024;
+        /// 水平スクロールバーの表示を許可します（デフォルトではオフ）。 `Begin()`を呼び出す前に、`SetNextWindowContentSize(Vector2F(width, 0.0f));`を使用して幅を指定できます。
+        const HORIZONTAL_SCROLLBAR = 2048;
+        /// 非表示から表示状態に移行するときにフォーカスを取得できないようにします
+        const NO_FOCUS_ON_APPEARING = 4096;
+        /// フォーカスを取得するときにウィンドウを前面に移動することを無効にします（たとえば、クリックするか、プログラムでフォーカスを与える）
+        const NO_BRING_TO_FRONT_ON_FOCUS = 8192;
+        /// 常に垂直スクロールバーを表示します（`ContentSize.Y < Size.Y`の場合でも）
+        const ALWAYS_VERTICAL_SCROLLBAR = 16384;
+        /// 常に水平スクロールバーを表示します（`ContentSize.x < Size.x`であっても）
+        const ALWAYS_HORIZONTAL_SCROLLBAR = 32768;
+        /// 境界線のない子ウィンドウが`style.WindowPadding`を使用するようにします（境界線のない子ウィンドウではデフォルトで無視されるため、より便利です）
+        const ALWAYS_USE_WINDOW_PADDING = 65536;
+        /// ウィンドウ内にゲームパッド/キーボードナビゲーションはありません
+        const NO_NAV_INPUTS = 262144;
+        /// ゲームパッド/キーボードナビゲーションでこのウィンドウにフォーカスしない（たとえば、CTRL + TABでスキップ）
+        const NO_NAV_FOCUS = 524288;
+        /// ###演算子の使用を避けるために、IDに影響を与えずにタイトルに'*'を追加します。 タブ/ドッキングコンテキストで使用する場合、クロージャーでタブが選択され、クロージャーは1フレーム延期され、コードがちらつきなしに（確認ポップアップなどを使用して）クロージャーをキャンセルできるようにします。
+        const UNSAVED_DOCUMENT = 1048576;
+        const NO_NAV = 786432;
+        const NO_DECORATION = 43;
+        const NO_INPUTS = 786944;
+    }
 }
 
-#[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ToolTabBar {
-    None = 0,
-    Reorderable = 1,
+bitflags! {
+    pub struct ToolTabBar: i32 {
+        const NONE = 0;
+        /// タブを手動でドラッグして並べ替えることができます+リストの最後に新しいタブが追加されます
+        const REORDERABLE = 1;
+        /// 新しいタブが表示されたら自動的に選択する
+        const AUTO_SELECT_NEW_TABS = 2;
+        /// ボタンを無効にしてタブリストポップアップを開きます
+        const TAB_LIST_POPUP_BUTTON = 4;
+        /// マウスの中ボタンでタブを閉じる（p_open！= NULLで送信される）動作を無効にします。 `if（IsItemHovered（）&& IsMouseClicked（2））* p_open = false`を使用すると、ユーザー側でこの動作を再現できます。
+        const NO_CLOSE_WITH_MIDDLE_MOUSE_BUTTON = 8;
+        /// スクロールボタンを無効にする（フィッティングポリシーが`FittingPolicyScroll`の場合に適用）
+        const NO_TAB_LIST_SCROLLING_BUTTONS = 16;
+        /// タブをホバーするときにツールチップを無効にする
+        const NO_TOOLTIP = 32;
+        /// 収まらないタブのサイズを変更する
+        const FITTING_POLICY_RESIZE_DOWN = 64;
+        /// タブが収まらない場合にスクロールボタンを追加する
+        const FITTING_POLICY_SCROLL = 128;
+        const FITTING_POLICY_MASK = 192;
+        const FITTING_POLICY_DEFAULT = 64;
+    }
 }
 
+/// Tool機能を使ってフォントを読み込む際の範囲を指定します。ビット演算は行わないでください。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolGlyphRanges {
     Default,
+    /// キリル文字
     Cyrillic,
+    Japanese,
+    ChineseFull,
+    ChineseSimplifiedCommon,
+    Korean,
+    Thai,
 }
 
+/// 音のスペクトル解析に使用する窓関数
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FFTWindow {
@@ -351,6 +556,7 @@ pub enum FFTWindow {
     BlackmanHarris,
 }
 
+/// ログレベルを表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LogLevel {
@@ -363,6 +569,7 @@ pub enum LogLevel {
     Off = 6,
 }
 
+/// ログの範囲を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LogCategory {
@@ -371,7 +578,6 @@ pub enum LogCategory {
     User = 2,
 }
 
-#[allow(dead_code)]
 #[link(name = "Altseed_Core")]
 extern "C" {
     fn cbg_Configuration_Constructor_0() -> *mut RawPtr;
@@ -1242,6 +1448,7 @@ struct RawPtrStorage(*mut RawPtr);
 unsafe impl Send for RawPtrStorage {}
 unsafe impl Sync for RawPtrStorage {}
 
+/// Coreを初期化する際の設定を保持すクラス
 #[derive(Debug)]
 pub struct Configuration {
     self_ptr: *mut RawPtr,
@@ -1253,7 +1460,6 @@ pub struct Configuration {
 }
 
 impl Configuration {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Configuration>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1268,7 +1474,6 @@ impl Configuration {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static CONFIGURATION_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Configuration>>>> = RefCell::new(HashMap::new());
@@ -1368,6 +1573,7 @@ impl Drop for Configuration {
     }
 }
 
+/// C++のCoreとの仲介を担うクラス
 #[derive(Debug)]
 pub(crate) struct Core {
     self_ptr: *mut RawPtr,
@@ -1376,7 +1582,6 @@ pub(crate) struct Core {
 }
 
 impl Core {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Core>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1388,7 +1593,6 @@ impl Core {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static CORE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Core>>>> = RefCell::new(HashMap::new());
@@ -1492,13 +1696,13 @@ impl Drop for Core {
     }
 }
 
+/// 8ビット整数の配列のクラスを表します。
 #[derive(Debug)]
 pub struct Int8Array {
     self_ptr: *mut RawPtr,
 }
 
 impl Int8Array {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Int8Array>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1506,7 +1710,6 @@ impl Int8Array {
         Some(Rc::new(RefCell::new(Int8Array { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static INT8ARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Int8Array>>>> = RefCell::new(HashMap::new());
@@ -1595,13 +1798,13 @@ impl Drop for Int8Array {
     }
 }
 
+/// 32ビット整数の配列のクラスを表します。
 #[derive(Debug)]
 pub struct Int32Array {
     self_ptr: *mut RawPtr,
 }
 
 impl Int32Array {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Int32Array>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1609,7 +1812,6 @@ impl Int32Array {
         Some(Rc::new(RefCell::new(Int32Array { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static INT32ARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Int32Array>>>> = RefCell::new(HashMap::new());
@@ -1698,13 +1900,13 @@ impl Drop for Int32Array {
     }
 }
 
+/// 頂点データの配列のクラスを表します。
 #[derive(Debug)]
 pub struct VertexArray {
     self_ptr: *mut RawPtr,
 }
 
 impl VertexArray {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<VertexArray>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1712,7 +1914,6 @@ impl VertexArray {
         Some(Rc::new(RefCell::new(VertexArray { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static VERTEXARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<VertexArray>>>> = RefCell::new(HashMap::new());
@@ -1801,13 +2002,13 @@ impl Drop for VertexArray {
     }
 }
 
+/// 浮動小数点数の配列のクラスを表します。
 #[derive(Debug)]
 pub struct FloatArray {
     self_ptr: *mut RawPtr,
 }
 
 impl FloatArray {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<FloatArray>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1815,7 +2016,6 @@ impl FloatArray {
         Some(Rc::new(RefCell::new(FloatArray { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static FLOATARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<FloatArray>>>> = RefCell::new(HashMap::new());
@@ -1904,13 +2104,13 @@ impl Drop for FloatArray {
     }
 }
 
+/// 2次元ベクトルの配列のクラスを表します。
 #[derive(Debug)]
 pub struct Vector2FArray {
     self_ptr: *mut RawPtr,
 }
 
 impl Vector2FArray {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Vector2FArray>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -1918,7 +2118,6 @@ impl Vector2FArray {
         Some(Rc::new(RefCell::new(Vector2FArray { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static VECTOR2FARRAY_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Vector2FArray>>>> = RefCell::new(HashMap::new());
@@ -2007,13 +2206,13 @@ impl Drop for Vector2FArray {
     }
 }
 
+/// リソースのクラスを表します。
 #[derive(Debug)]
 pub(crate) struct Resources {
     self_ptr: *mut RawPtr,
 }
 
 impl Resources {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Resources>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2021,7 +2220,6 @@ impl Resources {
         Some(Rc::new(RefCell::new(Resources { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RESOURCES_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Resources>>>> = RefCell::new(HashMap::new());
@@ -2076,13 +2274,13 @@ impl Drop for Resources {
     }
 }
 
+/// キーボードを表します。
 #[derive(Debug)]
 pub struct Keyboard {
     self_ptr: *mut RawPtr,
 }
 
 impl Keyboard {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Keyboard>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2090,7 +2288,6 @@ impl Keyboard {
         Some(Rc::new(RefCell::new(Keyboard { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static KEYBOARD_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Keyboard>>>> = RefCell::new(HashMap::new());
@@ -2135,6 +2332,7 @@ impl Drop for Keyboard {
     }
 }
 
+/// マウスを表します。
 #[derive(Debug)]
 pub struct Mouse {
     self_ptr: *mut RawPtr,
@@ -2143,7 +2341,6 @@ pub struct Mouse {
 }
 
 impl Mouse {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Mouse>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2155,7 +2352,6 @@ impl Mouse {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static MOUSE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Mouse>>>> = RefCell::new(HashMap::new());
@@ -2232,13 +2428,13 @@ impl Drop for Mouse {
     }
 }
 
+/// ジョイスティックを表すクラス
 #[derive(Debug)]
 pub struct Joystick {
     self_ptr: *mut RawPtr,
 }
 
 impl Joystick {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Joystick>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2246,7 +2442,6 @@ impl Joystick {
         Some(Rc::new(RefCell::new(Joystick { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static JOYSTICK_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Joystick>>>> = RefCell::new(HashMap::new());
@@ -2371,13 +2566,13 @@ impl Drop for Joystick {
     }
 }
 
+/// グラフィックの制御を行うクラス
 #[derive(Debug)]
 pub(crate) struct Graphics {
     self_ptr: *mut RawPtr,
 }
 
 impl Graphics {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Graphics>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2385,7 +2580,6 @@ impl Graphics {
         Some(Rc::new(RefCell::new(Graphics { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static GRAPHICS_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Graphics>>>> = RefCell::new(HashMap::new());
@@ -2452,13 +2646,13 @@ impl Drop for Graphics {
     }
 }
 
+/// 2Dテクスチャのクラス
 #[derive(Debug)]
 pub struct Texture2D {
     self_ptr: *mut RawPtr,
 }
 
 impl Texture2D {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Texture2D>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2466,7 +2660,6 @@ impl Texture2D {
         Some(Rc::new(RefCell::new(Texture2D { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static TEXTURE2D_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Texture2D>>>> = RefCell::new(HashMap::new());
@@ -2517,6 +2710,7 @@ impl Drop for Texture2D {
     }
 }
 
+/// マテリアル
 #[derive(Debug)]
 pub struct Material {
     self_ptr: *mut RawPtr,
@@ -2524,7 +2718,6 @@ pub struct Material {
 }
 
 impl Material {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Material>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2535,7 +2728,6 @@ impl Material {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static MATERIAL_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Material>>>> = RefCell::new(HashMap::new());
@@ -2638,13 +2830,13 @@ impl Drop for Material {
     }
 }
 
+/// レンダラのクラス
 #[derive(Debug)]
 pub(crate) struct Renderer {
     self_ptr: *mut RawPtr,
 }
 
 impl Renderer {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Renderer>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2652,7 +2844,6 @@ impl Renderer {
         Some(Rc::new(RefCell::new(Renderer { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDERER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Renderer>>>> = RefCell::new(HashMap::new());
@@ -2730,13 +2921,13 @@ impl Drop for Renderer {
     }
 }
 
+/// コマンドリストのクラス
 #[derive(Debug)]
 pub struct CommandList {
     self_ptr: *mut RawPtr,
 }
 
 impl CommandList {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<CommandList>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2744,7 +2935,6 @@ impl CommandList {
         Some(Rc::new(RefCell::new(CommandList { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static COMMANDLIST_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<CommandList>>>> = RefCell::new(HashMap::new());
@@ -2786,7 +2976,6 @@ pub struct Rendered {
 }
 
 impl Rendered {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Rendered>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2794,7 +2983,6 @@ impl Rendered {
         Some(Rc::new(RefCell::new(Rendered { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDERED_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Rendered>>>> = RefCell::new(HashMap::new());
@@ -2825,6 +3013,7 @@ impl Drop for Rendered {
     }
 }
 
+/// スプライトのクラス
 #[derive(Debug)]
 pub(crate) struct RenderedSprite {
     self_ptr: *mut RawPtr,
@@ -2835,7 +3024,6 @@ pub(crate) struct RenderedSprite {
 }
 
 impl RenderedSprite {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedSprite>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2849,7 +3037,6 @@ impl RenderedSprite {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDSPRITE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedSprite>>>> = RefCell::new(HashMap::new());
@@ -2938,6 +3125,7 @@ impl Drop for RenderedSprite {
     }
 }
 
+/// テキストのクラス
 #[derive(Debug)]
 pub(crate) struct RenderedText {
     self_ptr: *mut RawPtr,
@@ -2950,7 +3138,6 @@ pub(crate) struct RenderedText {
 }
 
 impl RenderedText {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedText>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -2966,7 +3153,6 @@ impl RenderedText {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDTEXT_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedText>>>> = RefCell::new(HashMap::new());
@@ -3086,6 +3272,7 @@ impl Drop for RenderedText {
     }
 }
 
+/// ポリゴンのクラス
 #[derive(Debug)]
 pub(crate) struct RenderedPolygon {
     self_ptr: *mut RawPtr,
@@ -3096,7 +3283,6 @@ pub(crate) struct RenderedPolygon {
 }
 
 impl RenderedPolygon {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedPolygon>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3110,7 +3296,6 @@ impl RenderedPolygon {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDPOLYGON_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedPolygon>>>> = RefCell::new(HashMap::new());
@@ -3215,13 +3400,13 @@ impl Drop for RenderedPolygon {
     }
 }
 
+/// カメラのクラス
 #[derive(Debug)]
 pub(crate) struct RenderedCamera {
     self_ptr: *mut RawPtr,
 }
 
 impl RenderedCamera {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedCamera>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3229,7 +3414,6 @@ impl RenderedCamera {
         Some(Rc::new(RefCell::new(RenderedCamera { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static RENDEREDCAMERA_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedCamera>>>> = RefCell::new(HashMap::new());
@@ -3260,13 +3444,13 @@ impl Drop for RenderedCamera {
     }
 }
 
+/// ビルド済みシェーダの取得を行うクラス
 #[derive(Debug)]
 pub struct BuiltinShader {
     self_ptr: *mut RawPtr,
 }
 
 impl BuiltinShader {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<BuiltinShader>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3274,7 +3458,6 @@ impl BuiltinShader {
         Some(Rc::new(RefCell::new(BuiltinShader { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static BUILTINSHADER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<BuiltinShader>>>> = RefCell::new(HashMap::new());
@@ -3319,7 +3502,6 @@ pub struct Shader {
 }
 
 impl Shader {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Shader>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3327,7 +3509,6 @@ impl Shader {
         Some(Rc::new(RefCell::new(Shader { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SHADER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Shader>>>> = RefCell::new(HashMap::new());
@@ -3358,6 +3539,7 @@ impl Drop for Shader {
     }
 }
 
+/// 文字情報
 #[derive(Debug)]
 pub struct Glyph {
     self_ptr: *mut RawPtr,
@@ -3367,7 +3549,6 @@ unsafe impl Send for Glyph {}
 unsafe impl Sync for Glyph {}
 
 impl Glyph {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Glyph>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3375,7 +3556,6 @@ impl Glyph {
         Some(Arc::new(Mutex::new(Glyph { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref GLYPH_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Glyph>>>> =
@@ -3441,6 +3621,7 @@ impl Drop for Glyph {
     }
 }
 
+/// フォント
 #[derive(Debug)]
 pub struct Font {
     self_ptr: *mut RawPtr,
@@ -3450,7 +3631,6 @@ unsafe impl Send for Font {}
 unsafe impl Sync for Font {}
 
 impl Font {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Font>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3458,7 +3638,6 @@ impl Font {
         Some(Arc::new(Mutex::new(Font { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref FONT_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Font>>>> =
@@ -3612,7 +3791,6 @@ pub struct Tool {
 }
 
 impl Tool {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Tool>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -3620,7 +3798,6 @@ impl Tool {
         Some(Rc::new(RefCell::new(Tool { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static TOOL_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Tool>>>> = RefCell::new(HashMap::new());
@@ -3651,8 +3828,13 @@ impl Tool {
 
     /// `End()` を呼び出してください。
     pub fn begin(&mut self, name: &str, flags: ToolWindow) -> bool {
-        let ret =
-            unsafe { cbg_Tool_Begin(self.self_ptr, encode_string(&name).as_ptr(), flags as i32) };
+        let ret = unsafe {
+            cbg_Tool_Begin(
+                self.self_ptr,
+                encode_string(&name).as_ptr(),
+                flags.bits as i32,
+            )
+        };
         ret
     }
 
@@ -3710,7 +3892,11 @@ impl Tool {
     ///
     pub fn collapsing_header(&mut self, label: &str, flags: ToolTreeNode) -> bool {
         let ret = unsafe {
-            cbg_Tool_CollapsingHeader(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
+            cbg_Tool_CollapsingHeader(
+                self.self_ptr,
+                encode_string(&label).as_ptr(),
+                flags.bits as i32,
+            )
         };
         ret
     }
@@ -3724,7 +3910,11 @@ impl Tool {
     ///
     pub fn tree_node_ex(&mut self, label: &str, flags: ToolTreeNode) -> bool {
         let ret = unsafe {
-            cbg_Tool_TreeNodeEx(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
+            cbg_Tool_TreeNodeEx(
+                self.self_ptr,
+                encode_string(&label).as_ptr(),
+                flags.bits as i32,
+            )
         };
         ret
     }
@@ -3788,7 +3978,7 @@ impl Tool {
                 self.self_ptr,
                 encode_string(&label).as_ptr(),
                 selected as *const bool,
-                flags as i32,
+                flags.bits as i32,
             )
         };
         ret
@@ -3999,7 +4189,7 @@ impl Tool {
                 encode_string(&label).as_ptr(),
                 size.into(),
                 border,
-                flags as i32,
+                flags.bits as i32,
             )
         };
         ret
@@ -4056,7 +4246,11 @@ impl Tool {
     /// `EndTabBar()` を呼び出してください
     pub fn begin_tab_bar(&mut self, label: &str, flags: ToolTabBar) -> bool {
         let ret = unsafe {
-            cbg_Tool_BeginTabBar(self.self_ptr, encode_string(&label).as_ptr(), flags as i32)
+            cbg_Tool_BeginTabBar(
+                self.self_ptr,
+                encode_string(&label).as_ptr(),
+                flags.bits as i32,
+            )
         };
         ret
     }
@@ -4273,6 +4467,7 @@ impl Drop for Tool {
     }
 }
 
+/// 段階的にファイルを読み取るクラス
 #[derive(Debug)]
 pub struct StreamFile {
     self_ptr: *mut RawPtr,
@@ -4282,7 +4477,6 @@ unsafe impl Send for StreamFile {}
 unsafe impl Sync for StreamFile {}
 
 impl StreamFile {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StreamFile>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4290,7 +4484,6 @@ impl StreamFile {
         Some(Arc::new(Mutex::new(StreamFile { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref STREAMFILE_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<StreamFile>>>> =
@@ -4378,6 +4571,7 @@ impl Drop for StreamFile {
     }
 }
 
+/// 一度でファイルを読み取るクラス
 #[derive(Debug)]
 pub struct StaticFile {
     self_ptr: *mut RawPtr,
@@ -4387,7 +4581,6 @@ unsafe impl Send for StaticFile {}
 unsafe impl Sync for StaticFile {}
 
 impl StaticFile {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StaticFile>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4395,7 +4588,6 @@ impl StaticFile {
         Some(Arc::new(Mutex::new(StaticFile { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         lazy_static! {
             static ref STATICFILE_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<StaticFile>>>> =
@@ -4463,13 +4655,13 @@ impl Drop for StaticFile {
     }
 }
 
+/// ファイル制御を行うクラス
 #[derive(Debug)]
 pub struct File {
     self_ptr: *mut RawPtr,
 }
 
 impl File {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<File>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4477,7 +4669,6 @@ impl File {
         Some(Rc::new(RefCell::new(File { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static FILE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<File>>>> = RefCell::new(HashMap::new());
@@ -4591,6 +4782,7 @@ impl Drop for File {
     }
 }
 
+/// 音声ファイルを読み込みます。
 #[derive(Debug)]
 pub struct Sound {
     self_ptr: *mut RawPtr,
@@ -4600,7 +4792,6 @@ pub struct Sound {
 }
 
 impl Sound {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Sound>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4613,7 +4804,6 @@ impl Sound {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SOUND_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Sound>>>> = RefCell::new(HashMap::new());
@@ -4716,7 +4906,6 @@ pub struct SoundMixer {
 }
 
 impl SoundMixer {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<SoundMixer>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4724,7 +4913,6 @@ impl SoundMixer {
         Some(Rc::new(RefCell::new(SoundMixer { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static SOUNDMIXER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<SoundMixer>>>> = RefCell::new(HashMap::new());
@@ -4921,13 +5109,13 @@ impl Drop for SoundMixer {
     }
 }
 
+/// ログを出力するクラス
 #[derive(Debug)]
 pub struct Log {
     self_ptr: *mut RawPtr,
 }
 
 impl Log {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Log>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -4935,7 +5123,6 @@ impl Log {
         Some(Rc::new(RefCell::new(Log { self_ptr })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static LOG_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Log>>>> = RefCell::new(HashMap::new());
@@ -5062,7 +5249,6 @@ pub(crate) struct Window {
 }
 
 impl Window {
-    #[allow(dead_code)]
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Window>>> {
         if self_ptr == NULLPTR {
             return None;
@@ -5073,7 +5259,6 @@ impl Window {
         })))
     }
 
-    #[allow(dead_code)]
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         thread_local! {
             static WINDOW_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Window>>>> = RefCell::new(HashMap::new());

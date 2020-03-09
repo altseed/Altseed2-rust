@@ -3,7 +3,7 @@ import os, sys
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from bindings import define, math
+from bindings import define, math, tool
 from bindings.CppBindingGenerator import BindingGeneratorRust
 
 args = sys.argv
@@ -33,6 +33,16 @@ bindingGenerator.structsReplaceMap = {
     math.Matrix44F: "crate::prelude::Matrix44<f32>",
     math.Matrix44I: "crate::prelude::Matrix44<i32>",
 }
+bindingGenerator.bitFlags = {
+    tool.ToolTreeNode,
+    tool.ToolTreeNode,
+    tool.ToolInputText,
+    tool.ToolColorEdit,
+    tool.ToolSelectable,
+    tool.ToolWindow,
+    tool.ToolTabBar
+}
+
 bindingGenerator.generate()
 
 print('generated binding')

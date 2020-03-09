@@ -1,8 +1,10 @@
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate bitflags;
 extern crate num;
 
-pub mod auto_generated_core_binding;
+mod auto_generated_core_binding;
 pub mod engine;
 pub mod math;
 pub mod prelude;
