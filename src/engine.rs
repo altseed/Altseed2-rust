@@ -1,5 +1,5 @@
 use crate::auto_generated_core_binding::*;
-use std::{rc::Rc, cell::{RefCell}};
+use std::{cell::RefCell, rc::Rc};
 
 pub struct Engine {
     core: Rc<RefCell<Core>>,
@@ -22,7 +22,12 @@ impl Engine {
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
     /// * `config` - 初期化時にのみ利用する設定
-    pub fn initialize_with(title: &str, width: i32, height: i32, config: &mut Configuration) -> Option<Engine> {
+    pub fn initialize_with(
+        title: &str,
+        width: i32,
+        height: i32,
+        config: &mut Configuration,
+    ) -> Option<Engine> {
         if Core::initialize(title, width, height, config) {
             Some(Engine {
                 core: Core::get_instance()?,
@@ -58,25 +63,35 @@ impl Engine {
     }
 
     pub fn do_events(&mut self) -> bool {
-        if !self.core.borrow_mut().do_event() { return false; }
-        
-        if !self.graphics.borrow_mut().do_events() { return false; }
+        if !self.core.borrow_mut().do_event() {
+            return false;
+        }
+
+        if !self.graphics.borrow_mut().do_events() {
+            return false;
+        }
 
         true
     }
 
     /// エンジンを更新します。
     pub fn update(&mut self) -> bool {
-        if !self.graphics.borrow_mut().begin_frame() { return false; }
+        if !self.graphics.borrow_mut().begin_frame() {
+            return false;
+        }
 
         if let Some(cmd_list) = self.graphics.borrow_mut().get_command_list() {
             cmd_list.borrow_mut().set_render_target_with_screen();
-            self.renderer.borrow_mut().render(&mut cmd_list.borrow_mut());
+            self.renderer
+                .borrow_mut()
+                .render(&mut cmd_list.borrow_mut());
         } else {
             return false;
         }
 
-        if !self.graphics.borrow_mut().end_frame() { return false; }
+        if !self.graphics.borrow_mut().end_frame() {
+            return false;
+        }
 
         true
     }
@@ -122,23 +137,37 @@ impl Engine {
     }
 
     /// ファイルを管理するクラスを取得します。
-    pub fn file(&mut self) -> Rc<RefCell<File>> { self.file.clone() }
+    pub fn file(&mut self) -> Rc<RefCell<File>> {
+        self.file.clone()
+    }
 
     /// キーボードを管理するクラスを取得します。
-    pub fn keyboard(&mut self) -> Rc<RefCell<Keyboard>> { self.keyboard.clone() }
+    pub fn keyboard(&mut self) -> Rc<RefCell<Keyboard>> {
+        self.keyboard.clone()
+    }
 
     /// マウスを管理するクラスを取得します。
-    pub fn mouse(&mut self) -> Rc<RefCell<Mouse>> { self.mouse.clone() }
+    pub fn mouse(&mut self) -> Rc<RefCell<Mouse>> {
+        self.mouse.clone()
+    }
 
     /// ジョイスティックを管理するクラスを取得します。
-    pub fn joystick(&mut self) -> Rc<RefCell<Joystick>> { self.joystick.clone() }
+    pub fn joystick(&mut self) -> Rc<RefCell<Joystick>> {
+        self.joystick.clone()
+    }
 
     /// ログを管理するクラスを取得します。
-    pub fn log(&mut self) -> Rc<RefCell<Log>> { self.log.clone() }
+    pub fn log(&mut self) -> Rc<RefCell<Log>> {
+        self.log.clone()
+    }
 
     /// 音を管理するクラスを取得します。
-    pub fn sound(&mut self) -> Rc<RefCell<SoundMixer>> { self.sound.clone() }
+    pub fn sound(&mut self) -> Rc<RefCell<SoundMixer>> {
+        self.sound.clone()
+    }
 
     /// リソースを管理するクラスを取得します。
-    pub fn tool(&mut self) -> Rc<RefCell<Tool>> { self.tool.clone() }
+    pub fn tool(&mut self) -> Rc<RefCell<Tool>> {
+        self.tool.clone()
+    }
 }

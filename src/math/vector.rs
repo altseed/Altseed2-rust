@@ -1,8 +1,8 @@
-use std::ops::{Neg, Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
-use num::{Zero, One, Float};
 use super::Dot;
+use num::{Float, One, Zero};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-pub trait Vector<T : Float> : Dot<Self, Output=T> + Copy + Div<T, Output=Self> {
+pub trait Vector<T: Float>: Dot<Self, Output = T> + Copy + Div<T, Output = Self> {
     fn squared_len(&self) -> T {
         self.dot(self.clone())
     }
@@ -187,18 +187,24 @@ define_vector!(Vector2[x, y]);
 define_vector!(Vector3[x, y, z]);
 define_vector!(Vector4[x, y, z, w]);
 
-impl<T> Vector2<T> where T : Float {
+impl<T> Vector2<T>
+where
+    T: Float,
+{
     pub fn angle(&self) -> T {
         self.y.atan2(self.x)
     }
 }
 
-impl<T> Vector3<T> where T : Float {
-    pub fn cross(&self, other : &Vector3<T>) -> Vector3<T> {
+impl<T> Vector3<T>
+where
+    T: Float,
+{
+    pub fn cross(&self, other: &Vector3<T>) -> Vector3<T> {
         Vector3 {
-            x : self.y * other.z - self.z * other.y,
-            y : self.z * other.x - self.x * other.z,
-            z : self.x * other.y - self.y * other.x,
+            x: self.y * other.z - self.z * other.y,
+            y: self.z * other.x - self.x * other.z,
+            z: self.x * other.y - self.y * other.x,
         }
     }
 }

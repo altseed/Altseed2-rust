@@ -6,11 +6,11 @@ pub trait Dot<T> {
 }
 
 pub mod easing;
-pub mod vector;
 pub mod matrix;
+pub mod vector;
 
-use vector::*;
 use matrix::*;
+use vector::*;
 
 // bindings to ffi structs
 macro_rules! vector_to_ffi {($name:ident<$t:ty>[$( $x:ident ),+], $target:ident) => {
@@ -33,18 +33,24 @@ vector_to_ffi!(Vector3<f32>[x, y, z], Vector3F);
 vector_to_ffi!(Vector4<i32>[x, y, z, w], Vector4I);
 vector_to_ffi!(Vector4<f32>[x, y, z, w], Vector4F);
 
-macro_rules! matrix_to_ffi {($name:ident<$t:ty>, $target:ident) => {
-    impl From<crate::structs::$target> for $name<$t> {
-        fn from(item: crate::structs::$target) -> Self {
-            Self { values: item.values.clone() }
+macro_rules! matrix_to_ffi {
+    ($name:ident<$t:ty>, $target:ident) => {
+        impl From<crate::structs::$target> for $name<$t> {
+            fn from(item: crate::structs::$target) -> Self {
+                Self {
+                    values: item.values.clone(),
+                }
+            }
         }
-    }
-    impl Into<crate::structs::$target> for $name<$t> {
-        fn into(self) -> crate::structs::$target {
-            crate::structs::$target { values: self.values.clone() }
+        impl Into<crate::structs::$target> for $name<$t> {
+            fn into(self) -> crate::structs::$target {
+                crate::structs::$target {
+                    values: self.values.clone(),
+                }
+            }
         }
-    }
-};}
+    };
+}
 
 matrix_to_ffi!(Matrix44<i32>, Matrix44I);
 matrix_to_ffi!(Matrix44<f32>, Matrix44F);
