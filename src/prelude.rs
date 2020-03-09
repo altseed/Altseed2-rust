@@ -5,8 +5,9 @@ pub use crate::engine::Engine;
 
 pub use crate::auto_generated_core_binding::{
     BuiltinShaderType, ButtonState, Configuration, CursorMode, File, Font, FramerateMode, Joystick,
-    JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log, LogLevel, Mouse,
-    MouseButtons, Sound, SoundMixer, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
+    JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log, LogCategory, LogLevel,
+    Mouse, MouseButtons, Sound, SoundMixer, StaticFile, StreamFile, Texture2D, Tool,
+    WritingDirection,
 };
 
 pub mod tool {
