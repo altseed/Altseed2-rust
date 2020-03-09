@@ -5,3 +5,7 @@ Cargo.lock
 scripts/bindings/*
 scripts/cbg/*
 **/Log.txt
+
+/Altseed_Core.dll
+/libAltseed_Core.dylib
+/libAltseed_Core.so
