@@ -16,6 +16,13 @@ $ cargo build # Debug
 $ cargo build --release # Release
 ```
 
+## Format
+```shell
+$ cargo fmt
+```
+
+(`rustup component add rustfmt` to install)
+
 ## Binding生成 (commitするのでmaintainerが行う)
 [CppBindingGenerator](/Core/scripts/bindings/CppBindingGenerator)を更新したら実行する
 ```shell
