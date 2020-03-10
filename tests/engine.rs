@@ -11,8 +11,6 @@ fn engine() {
                 count += 1;
                 engine.update();
             }
-
-            engine.terminate();
         }
     }
 }
