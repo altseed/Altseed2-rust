@@ -34,13 +34,17 @@ use std::collections::HashMap;
 use std::rc::{self, Rc};
 use std::sync::{self, Arc, Mutex, RwLock};
 
+pub enum RawPtr {}
+
+pub trait HasRawPtr {
+    fn self_ptr(&mut self) -> *mut RawPtr;
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct RawPtrStorage(*mut RawPtr);
 
 unsafe impl Send for RawPtrStorage {}
 unsafe impl Sync for RawPtrStorage {}
-
-enum RawPtr {}
 
 /// フレームレートモード
 #[repr(C)]
@@ -1462,6 +1466,12 @@ pub struct Configuration {
     log_filename: Option<String>,
 }
 
+impl HasRawPtr for Configuration {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Configuration {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Configuration> {
         if self_ptr == NULLPTR {
@@ -1566,6 +1576,12 @@ pub(crate) struct Core {
     framerate_mode: Option<FramerateMode>,
 }
 
+impl HasRawPtr for Core {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Core {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Core> {
         if self_ptr == NULLPTR {
@@ -1668,6 +1684,12 @@ impl Drop for Core {
 #[derive(Debug)]
 pub struct Int8Array {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Int8Array {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Int8Array {
@@ -1778,6 +1800,12 @@ pub struct Int32Array {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Int32Array {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Int32Array {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Int32Array>>> {
         if self_ptr == NULLPTR {
@@ -1884,6 +1912,12 @@ impl Drop for Int32Array {
 #[derive(Debug)]
 pub struct VertexArray {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for VertexArray {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl VertexArray {
@@ -1994,6 +2028,12 @@ pub struct FloatArray {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for FloatArray {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl FloatArray {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<FloatArray>>> {
         if self_ptr == NULLPTR {
@@ -2100,6 +2140,12 @@ impl Drop for FloatArray {
 #[derive(Debug)]
 pub struct Vector2FArray {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Vector2FArray {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Vector2FArray {
@@ -2210,6 +2256,12 @@ pub(crate) struct Resources {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Resources {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Resources {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Resources> {
         if self_ptr == NULLPTR {
@@ -2259,6 +2311,12 @@ pub struct Keyboard {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Keyboard {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Keyboard {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Keyboard> {
         if self_ptr == NULLPTR {
@@ -2296,6 +2354,12 @@ pub struct Mouse {
     self_ptr: *mut RawPtr,
     position: Option<crate::prelude::Vector2<f32>>,
     cursor_mode: Option<CursorMode>,
+}
+
+impl HasRawPtr for Mouse {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Mouse {
@@ -2372,6 +2436,12 @@ impl Drop for Mouse {
 #[derive(Debug)]
 pub struct Joystick {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Joystick {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Joystick {
@@ -2499,6 +2569,12 @@ pub(crate) struct Graphics {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Graphics {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Graphics {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Graphics> {
         if self_ptr == NULLPTR {
@@ -2558,6 +2634,12 @@ impl Drop for Graphics {
 #[derive(Debug)]
 pub struct Texture2D {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Texture2D {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Texture2D {
@@ -2625,6 +2707,12 @@ impl Drop for Texture2D {
 pub struct Material {
     self_ptr: *mut RawPtr,
     shader: Option<Rc<RefCell<Shader>>>,
+}
+
+impl HasRawPtr for Material {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Material {
@@ -2738,7 +2826,7 @@ impl Material {
     ///
     pub fn set_shader(&mut self, value: Rc<RefCell<Shader>>) {
         self.shader = Some(value.clone());
-        unsafe { cbg_Material_SetShader(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_Material_SetShader(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 }
 
@@ -2752,6 +2840,12 @@ impl Drop for Material {
 #[derive(Debug)]
 pub(crate) struct Renderer {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Renderer {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Renderer {
@@ -2827,6 +2921,12 @@ pub struct CommandList {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for CommandList {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl CommandList {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<CommandList>>> {
         if self_ptr == NULLPTR {
@@ -2878,13 +2978,19 @@ pub(crate) struct Rendered {
     transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
-pub trait RenderedTrait {
+impl HasRawPtr for Rendered {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+pub trait AsRendered {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32>;
     /// 変換行列を取得または設定します。
     fn set_transform(&mut self, value: crate::prelude::Matrix44<f32>);
 }
-impl RenderedTrait for Rendered {
+impl AsRendered for Rendered {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() {
@@ -2950,7 +3056,13 @@ pub(crate) struct RenderedSprite {
     material: Option<Rc<RefCell<Material>>>,
 }
 
-impl RenderedTrait for RenderedSprite {
+impl HasRawPtr for RenderedSprite {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsRendered for RenderedSprite {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() {
@@ -3020,7 +3132,7 @@ impl RenderedSprite {
     /// テクスチャを取得または設定します。
     pub fn set_texture(&mut self, value: Rc<RefCell<Texture2D>>) {
         self.texture = Some(value.clone());
-        unsafe { cbg_RenderedSprite_SetTexture(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_RenderedSprite_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 
     /// 描画範囲を取得または設定します。
@@ -3048,7 +3160,7 @@ impl RenderedSprite {
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         self.material = Some(value.clone());
-        unsafe { cbg_RenderedSprite_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_RenderedSprite_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 }
 
@@ -3070,7 +3182,13 @@ pub(crate) struct RenderedText {
     color: Option<crate::structs::color::Color>,
 }
 
-impl RenderedTrait for RenderedText {
+impl HasRawPtr for RenderedText {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsRendered for RenderedText {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() {
@@ -3142,7 +3260,7 @@ impl RenderedText {
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         self.material = Some(value.clone());
-        unsafe { cbg_RenderedText_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_RenderedText_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 
     /// テキストを取得または設定します。
@@ -3173,7 +3291,7 @@ impl RenderedText {
         unsafe {
             cbg_RenderedText_SetFont(
                 self.self_ptr,
-                value.lock().expect("Failed to get lock of Font").self_ptr,
+                value.lock().expect("Failed to get lock of Font").self_ptr(),
             )
         }
     }
@@ -3223,7 +3341,13 @@ pub(crate) struct RenderedPolygon {
     material: Option<Rc<RefCell<Material>>>,
 }
 
-impl RenderedTrait for RenderedPolygon {
+impl HasRawPtr for RenderedPolygon {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsRendered for RenderedPolygon {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() {
@@ -3312,7 +3436,7 @@ impl RenderedPolygon {
     /// テクスチャを取得または設定します。
     pub fn set_texture(&mut self, value: Rc<RefCell<Texture2D>>) {
         self.texture = Some(value.clone());
-        unsafe { cbg_RenderedPolygon_SetTexture(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_RenderedPolygon_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 
     /// 描画範囲を取得または設定します。
@@ -3340,7 +3464,7 @@ impl RenderedPolygon {
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         self.material = Some(value.clone());
-        unsafe { cbg_RenderedPolygon_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr) }
+        unsafe { cbg_RenderedPolygon_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
     }
 }
 
@@ -3357,7 +3481,13 @@ pub(crate) struct RenderedCamera {
     transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
-impl RenderedTrait for RenderedCamera {
+impl HasRawPtr for RenderedCamera {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsRendered for RenderedCamera {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
         if let Some(value) = self.transform.clone() {
@@ -3419,6 +3549,12 @@ pub struct BuiltinShader {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for BuiltinShader {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl BuiltinShader {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<BuiltinShader>>> {
         if self_ptr == NULLPTR {
@@ -3472,6 +3608,12 @@ pub struct Shader {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Shader {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Shader {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Shader>>> {
         if self_ptr == NULLPTR {
@@ -3518,6 +3660,12 @@ pub struct Glyph {
 
 unsafe impl Send for Glyph {}
 unsafe impl Sync for Glyph {}
+
+impl HasRawPtr for Glyph {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
 
 impl Glyph {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Glyph>>> {
@@ -3600,6 +3748,12 @@ pub struct Font {
 
 unsafe impl Send for Font {}
 unsafe impl Sync for Font {}
+
+impl HasRawPtr for Font {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
 
 impl Font {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Font>>> {
@@ -3769,6 +3923,12 @@ impl Drop for Font {
 #[derive(Debug)]
 pub struct Tool {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Tool {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Tool {
@@ -4515,6 +4675,12 @@ pub struct StreamFile {
 unsafe impl Send for StreamFile {}
 unsafe impl Sync for StreamFile {}
 
+impl HasRawPtr for StreamFile {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl StreamFile {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StreamFile>>> {
         if self_ptr == NULLPTR {
@@ -4624,6 +4790,12 @@ pub struct StaticFile {
 unsafe impl Send for StaticFile {}
 unsafe impl Sync for StaticFile {}
 
+impl HasRawPtr for StaticFile {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl StaticFile {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StaticFile>>> {
         if self_ptr == NULLPTR {
@@ -4706,6 +4878,12 @@ impl Drop for StaticFile {
 #[derive(Debug)]
 pub struct File {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for File {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl File {
@@ -4821,6 +4999,12 @@ pub struct Sound {
     loop_starting_point: Option<f32>,
     loop_end_point: Option<f32>,
     is_looping_mode: Option<bool>,
+}
+
+impl HasRawPtr for Sound {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Sound {
@@ -4941,6 +5125,12 @@ impl Drop for Sound {
 #[derive(Debug)]
 pub struct SoundMixer {
     self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for SoundMixer {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl SoundMixer {
@@ -5149,6 +5339,12 @@ pub struct Log {
     self_ptr: *mut RawPtr,
 }
 
+impl HasRawPtr for Log {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
 impl Log {
     fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Log> {
         if self_ptr == NULLPTR {
@@ -5266,6 +5462,12 @@ impl Drop for Log {
 pub(crate) struct Window {
     self_ptr: *mut RawPtr,
     title: Option<String>,
+}
+
+impl HasRawPtr for Window {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
 }
 
 impl Window {
