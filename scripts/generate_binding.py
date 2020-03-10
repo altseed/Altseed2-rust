@@ -3,8 +3,8 @@ import os, sys
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from bindings import define, math, tool
-from bindings.CppBindingGenerator import BindingGeneratorRust
+from bindings import define, math, tool, input, core, graphics, io, logger, sound, tool, window
+from bindings.CppBindingGenerator import BindingGeneratorRust, CacheMode
 
 args = sys.argv
 lang = 'ja'
@@ -40,8 +40,28 @@ bindingGenerator.bitFlags = {
     tool.ToolColorEdit,
     tool.ToolSelectable,
     tool.ToolWindow,
-    tool.ToolTabBar
+    tool.ToolTabBar,
 }
+
+# 注意して扱う！
+no_cache_classes = [
+    core.Configuration,
+    core.Core,
+    graphics.Graphics,
+    graphics.Renderer,
+    window.Window,
+    io.Resources,
+    io.File,
+    input.Keyboard,
+    input.Mouse,
+    input.Joystick,
+    sound.SoundMixer,
+    logger.Log,
+    tool.Tool,
+]
+
+for class_ in no_cache_classes:
+    class_.cache_mode = CacheMode.NoCache
 
 bindingGenerator.generate()
 
