@@ -1,10 +1,15 @@
 use crate::auto_generated_core_binding::*;
 
+/// Engine初期化時の設定
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Config {
+    /// 全画面モードかどうか
     is_fullscreen_mode: bool,
+    /// 画面サイズ可変かどうか
     is_resizable: bool,
+    /// ログをコンソールに出力するかどうか
     enabled_console_logging: bool,
+    /// ログファイル名
     log_filename: Option<String>,
 }
 
@@ -19,6 +24,7 @@ impl Default for Config {
     }
 }
 
+#[derive(Debug)]
 pub struct Engine {
     core: Core,
     graphics: Graphics,
@@ -79,18 +85,15 @@ impl Engine {
     /// * `config` - 初期化時にのみ利用する設定
     pub fn initialize_with(title: &str, width: i32, height: i32, config: Config) -> Option<Engine> {
         let mut configuration = Configuration::new()?;
-        configuration.set_is_fullscreen_mode(config.is_fullscreen_mode);
-        configuration.set_is_resizable(config.is_resizable);
-        configuration.set_enabled_console_logging(config.enabled_console_logging);
         match config.log_filename {
-            Some(filename) => {
-                configuration.set_enabled_file_logging(true);
-                configuration.set_log_filename(filename);
-            }
-            None => {
-                configuration.set_enabled_file_logging(false);
-            }
+            Some(filename) => configuration
+                .set_enabled_file_logging(true)
+                .set_log_filename(filename),
+            _ => configuration.set_enabled_file_logging(false),
         }
+        .set_is_fullscreen_mode(config.is_fullscreen_mode)
+        .set_is_resizable(config.is_resizable)
+        .set_enabled_console_logging(config.enabled_console_logging);
 
         Engine::initialize_core(title, width, height, Some(configuration))
     }
