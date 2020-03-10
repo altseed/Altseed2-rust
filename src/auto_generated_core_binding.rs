@@ -879,15 +879,9 @@ extern "C" {
 
     fn cbg_Renderer_DrawText(self_ptr: *mut RawPtr, text: *mut RawPtr) -> ();
 
-    fn cbg_Renderer_Render(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
+    fn cbg_Renderer_DrawPolygon(self_ptr: *mut RawPtr, polygon: *mut RawPtr) -> ();
 
-    fn cbg_Renderer_DrawPolygon(
-        self_ptr: *mut RawPtr,
-        vertexBuffer: *mut RawPtr,
-        indexBuffer: *mut RawPtr,
-        texture: *mut RawPtr,
-        material: *mut RawPtr,
-    ) -> ();
+    fn cbg_Renderer_Render(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
 
     fn cbg_Renderer_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -2895,37 +2889,18 @@ impl Renderer {
         unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr) }
     }
 
+    /// ポリゴンを描画します。
+
+    pub fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
+        unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr) }
+    }
+
     /// コマンドリストを描画します。
     /// # Arguments
     /// * `command_list` - コマンドリスト
 
     pub fn render(&mut self, command_list: &mut CommandList) -> () {
         unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr) }
-    }
-
-    /// ポリゴンを描画します
-    /// # Arguments
-    /// * `vertex_buffer` - 頂点バッファ
-    /// * `index_buffer` -
-    /// * `texture` - テクスチャ
-    /// * `material` - マテリアル
-
-    pub fn draw_polygon(
-        &mut self,
-        vertex_buffer: &mut VertexArray,
-        index_buffer: &mut Int32Array,
-        texture: &mut Texture2D,
-        material: &mut Material,
-    ) -> () {
-        unsafe {
-            cbg_Renderer_DrawPolygon(
-                self.self_ptr,
-                vertex_buffer.self_ptr,
-                index_buffer.self_ptr,
-                texture.self_ptr,
-                material.self_ptr,
-            )
-        }
     }
 }
 
