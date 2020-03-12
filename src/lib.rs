@@ -13,11 +13,16 @@ pub mod structs;
 mod tests;
 
 pub mod prelude {
-    pub use crate::math::matrix::{Matrix33, Matrix44};
-    pub use crate::math::vector::{Vector2, Vector3, Vector4};
+    pub use crate::math::matrix::{Matrix, Matrix33, Matrix44};
+    pub use crate::math::vector::{Vector, Vector2, Vector3, Vector4};
 
     pub use crate::engine::Engine;
 
+    pub use crate::core::*;
+    pub use crate::structs::{color::Color, rect::Rect};
+}
+
+pub mod core {
     pub use crate::auto_generated_core_binding::{
         BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode, Joystick,
         JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log, LogCategory,
