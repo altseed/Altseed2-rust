@@ -2,7 +2,7 @@
 [CoreのHowToBuild_Ja.md](Core/../../../Core/documents/development/HowToBuild_Ja.md)を参照
 
 ## 必須
-- [rustup](https://rustup.rs) 1.20.2 (13979c968 2019-10-16)
+- [rustup](https://rustup.rs) 1.21.1 (13979c968 2019-10-16)
 
 ## サブモジュール取得
 
