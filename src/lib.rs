@@ -2,11 +2,14 @@
 extern crate lazy_static;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate failure;
 extern crate num;
 
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
 pub mod engine;
+pub mod error;
 pub mod math;
 
 pub mod structs;
@@ -17,6 +20,7 @@ pub mod prelude {
     pub use crate::math::*;
 
     pub use crate::engine::Engine;
+    pub use crate::error::{AltseedError, AltseedResult};
 
     pub use crate::core::*;
     pub use crate::structs::{rect::Rect, Color};
