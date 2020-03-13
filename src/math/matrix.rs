@@ -241,7 +241,8 @@ macro_rules! define_square_matrix {
                 for y in 0..$n {
                     for x in 0..$n {
                         for i in 1..$n {
-                            result.values[y][x] = result.values[y][x] + self.values[y][i] * other.values[i][x];
+                            result.values[y][x] =
+                                result.values[y][x] + self.values[y][i] * other.values[i][x];
                         }
                     }
                 }
@@ -323,10 +324,9 @@ impl Matrix44<f32> {
     /// 平行移動行列を取得する。
     pub fn translation(v: Vector3<f32>) -> Self {
         let mut m = Self::one();
-        m.values[3][0] = v.x;
-        m.values[3][1] = v.y;
-        m.values[3][2] = v.z;
-        m.values[3][3] = 1.0;
+        m.values[0][3] = v.x;
+        m.values[1][3] = v.y;
+        m.values[2][3] = v.z;
         m
     }
 
@@ -359,9 +359,9 @@ impl Matrix44<f32> {
 
     /// 2次元ベクトルを変形させる。
     pub fn transform_3d(&self, v: Vector3<f32>) -> Vector3<f32> {
-        let mut values = [0.0; 3];
+        let mut values = [0.0; 4];
 
-        for i in 0..3 {
+        for i in 0..4 {
             values[i] = v.x * self.values[i][0]
                 + v.y * self.values[i][1]
                 + v.z * self.values[i][2]
@@ -369,9 +369,9 @@ impl Matrix44<f32> {
         }
 
         Vector3 {
-            x: values[0],
-            y: values[1],
-            z: values[2],
+            x: values[0] / values[3],
+            y: values[1] / values[3],
+            z: values[2] / values[3],
         }
     }
 
