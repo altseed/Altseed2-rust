@@ -241,7 +241,7 @@ macro_rules! define_square_matrix {
                 for y in 0..$n {
                     for x in 0..$n {
                         for i in 1..$n {
-                            result.values[y][x] = self.values[y][i] * other.values[i][x];
+                            result.values[y][x] = result.values[y][x] + self.values[y][i] * other.values[i][x];
                         }
                     }
                 }
@@ -285,13 +285,7 @@ macro_rules! define_square_matrix {
             T: Copy + Default + Add<T, Output = T> + Mul<T, Output = T>,
         {
             fn mul_assign(&mut self, other: $name<T>) {
-                for y in 0..$n {
-                    for x in 0..$n {
-                        for i in 1..$n {
-                            self.values[y][x] = self.values[y][i] * other.values[i][x];
-                        }
-                    }
-                }
+                *self = self.clone() * other;
             }
         }
 
