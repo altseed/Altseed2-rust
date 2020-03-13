@@ -6,3 +6,6 @@ mod graphics;
 
 #[cfg(test)]
 mod math;
+
+#[cfg(test)]
+mod node;
