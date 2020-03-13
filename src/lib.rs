@@ -1,16 +1,22 @@
+#![feature(type_name_of_val)]
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate bitflags;
 #[macro_use]
 extern crate failure;
+extern crate downcast_rs;
 extern crate num;
 
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
+
 pub mod engine;
 pub mod error;
 pub mod math;
+
+pub mod node;
 
 pub mod structs;
 #[cfg(test)]
@@ -21,6 +27,9 @@ pub mod prelude {
 
     pub use crate::engine::Engine;
     pub use crate::error::{AltseedError, AltseedResult};
+    pub use crate::node::{
+        DrawnNode, HasNodeBase, Node, NodeBase, NodeState, SpriteNode, TextNode, Transform,
+    };
 
     pub use crate::core::*;
     pub use crate::structs::{rect::Rect, Color};
@@ -30,8 +39,8 @@ pub mod core {
     pub use crate::auto_generated_core_binding::{
         BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode, Joystick,
         JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log, LogCategory,
-        LogLevel, Mouse, MouseButtons, Sound, SoundMixer, StaticFile, StreamFile, Texture2D, Tool,
-        WritingDirection,
+        LogLevel, Material, Mouse, MouseButtons, Shader, Sound, SoundMixer, StaticFile, StreamFile,
+        Texture2D, Tool, WritingDirection,
     };
 
     pub mod tool {
