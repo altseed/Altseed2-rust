@@ -1,4 +1,4 @@
-use super::color::Color;
+use super::*;
 use crate::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -13,7 +13,7 @@ impl From<super::Vertex> for Vertex {
     fn from(item: super::Vertex) -> Self {
         Self {
             pos: item.pos.into(),
-            col: item.col.into(),
+            col: item.col,
             u_v1: item.u_v1.into(),
             u_v2: item.u_v2.into(),
         }
@@ -24,7 +24,7 @@ impl Into<super::Vertex> for Vertex {
     fn into(self) -> super::Vertex {
         super::Vertex {
             pos: self.pos.into(),
-            col: self.col.into(),
+            col: self.col,
             u_v1: self.u_v1.into(),
             u_v2: self.u_v2.into(),
         }

@@ -1611,7 +1611,7 @@ impl Core {
                 encode_string(&title).as_ptr(),
                 width,
                 height,
-                config.self_ptr,
+                config.self_ptr(),
             )
         };
         ret
@@ -2624,9 +2624,9 @@ impl Graphics {
     }
 
     /// コマンドリストを取得します。
-    pub fn get_command_list(&mut self) -> Option<Rc<RefCell<CommandList>>> {
+    pub fn get_command_list(&mut self) -> Option<CommandList> {
         let ret = unsafe { cbg_Graphics_GetCommandList(self.self_ptr) };
-        CommandList::try_get_from_cache(ret)
+        CommandList::cbg_create_raw(ret)
     }
 
     /// 組み込みのシェーダを取得します。
@@ -2823,7 +2823,11 @@ impl Material {
 
     pub fn set_texture(&mut self, key: &str, value: &mut Texture2D) -> () {
         unsafe {
-            cbg_Material_SetTexture(self.self_ptr, encode_string(&key).as_ptr(), value.self_ptr)
+            cbg_Material_SetTexture(
+                self.self_ptr,
+                encode_string(&key).as_ptr(),
+                value.self_ptr(),
+            )
         }
     }
 
@@ -2880,19 +2884,19 @@ impl Renderer {
     /// スプライトを描画します。
 
     pub fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
-        unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr) }
+        unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr()) }
     }
 
     /// テキストを描画します。
 
     pub fn draw_text(&mut self, text: &mut RenderedText) -> () {
-        unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr) }
+        unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr()) }
     }
 
     /// ポリゴンを描画します。
 
     pub fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
-        unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr) }
+        unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr()) }
     }
 
     /// コマンドリストを描画します。
@@ -2900,7 +2904,7 @@ impl Renderer {
     /// * `command_list` - コマンドリスト
 
     pub fn render(&mut self, command_list: &mut CommandList) -> () {
-        unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr) }
+        unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr()) }
     }
 }
 
@@ -2923,34 +2927,11 @@ impl HasRawPtr for CommandList {
 }
 
 impl CommandList {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<CommandList>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<CommandList> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(CommandList { self_ptr })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static COMMANDLIST_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<CommandList>>>> = RefCell::new(HashMap::new());
-        }
-        COMMANDLIST_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
-        })
+        Some(CommandList { self_ptr })
     }
 
     /// ？
@@ -3002,36 +2983,13 @@ impl AsRendered for Rendered {
     }
 }
 impl Rendered {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Rendered>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rendered> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(Rendered {
+        Some(Rendered {
             self_ptr,
             transform: None,
-        })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static RENDERED_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Rendered>>>> = RefCell::new(HashMap::new());
-        }
-        RENDERED_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
         })
     }
 
@@ -3082,47 +3040,24 @@ impl AsRendered for RenderedSprite {
     }
 }
 impl RenderedSprite {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedSprite>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedSprite> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(RenderedSprite {
+        Some(RenderedSprite {
             self_ptr,
             texture: None,
             src: None,
             transform: None,
             material: None,
-        })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static RENDEREDSPRITE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedSprite>>>> = RefCell::new(HashMap::new());
-        }
-        RENDEREDSPRITE_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
         })
     }
 
     /// スプライトを作成します。
 
-    pub fn create() -> Option<Rc<RefCell<RenderedSprite>>> {
+    pub fn create() -> Option<RenderedSprite> {
         let ret = unsafe { cbg_RenderedSprite_Create() };
-        RenderedSprite::try_get_from_cache(ret)
+        RenderedSprite::cbg_create_raw(ret)
     }
 
     /// テクスチャを取得または設定します。
@@ -3196,7 +3131,7 @@ pub(crate) struct RenderedText {
     text: Option<String>,
     font: Option<Arc<Mutex<Font>>>,
     weight: Option<f32>,
-    color: Option<crate::structs::color::Color>,
+    color: Option<crate::structs::Color>,
 }
 
 impl HasRawPtr for RenderedText {
@@ -3222,11 +3157,11 @@ impl AsRendered for RenderedText {
     }
 }
 impl RenderedText {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedText>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedText> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(RenderedText {
+        Some(RenderedText {
             self_ptr,
             transform: None,
             material: None,
@@ -3234,37 +3169,14 @@ impl RenderedText {
             font: None,
             weight: None,
             color: None,
-        })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static RENDEREDTEXT_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedText>>>> = RefCell::new(HashMap::new());
-        }
-        RENDEREDTEXT_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
         })
     }
 
     /// テキストを作成します。
 
-    pub fn create() -> Option<Rc<RefCell<RenderedText>>> {
+    pub fn create() -> Option<RenderedText> {
         let ret = unsafe { cbg_RenderedText_Create() };
-        RenderedText::try_get_from_cache(ret)
+        RenderedText::cbg_create_raw(ret)
     }
 
     /// マテリアルを取得または設定します。
@@ -3304,12 +3216,12 @@ impl RenderedText {
     }
 
     /// 色を取得または設定します。
-    pub fn get_color(&mut self) -> crate::structs::color::Color {
+    pub fn get_color(&mut self) -> crate::structs::Color {
         if let Some(value) = self.color.clone() {
             return value;
         }
         let ret = unsafe { cbg_RenderedText_GetColor(self.self_ptr) };
-        ret.into()
+        ret
     }
 
     /// 変換行列を取得または設定します。
@@ -3353,9 +3265,9 @@ impl RenderedText {
     }
 
     /// 色を取得または設定します。
-    pub fn set_color(&mut self, value: crate::structs::color::Color) -> &mut Self {
+    pub fn set_color(&mut self, value: crate::structs::Color) -> &mut Self {
         self.color = Some(value.clone());
-        unsafe { cbg_RenderedText_SetColor(self.self_ptr, value.into()) }
+        unsafe { cbg_RenderedText_SetColor(self.self_ptr, value) }
         self
     }
 }
@@ -3399,47 +3311,24 @@ impl AsRendered for RenderedPolygon {
     }
 }
 impl RenderedPolygon {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedPolygon>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedPolygon> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(RenderedPolygon {
+        Some(RenderedPolygon {
             self_ptr,
             texture: None,
             src: None,
             transform: None,
             material: None,
-        })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static RENDEREDPOLYGON_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedPolygon>>>> = RefCell::new(HashMap::new());
-        }
-        RENDEREDPOLYGON_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
         })
     }
 
     /// ポリゴンを作成します。
 
-    pub fn create() -> Option<Rc<RefCell<RenderedPolygon>>> {
+    pub fn create() -> Option<RenderedPolygon> {
         let ret = unsafe { cbg_RenderedPolygon_Create() };
-        RenderedPolygon::try_get_from_cache(ret)
+        RenderedPolygon::cbg_create_raw(ret)
     }
 
     /// 頂点情報を取得します。
@@ -3452,13 +3341,13 @@ impl RenderedPolygon {
     /// 頂点情報
 
     pub fn set_vertexes(&mut self, vertexes: &mut VertexArray) -> () {
-        unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, vertexes.self_ptr) }
+        unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, vertexes.self_ptr()) }
     }
 
     /// 頂点情報
 
     pub fn set_vertexes_by_vector2f(&mut self, vertexes: &mut Vector2FArray) -> () {
-        unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr) }
+        unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr()) }
     }
 
     /// テクスチャを取得または設定します。
@@ -3553,36 +3442,13 @@ impl AsRendered for RenderedCamera {
     }
 }
 impl RenderedCamera {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<RenderedCamera>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedCamera> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(RenderedCamera {
+        Some(RenderedCamera {
             self_ptr,
             transform: None,
-        })))
-    }
-
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static RENDEREDCAMERA_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderedCamera>>>> = RefCell::new(HashMap::new());
-        }
-        RENDEREDCAMERA_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
-                }
-            }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
         })
     }
 
@@ -3924,7 +3790,7 @@ impl Font {
     /// * `base_font` - ベースとなるフォント
 
     pub fn create_image_font(base_font: &mut Font) -> Option<Arc<Mutex<Font>>> {
-        let ret = unsafe { cbg_Font_CreateImageFont(base_font.self_ptr) };
+        let ret = unsafe { cbg_Font_CreateImageFont(base_font.self_ptr()) };
         Font::try_get_from_cache(ret)
     }
 
@@ -3934,7 +3800,7 @@ impl Font {
     /// * `texture` - テクスチャ
 
     pub(crate) fn add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
-        unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr) }
+        unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr()) }
     }
 
     /// テクスチャ文字を取得する
@@ -5214,7 +5080,7 @@ impl SoundMixer {
     /// * `sound` - 音源データ
 
     pub fn play(&mut self, sound: &mut Sound) -> i32 {
-        let ret = unsafe { cbg_SoundMixer_Play(self.self_ptr, sound.self_ptr) };
+        let ret = unsafe { cbg_SoundMixer_Play(self.self_ptr, sound.self_ptr()) };
         ret
     }
 
@@ -5385,7 +5251,7 @@ impl SoundMixer {
         window: FFTWindow,
     ) -> () {
         unsafe {
-            cbg_SoundMixer_GetSpectrumData(self.self_ptr, id, spectrums.self_ptr, window as i32)
+            cbg_SoundMixer_GetSpectrumData(self.self_ptr, id, spectrums.self_ptr(), window as i32)
         }
     }
 }

@@ -77,13 +77,13 @@ pub(crate) struct Vertex {
 }
 
 #[repr(C)]
-pub(crate) struct Color {
-    pub(crate) r: c_uchar,
-    pub(crate) g: c_uchar,
-    pub(crate) b: c_uchar,
-    pub(crate) a: c_uchar,
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Color {
+    pub r: c_uchar,
+    pub g: c_uchar,
+    pub b: c_uchar,
+    pub a: c_uchar,
 }
 
-pub mod color;
 pub mod rect;
 pub mod vertex;

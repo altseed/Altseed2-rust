@@ -27,7 +27,6 @@ bindingGenerator.structsReplaceMap = {
     math.Vector4F: "crate::prelude::Vector4<f32>",
     math.Vector4I: "crate::prelude::Vector4<i32>",
     math.BatchVertex: "crate::structs::vertex::Vertex",
-    math.Color: "crate::structs::color::Color",
     math.RectF: "crate::structs::rect::Rect<f32>",
     math.RectI: "crate::structs::rect::Rect<i32>",
     math.Matrix44F: "crate::prelude::Matrix44<f32>",
@@ -49,6 +48,7 @@ no_cache_classes = [
     core.Core,
     graphics.Graphics,
     graphics.Renderer,
+    graphics.CommandList,
     window.Window,
     io.Resources,
     io.File,
@@ -58,6 +58,11 @@ no_cache_classes = [
     sound.SoundMixer,
     logger.Log,
     tool.Tool,
+    graphics.Rendered,
+    graphics.RenderedCamera,
+    graphics.RenderedPolygon,
+    graphics.RenderedSprite,
+    graphics.RenderedText,
 ]
 
 for class_ in no_cache_classes:

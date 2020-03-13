@@ -1,9 +1,31 @@
+use crate::prelude::Vector2;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Rect<T> {
     pub x: T,
     pub y: T,
     pub width: T,
     pub height: T,
+}
+
+impl<T> Rect<T> {
+    pub fn new(x: T, y: T, width: T, height: T) -> Self {
+        Rect {
+            x,
+            y,
+            width,
+            height,
+        }
+    }
+
+    pub fn new2(pos: Vector2<T>, size: Vector2<T>) -> Self {
+        Rect {
+            x: pos.x,
+            y: pos.y,
+            width: size.x,
+            height: size.y,
+        }
+    }
 }
 
 impl From<super::RectI> for Rect<i32> {
