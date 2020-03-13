@@ -14,8 +14,7 @@ pub mod structs;
 mod tests;
 
 pub mod prelude {
-    pub use crate::math::matrix::{Matrix, Matrix33, Matrix44};
-    pub use crate::math::vector::{Vector, Vector2, Vector3, Vector4};
+    pub use crate::math::*;
 
     pub use crate::engine::Engine;
 

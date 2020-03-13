@@ -13,16 +13,16 @@ fn vector_dot() {
 
 #[test]
 fn matrix_dot() {
-    let a = Matrix44::translation(Vector3::new(1.0, 2.0, 3.0));
+    let a = Matrix44::translation(1.0, 2.0, 3.0);
     let b = Matrix44::rotation_z(5.0);
-    let c = Matrix44::scale(Vector3::new(7.0, 8.0, 9.0));
+    let c = Matrix44::scale(7.0, 8.0, 9.0);
 
     assert_eq!((&a * &b) * c.clone(), a * (b * c));
 }
 
 #[test]
 fn translation() {
-    let a = Matrix44::translation(Vector3::new(1.0, 2.0, 3.0));
+    let a = Matrix44::translation(1.0, 2.0, 3.0);
     let x = Vector3::new(-1.0, 5.0, 9.0);
     let transformed = a.transform_3d(x);
     let expected = Vector3::new(0.0, 7.0, 12.0);

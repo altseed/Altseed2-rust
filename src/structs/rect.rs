@@ -18,7 +18,7 @@ impl<T> Rect<T> {
         }
     }
 
-    pub fn new2(pos: Vector2<T>, size: Vector2<T>) -> Self {
+    pub fn new_vec(pos: Vector2<T>, size: Vector2<T>) -> Self {
         Rect {
             x: pos.x,
             y: pos.y,

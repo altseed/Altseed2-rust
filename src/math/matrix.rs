@@ -322,20 +322,20 @@ define_square_matrix!(Matrix44, 4);
 
 impl Matrix44<f32> {
     /// 平行移動行列を取得する。
-    pub fn translation(v: Vector3<f32>) -> Self {
+    pub fn translation(x: f32, y: f32, z: f32) -> Self {
         let mut m = Self::one();
-        m.values[0][3] = v.x;
-        m.values[1][3] = v.y;
-        m.values[2][3] = v.z;
+        m.values[0][3] = x;
+        m.values[1][3] = y;
+        m.values[2][3] = z;
         m
     }
 
     // 拡大行列を取得する。
-    pub fn scale(v: Vector3<f32>) -> Self {
+    pub fn scale(x: f32, y: f32, z: f32) -> Self {
         let mut m = Self::one();
-        m.values[0][0] = v.x;
-        m.values[1][1] = v.y;
-        m.values[2][2] = v.z;
+        m.values[0][0] = x;
+        m.values[1][1] = y;
+        m.values[2][2] = z;
         m.values[3][3] = 1.0;
         m
     }

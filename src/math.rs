@@ -5,12 +5,13 @@ pub trait Dot<T> {
     fn dot(self, other: T) -> Self::Output;
 }
 
-pub mod easing;
-pub mod matrix;
-pub mod vector;
+mod easing;
+mod matrix;
+mod vector;
 
-use matrix::*;
-use vector::*;
+pub use easing::Easing;
+pub use matrix::*;
+pub use vector::*;
 
 // bindings to ffi structs
 macro_rules! vector_to_ffi {($name:ident<$t:ty>[$( $x:ident ),+], $target:ident) => {
