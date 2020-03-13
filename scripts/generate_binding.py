@@ -68,6 +68,18 @@ no_cache_classes = [
 for class_ in no_cache_classes:
     class_.cache_mode = CacheMode.NoCache
 
+# staticメソッドは怖いので隠す
+def hide_method(class_, name):
+    next(filter(lambda x: x.name == name, class_.funcs), None).is_public = False
+
+hide_method(graphics.Texture2D, 'Load')
+hide_method(graphics.Font, 'LoadDynamicFont')
+hide_method(graphics.Font, 'LoadStaticFont')
+hide_method(sound.Sound, 'Load')
+hide_method(io.StaticFile, 'Create')
+hide_method(io.StreamFile, 'Create')
+
+
 bindingGenerator.generate()
 
 print('generated binding')
