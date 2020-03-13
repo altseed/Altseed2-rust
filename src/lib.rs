@@ -4,6 +4,7 @@ extern crate lazy_static;
 extern crate bitflags;
 extern crate num;
 
+#[allow(unused_mut)]
 mod auto_generated_core_binding;
 pub mod engine;
 pub mod math;
