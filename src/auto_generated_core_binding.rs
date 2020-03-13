@@ -50,7 +50,9 @@ unsafe impl Sync for RawPtrStorage {}
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum FramerateMode {
+    /// 可変フレームレート
     Variable,
+    /// 固定フレームレート
     Constant,
 }
 
@@ -58,10 +60,15 @@ pub enum FramerateMode {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ResourceType {
+    /// <see cref="Altseed.StaticFile"/>を表す
     StaticFile,
+    /// <see cref="Altseed.StreamFile"/>を表す
     StreamFile,
+    /// <see cref="Altseed.Texture2D"/>を表す
     Texture2D,
+    /// <see cref="Altseed.Font"/>を表す
     Font,
+    /// <see cref="Altseed.Sound"/>を表す
     Sound,
     MAX,
 }
@@ -70,6 +77,7 @@ pub enum ResourceType {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Keys {
+    /// 未知のキー
     Unknown,
     Space,
     Apostrophe,
@@ -77,15 +85,25 @@ pub enum Keys {
     Minus,
     Period,
     Slash,
+    /// テンキーの0
     Num0,
+    /// テンキーの1
     Num1,
+    /// テンキーの2
     Num2,
+    /// テンキーの3
     Num3,
+    /// テンキーの4
     Num4,
+    /// テンキーの5
     Num5,
+    /// テンキーの6
     Num6,
+    /// テンキーの7
     Num7,
+    /// テンキーの8
     Num8,
+    /// テンキーの9
     Num9,
     Semicolon,
     Equal,
@@ -199,9 +217,13 @@ pub enum Keys {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ButtonState {
+    /// ボタンが押されていない状態
     Free = 0,
+    /// ボタンが押された瞬間の状態
     Push = 1,
+    /// ボタンが押されている状態
     Hold = 3,
+    /// ボタンが話された瞬間の状態
     Release = 2,
 }
 
@@ -209,13 +231,21 @@ pub enum ButtonState {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MouseButtons {
+    /// 左ボタン
     ButtonLeft = 0,
+    /// 中央ボタン
     ButtonRight = 1,
+    /// 右ボタン
     ButtonMiddle = 2,
+    /// サブボタン1
     SubButton1 = 3,
+    /// サブボタン2
     SubButton2 = 4,
+    /// サブボタン3
     SubButton3 = 5,
+    /// サブボタン4
     SubButton4 = 6,
+    /// サブボタン5
     SubButton5 = 7,
 }
 
@@ -223,8 +253,11 @@ pub enum MouseButtons {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CursorMode {
+    /// 通常の状態
     Normal = 212993,
+    /// 隠れている状態
     Hidden = 212994,
+    /// 使用できない状態
     Disable = 212995,
 }
 
@@ -232,10 +265,15 @@ pub enum CursorMode {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JoystickType {
+    /// 未知の種類のジョイスティック
     Other = 0,
+    /// PlayStation4のジョイスティック
     PS4 = 8200,
+    /// XBOX360のジョイスティック
     XBOX360 = 8199,
+    /// NintendoSwitchの左ジョイスティック
     JoyconL = 8198,
+    /// NintendoSwitchの右ジョイスティック
     JoyconR = 8197,
 }
 
@@ -243,28 +281,51 @@ pub enum JoystickType {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum JoystickButtonType {
+    /// スタートボタン
     Start,
+    /// セレクトボタン
     Select,
+    /// ホームボタン
     Home,
+    /// リリースボタン
     Release,
+    /// キャプチャーボタン
     Capture,
+    /// 左十字キー上
     LeftUp,
+    /// 左十字キー下
     LeftDown,
+    /// 左十字キー左
     LeftLeft,
+    /// 左十字キー右
     LeftRight,
+    /// 左
     LeftPush,
+    /// 右十字キー上
     RightUp,
+    /// 右十字キー右
     RightRight,
+    /// 右十字キー左
     RightLeft,
+    /// 右十字キー下
     RightDown,
+    /// 右
     RightPush,
+    /// Lボタン1
     L1,
+    /// Rボタン1
     R1,
+    /// Lボタン2
     L2,
+    /// Rボタン2
     R2,
+    /// Lボタン3
     L3,
+    /// Rボタン3
     R3,
+    /// 左スタートボタン
     LeftStart,
+    /// 右スタートボタン
     RightStart,
     Max,
 }
@@ -291,10 +352,13 @@ pub enum BuiltinShaderType {
     FontUnlitPS,
 }
 
+/// テキストの描画方向
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum WritingDirection {
+    /// 縦書き
     Vertical,
+    /// 横書き
     Horizontal,
 }
 
@@ -303,9 +367,13 @@ pub enum WritingDirection {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolDir {
     None = -1,
+    /// 左方向
     Left = 0,
+    /// 右方向
     Right = 1,
+    /// 上方向
     Up = 2,
+    /// 下方向
     Down = 3,
 }
 
@@ -552,10 +620,15 @@ pub enum ToolGlyphRanges {
     Default,
     /// キリル文字
     Cyrillic,
+    /// 日本語
     Japanese,
+    /// 繁体字中国語
     ChineseFull,
+    /// 簡体字中国語
     ChineseSimplifiedCommon,
+    /// 韓国語
     Korean,
+    /// タイ語
     Thai,
 }
 
@@ -765,8 +838,6 @@ extern "C" {
 
     fn cbg_Mouse_GetInstance() -> *mut RawPtr;
 
-    fn cbg_Mouse_GetWheel(self_ptr: *mut RawPtr) -> c_float;
-
     fn cbg_Mouse_GetMouseButtonState(self_ptr: *mut RawPtr, button: c_int) -> c_int;
 
     fn cbg_Mouse_GetPosition(self_ptr: *mut RawPtr) -> crate::structs::Vector2F;
@@ -774,6 +845,8 @@ extern "C" {
 
     fn cbg_Mouse_GetCursorMode(self_ptr: *mut RawPtr) -> c_int;
     fn cbg_Mouse_SetCursorMode(self_ptr: *mut RawPtr, value: c_int) -> ();
+
+    fn cbg_Mouse_GetWheel(self_ptr: *mut RawPtr) -> c_float;
 
     fn cbg_Mouse_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -905,24 +978,12 @@ extern "C" {
     fn cbg_RenderedSprite_GetSrc(self_ptr: *mut RawPtr) -> crate::structs::RectF;
     fn cbg_RenderedSprite_SetSrc(self_ptr: *mut RawPtr, value: *mut crate::structs::RectF) -> ();
 
-    fn cbg_RenderedSprite_GetTransform(self_ptr: *mut RawPtr) -> crate::structs::Matrix44F;
-    fn cbg_RenderedSprite_SetTransform(
-        self_ptr: *mut RawPtr,
-        value: *mut crate::structs::Matrix44F,
-    ) -> ();
-
     fn cbg_RenderedSprite_GetMaterial(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedSprite_SetMaterial(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
 
     fn cbg_RenderedSprite_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_RenderedText_Create() -> *mut RawPtr;
-
-    fn cbg_RenderedText_GetTransform(self_ptr: *mut RawPtr) -> crate::structs::Matrix44F;
-    fn cbg_RenderedText_SetTransform(
-        self_ptr: *mut RawPtr,
-        value: *mut crate::structs::Matrix44F,
-    ) -> ();
 
     fn cbg_RenderedText_GetMaterial(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedText_SetMaterial(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
@@ -943,26 +1004,19 @@ extern "C" {
 
     fn cbg_RenderedPolygon_Create() -> *mut RawPtr;
 
-    fn cbg_RenderedPolygon_GetVertexes(self_ptr: *mut RawPtr) -> *mut RawPtr;
-
-    fn cbg_RenderedPolygon_SetVertexes(self_ptr: *mut RawPtr, vertexes: *mut RawPtr) -> ();
-
     fn cbg_RenderedPolygon_SetVertexesByVector2F(
         self_ptr: *mut RawPtr,
         vertexes: *mut RawPtr,
     ) -> ();
+
+    fn cbg_RenderedPolygon_GetVertexes(self_ptr: *mut RawPtr) -> *mut RawPtr;
+    fn cbg_RenderedPolygon_SetVertexes(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
 
     fn cbg_RenderedPolygon_GetTexture(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedPolygon_SetTexture(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
 
     fn cbg_RenderedPolygon_GetSrc(self_ptr: *mut RawPtr) -> crate::structs::RectF;
     fn cbg_RenderedPolygon_SetSrc(self_ptr: *mut RawPtr, value: *mut crate::structs::RectF) -> ();
-
-    fn cbg_RenderedPolygon_GetTransform(self_ptr: *mut RawPtr) -> crate::structs::Matrix44F;
-    fn cbg_RenderedPolygon_SetTransform(
-        self_ptr: *mut RawPtr,
-        value: *mut crate::structs::Matrix44F,
-    ) -> ();
 
     fn cbg_RenderedPolygon_GetMaterial(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedPolygon_SetMaterial(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
@@ -1487,6 +1541,8 @@ impl Configuration {
         })
     }
 
+    /// 新しいインスタンスを生成する
+
     pub fn new() -> Option<Configuration> {
         Self::cbg_create_raw(unsafe { cbg_Configuration_Constructor_0() })
     }
@@ -1696,7 +1752,7 @@ impl Drop for Core {
 
 /// 8ビット整数の配列のクラスを表します。
 #[derive(Debug)]
-pub struct Int8Array {
+pub(crate) struct Int8Array {
     self_ptr: *mut RawPtr,
 }
 
@@ -1810,7 +1866,7 @@ impl Drop for Int8Array {
 
 /// 32ビット整数の配列のクラスを表します。
 #[derive(Debug)]
-pub struct Int32Array {
+pub(crate) struct Int32Array {
     self_ptr: *mut RawPtr,
 }
 
@@ -1924,7 +1980,7 @@ impl Drop for Int32Array {
 
 /// 頂点データの配列のクラスを表します。
 #[derive(Debug)]
-pub struct VertexArray {
+pub(crate) struct VertexArray {
     self_ptr: *mut RawPtr,
 }
 
@@ -2038,7 +2094,7 @@ impl Drop for VertexArray {
 
 /// 浮動小数点数の配列のクラスを表します。
 #[derive(Debug)]
-pub struct FloatArray {
+pub(crate) struct FloatArray {
     self_ptr: *mut RawPtr,
 }
 
@@ -2152,7 +2208,7 @@ impl Drop for FloatArray {
 
 /// 2次元ベクトルの配列のクラスを表します。
 #[derive(Debug)]
-pub struct Vector2FArray {
+pub(crate) struct Vector2FArray {
     self_ptr: *mut RawPtr,
 }
 
@@ -2395,13 +2451,6 @@ impl Mouse {
         Mouse::cbg_create_raw(ret)
     }
 
-    /// マウスホイールの回転量を取得します。
-
-    pub fn get_wheel(&mut self) -> f32 {
-        let ret = unsafe { cbg_Mouse_GetWheel(self.self_ptr) };
-        ret
-    }
-
     /// マウスボタンの状態を取得します。
     /// # Arguments
     /// * `button` - 状態を取得するマウスのボタン
@@ -2427,6 +2476,12 @@ impl Mouse {
         }
         let ret = unsafe { cbg_Mouse_GetCursorMode(self.self_ptr) };
         unsafe { std::mem::transmute(ret) }
+    }
+
+    /// マウスホイールの回転量を取得します。
+    pub fn get_wheel(&mut self) -> f32 {
+        let ret = unsafe { cbg_Mouse_GetWheel(self.self_ptr) };
+        ret
     }
 
     /// マウスカーソルの座標を取得または設定します。
@@ -2767,25 +2822,25 @@ impl Material {
         })
     }
 
-    ///
+    /// 新しいインスタンスを生成する
 
     pub fn new() -> Option<Rc<RefCell<Material>>> {
         Self::cbg_create_raw(unsafe { cbg_Material_Constructor_0() })
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Vector4F"/>のインスタンスを取得する
     /// # Arguments
-    /// * `key` -
+    /// * `key` - 検索する<see cref="Vector4F"/>のインスタンスの名前
 
     pub fn get_vector4f(&mut self, key: &str) -> crate::prelude::Vector4<f32> {
         let ret = unsafe { cbg_Material_GetVector4F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Vector4F"/>の値を設定する
     /// # Arguments
-    /// * `key` -
-    /// * `value` -
+    /// * `key` - 検索する<see cref="Vector4F"/>のインスタンスの名前
+    /// * `value` - 設定する<see cref="Vector4F"/>のインスタンスの値
 
     pub fn set_vector4f(&mut self, key: &str, mut value: crate::prelude::Vector4<f32>) -> () {
         unsafe {
@@ -2797,19 +2852,19 @@ impl Material {
         }
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Matrix44F"/>のインスタンスを取得する
     /// # Arguments
-    /// * `key` -
+    /// * `key` - 検索する<see cref="Matrix44F"/>のインスタンスの名前
 
     pub fn get_matrix44f(&mut self, key: &str) -> crate::prelude::Matrix44<f32> {
         let ret = unsafe { cbg_Material_GetMatrix44F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Matrix44F"/>の値を設定する
     /// # Arguments
-    /// * `key` -
-    /// * `value` -
+    /// * `key` - 検索する<see cref="Matrix44F"/>のインスタンスの名前
+    /// * `value` - 設定する<see cref="Matrix44F"/>のインスタンスの値
 
     pub fn set_matrix44f(&mut self, key: &str, mut value: crate::prelude::Matrix44<f32>) -> () {
         unsafe {
@@ -2821,19 +2876,19 @@ impl Material {
         }
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Texture2D"/>のインスタンスを取得する
     /// # Arguments
-    /// * `key` -
+    /// * `key` - 検索する<see cref="Texture2D"/>のインスタンスの名前
 
     pub fn get_texture(&mut self, key: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
         Texture2D::try_get_from_cache(ret)
     }
 
-    ///
+    /// 指定した名前を持つ<see cref="Texture2D"/>の値を設定する
     /// # Arguments
-    /// * `key` -
-    /// * `value` -
+    /// * `key` - 検索する<see cref="Texture2D"/>のインスタンスの名前
+    /// * `value` - 設定する<see cref="Texture2D"/>のインスタンスの値
 
     pub fn set_texture(&mut self, key: &str, value: &mut Texture2D) -> () {
         unsafe {
@@ -2845,7 +2900,7 @@ impl Material {
         }
     }
 
-    ///
+    /// 使用するシェーダを取得する
     pub fn get_shader(&mut self) -> Option<Rc<RefCell<Shader>>> {
         if let Some(value) = self.shader.clone() {
             return Some(value);
@@ -2854,7 +2909,7 @@ impl Material {
         Shader::try_get_from_cache(ret)
     }
 
-    ///
+    /// 使用するシェーダを取得する
     pub fn set_shader(&mut self, value: Rc<RefCell<Shader>>) -> &mut Self {
         self.shader = Some(value.clone());
         unsafe { cbg_Material_SetShader(self.self_ptr, value.borrow_mut().self_ptr()) }
@@ -2896,18 +2951,24 @@ impl Renderer {
     }
 
     /// スプライトを描画します。
+    /// # Arguments
+    /// * `sprite` - 描画する<see cref="RenderedSprite"/>のインスタンス
 
     pub fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
         unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr()) }
     }
 
     /// テキストを描画します。
+    /// # Arguments
+    /// * `text` - 描画する<see cref="RenderedText"/>のインスタンス
 
     pub fn draw_text(&mut self, text: &mut RenderedText) -> () {
         unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr()) }
     }
 
     /// ポリゴンを描画します。
+    /// # Arguments
+    /// * `polygon` - 描画する<see cref="RenderedPolygon"/>のインスタンス
 
     pub fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
         unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr()) }
@@ -2915,7 +2976,7 @@ impl Renderer {
 
     /// コマンドリストを描画します。
     /// # Arguments
-    /// * `command_list` - コマンドリスト
+    /// * `command_list` - 描画するコマンドリスト
 
     pub fn render(&mut self, command_list: &mut CommandList) -> () {
         unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr()) }
@@ -3027,8 +3088,8 @@ pub(crate) struct RenderedSprite {
     self_ptr: *mut RawPtr,
     texture: Option<Rc<RefCell<Texture2D>>>,
     src: Option<crate::structs::rect::Rect<f32>>,
-    transform: Option<crate::prelude::Matrix44<f32>>,
     material: Option<Rc<RefCell<Material>>>,
+    transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
 impl HasRawPtr for RenderedSprite {
@@ -3062,8 +3123,8 @@ impl RenderedSprite {
             self_ptr,
             texture: None,
             src: None,
-            transform: None,
             material: None,
+            transform: None,
         })
     }
 
@@ -3115,17 +3176,17 @@ impl RenderedSprite {
         self
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
-        self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
-        self
-    }
-
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
         self.material = Some(value.clone());
         unsafe { cbg_RenderedSprite_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
+        self
+    }
+
+    /// 変換行列を取得または設定します。
+    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
+        self.transform = Some(value.clone());
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
         self
     }
 }
@@ -3140,12 +3201,12 @@ impl Drop for RenderedSprite {
 #[derive(Debug)]
 pub(crate) struct RenderedText {
     self_ptr: *mut RawPtr,
-    transform: Option<crate::prelude::Matrix44<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     text: Option<String>,
     font: Option<Arc<Mutex<Font>>>,
     weight: Option<f32>,
     color: Option<crate::structs::Color>,
+    transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
 impl HasRawPtr for RenderedText {
@@ -3177,12 +3238,12 @@ impl RenderedText {
         }
         Some(RenderedText {
             self_ptr,
-            transform: None,
             material: None,
             text: None,
             font: None,
             weight: None,
             color: None,
+            transform: None,
         })
     }
 
@@ -3238,13 +3299,6 @@ impl RenderedText {
         ret
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
-        self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
-        self
-    }
-
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
         self.material = Some(value.clone());
@@ -3284,6 +3338,13 @@ impl RenderedText {
         unsafe { cbg_RenderedText_SetColor(self.self_ptr, &mut value as *mut _) }
         self
     }
+
+    /// 変換行列を取得または設定します。
+    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
+        self.transform = Some(value.clone());
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
+        self
+    }
 }
 
 impl Drop for RenderedText {
@@ -3296,10 +3357,11 @@ impl Drop for RenderedText {
 #[derive(Debug)]
 pub(crate) struct RenderedPolygon {
     self_ptr: *mut RawPtr,
+    vertexes: Option<Rc<RefCell<VertexArray>>>,
     texture: Option<Rc<RefCell<Texture2D>>>,
     src: Option<crate::structs::rect::Rect<f32>>,
-    transform: Option<crate::prelude::Matrix44<f32>>,
     material: Option<Rc<RefCell<Material>>>,
+    transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
 impl HasRawPtr for RenderedPolygon {
@@ -3331,10 +3393,11 @@ impl RenderedPolygon {
         }
         Some(RenderedPolygon {
             self_ptr,
+            vertexes: None,
             texture: None,
             src: None,
-            transform: None,
             material: None,
+            transform: None,
         })
     }
 
@@ -3345,23 +3408,19 @@ impl RenderedPolygon {
         RenderedPolygon::cbg_create_raw(ret)
     }
 
-    /// 頂点情報を取得します。
-
-    pub fn get_vertexes(&mut self) -> Option<Rc<RefCell<VertexArray>>> {
-        let ret = unsafe { cbg_RenderedPolygon_GetVertexes(self.self_ptr) };
-        VertexArray::try_get_from_cache(ret)
-    }
-
-    /// 頂点情報
-
-    pub fn set_vertexes(&mut self, vertexes: &mut VertexArray) -> () {
-        unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, vertexes.self_ptr()) }
-    }
-
     /// 頂点情報
 
     pub fn set_vertexes_by_vector2f(&mut self, vertexes: &mut Vector2FArray) -> () {
         unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr()) }
+    }
+
+    /// 頂点情報を取得または設定します。
+    pub fn get_vertexes(&mut self) -> Option<Rc<RefCell<VertexArray>>> {
+        if let Some(value) = self.vertexes.clone() {
+            return Some(value);
+        }
+        let ret = unsafe { cbg_RenderedPolygon_GetVertexes(self.self_ptr) };
+        VertexArray::try_get_from_cache(ret)
     }
 
     /// テクスチャを取得または設定します。
@@ -3391,6 +3450,13 @@ impl RenderedPolygon {
         Material::try_get_from_cache(ret)
     }
 
+    /// 頂点情報を取得または設定します。
+    pub fn set_vertexes(&mut self, value: Rc<RefCell<VertexArray>>) -> &mut Self {
+        self.vertexes = Some(value.clone());
+        unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, value.borrow_mut().self_ptr()) }
+        self
+    }
+
     /// テクスチャを取得または設定します。
     pub fn set_texture(&mut self, value: Rc<RefCell<Texture2D>>) -> &mut Self {
         self.texture = Some(value.clone());
@@ -3405,17 +3471,17 @@ impl RenderedPolygon {
         self
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
-        self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
-        self
-    }
-
     /// マテリアルを取得または設定します。
     pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
         self.material = Some(value.clone());
         unsafe { cbg_RenderedPolygon_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
+        self
+    }
+
+    /// 変換行列を取得または設定します。
+    pub fn set_transform(&mut self, mut value: crate::prelude::Matrix44<f32>) -> &mut Self {
+        self.transform = Some(value.clone());
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &mut value.into() as *mut _) }
         self
     }
 }
@@ -3480,7 +3546,7 @@ impl Drop for RenderedCamera {
     }
 }
 
-/// ビルド済みシェーダの取得を行うクラス
+/// 組み込みシェーダの取得を行うクラス
 #[derive(Debug)]
 pub struct BuiltinShader {
     self_ptr: *mut RawPtr,
@@ -3527,7 +3593,7 @@ impl BuiltinShader {
     /// # Arguments
     /// * `type_` - シェーダの種類
 
-    pub fn create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
+    pub(crate) fn create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_BuiltinShader_Create(self.self_ptr, type_ as i32) };
         Shader::try_get_from_cache(ret)
     }
@@ -4667,11 +4733,11 @@ impl StreamFile {
         Some(o)
     }
 
-    /// 指定ファイルを読み込むStreamFileの新しいインスタンスを生成します。
+    /// 指定ファイルを読み込む<see cref="StreamFile"/>の新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub fn create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
+    pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
         let ret = unsafe { cbg_StreamFile_Create(encode_string(&path).as_ptr()) };
         StreamFile::try_get_from_cache(ret)
     }
@@ -4782,11 +4848,11 @@ impl StaticFile {
         Some(o)
     }
 
-    /// 指定ファイルを読み込んだStaticFileの新しいインスタンスを生成します。
+    /// 指定ファイルを読み込んだ<see cref="StaticFile"/>の新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub fn create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
+    pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
         let ret = unsafe { cbg_StaticFile_Create(encode_string(&path).as_ptr()) };
         StaticFile::try_get_from_cache(ret)
     }
@@ -4907,10 +4973,10 @@ impl File {
         ret
     }
 
-    ///
+    /// 指定したディレクトリのファイルをパックする
     /// # Arguments
-    /// * `src_path` -
-    /// * `dst_path` -
+    /// * `src_path` - パックするファイルのディレクトリ
+    /// * `dst_path` - パックされたファイル名
 
     pub fn pack(&mut self, src_path: &str, dst_path: &str) -> bool {
         let ret = unsafe {
@@ -4923,11 +4989,11 @@ impl File {
         ret
     }
 
-    ///
+    /// 指定したディレクトリのファイルをパスワード付きでパックする
     /// # Arguments
-    /// * `src_path` -
-    /// * `dst_path` -
-    /// * `password` -
+    /// * `src_path` - パックするファイルのディレクトリ
+    /// * `dst_path` - パックされたファイル名
+    /// * `password` - かけるパスワード
 
     pub fn pack_with_password(&mut self, src_path: &str, dst_path: &str, password: &str) -> bool {
         let ret = unsafe {
@@ -4948,7 +5014,7 @@ impl Drop for File {
     }
 }
 
-/// 音声ファイルを読み込みます。
+/// 音源のクラス
 #[derive(Debug)]
 pub struct Sound {
     self_ptr: *mut RawPtr,
@@ -4999,10 +5065,10 @@ impl Sound {
         })
     }
 
-    ///
+    /// 音声ファイルを読み込みます。
     /// # Arguments
-    /// * `path` -
-    /// * `is_decompressed` -
+    /// * `path` - 読み込む音声ファイルのパス
+    /// * `is_decompressed` - 音を再生する前にデータを全て解凍するか?
 
     pub(crate) fn load(path: &str, is_decompressed: bool) -> Option<Rc<RefCell<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
@@ -5084,6 +5150,7 @@ impl Drop for Sound {
     }
 }
 
+/// 音源を操作するクラス
 #[derive(Debug)]
 pub struct SoundMixer {
     self_ptr: *mut RawPtr,
@@ -5159,7 +5226,7 @@ impl SoundMixer {
     /// 指定した音の音量を変更します。
     /// # Arguments
     /// * `id` - 音のID
-    /// * `volume` - 音量(0.0〜1.0
+    /// * `volume` - 音量(0.0〜1.0)
 
     pub fn set_volume(&mut self, id: i32, volume: f32) -> () {
         unsafe { cbg_SoundMixer_SetVolume(self.self_ptr, id, volume) }
@@ -5335,7 +5402,7 @@ impl Log {
         }
     }
 
-    /// ログレベルTraceでログを出力します。
+    /// <see cref="LogLevel.Trace"/>でログを出力します。
 
     pub fn trace(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5347,7 +5414,7 @@ impl Log {
         }
     }
 
-    /// ログレベルDebugでログを出力します。
+    /// <see cref="LogLevel.Debug"/>でログを出力します。
 
     pub fn debug(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5359,7 +5426,7 @@ impl Log {
         }
     }
 
-    /// ログレベルInfoでログを出力します。
+    /// <see cref="LogLevel.Info"/>でログを出力します。
 
     pub fn info(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5371,7 +5438,7 @@ impl Log {
         }
     }
 
-    /// ログレベルWarningでログを出力します。
+    /// <see cref="LogLevel.Warning"/>でログを出力します。
 
     pub fn warn(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5383,7 +5450,7 @@ impl Log {
         }
     }
 
-    /// ログレベルErrorでログを出力します。
+    /// <see cref="LogLevel.Error"/>でログを出力します。
 
     pub fn error(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5395,7 +5462,7 @@ impl Log {
         }
     }
 
-    /// ログレベルCriticalでログを出力します。
+    /// <see cref="LogLevel.Critical"/>でログを出力します。
 
     pub fn critical(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5450,6 +5517,7 @@ impl Window {
         Window::cbg_create_raw(ret)
     }
 
+    /// ウィンドウに表示するタイトルを取得または設定します
     pub fn get_title(&mut self) -> String {
         if let Some(value) = self.title.clone() {
             return value;
@@ -5458,6 +5526,7 @@ impl Window {
         decode_string(ret)
     }
 
+    /// ウィンドウに表示するタイトルを取得または設定します
     pub fn set_title(&mut self, value: String) -> &mut Self {
         self.title = Some(value.clone());
         unsafe { cbg_Window_SetTitle(self.self_ptr, encode_string(&value).as_ptr()) }

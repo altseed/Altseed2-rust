@@ -78,6 +78,9 @@ hide_method(graphics.Font, 'LoadStaticFont')
 hide_method(sound.Sound, 'Load')
 hide_method(io.StaticFile, 'Create')
 hide_method(io.StreamFile, 'Create')
+hide_method(graphics.BuiltinShader, 'Create')
+
+# コメントをRust向けに修正
 
 
 bindingGenerator.generate()
