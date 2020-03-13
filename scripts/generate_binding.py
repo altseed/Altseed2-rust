@@ -81,7 +81,41 @@ hide_method(io.StreamFile, 'Create')
 hide_method(graphics.BuiltinShader, 'Create')
 
 # コメントをRust向けに修正
+descs = []
+for c in define.classes:
+    if c.brief != None:
+        descs += [ c.brief.descs ]
+    for f in c.funcs:
+        if f.brief != None:
+            descs += [ f.brief.descs ]
+        for a in f.args:
+            if a.brief != None:
+                descs += [ a.brief.descs ]
+        if f.return_value.brief != None:
+            descs += [ f.return_value.brief.descs ]
+    for p in c.properties:
+        if p.brief != None:
+            descs += [ p.brief.descs ]
+for e in define.enums:
+    if e.brief != None:
+        descs += [ e.brief.descs ]
+        for v in e.values:
+            if v.brief != None:
+                descs += [ v.brief.descs ]
 
+import re
+
+pattern_ = r'(.*)<see cref="(Altseed.)?(.*)"/>(.*)'
+
+for d in descs:
+    for k in d:
+        res = re.findall(pattern_, d[k])
+        if res:
+            res = res[0]
+            name = next(iter([v.split('::')[-1] for k,v in bindingGenerator.structsReplaceMap.items() if k.alias == res[2]]), res[2])
+            result = res[0] + name + res[3]
+            print('{} => {}'.format(d[k], result))
+            d[k] = result
 
 bindingGenerator.generate()
 

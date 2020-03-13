@@ -62,7 +62,10 @@ impl Node for DrawnNode {}
 
 impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(create_node!(DrawnNode { kind: kind.into() })))
+        Rc::new(RefCell::new(DrawnNode {
+            node_base: NodeBase::default(),
+            kind: kind.into(),
+        }))
     }
 
     pub fn kind(&self) -> &DrawnKind {

@@ -60,15 +60,15 @@ pub enum FramerateMode {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ResourceType {
-    /// <see cref="Altseed.StaticFile"/>を表す
+    /// StaticFileを表す
     StaticFile,
-    /// <see cref="Altseed.StreamFile"/>を表す
+    /// StreamFileを表す
     StreamFile,
-    /// <see cref="Altseed.Texture2D"/>を表す
+    /// Texture2Dを表す
     Texture2D,
-    /// <see cref="Altseed.Font"/>を表す
+    /// Fontを表す
     Font,
-    /// <see cref="Altseed.Sound"/>を表す
+    /// Soundを表す
     Sound,
     MAX,
 }
@@ -2828,19 +2828,19 @@ impl Material {
         Self::cbg_create_raw(unsafe { cbg_Material_Constructor_0() })
     }
 
-    /// 指定した名前を持つ<see cref="Vector4F"/>のインスタンスを取得する
+    /// 指定した名前を持つVector4<f32>のインスタンスを取得する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Vector4F"/>のインスタンスの名前
+    /// * `key` - 検索するVector4<f32>のインスタンスの名前
 
     pub fn get_vector4f(&mut self, key: &str) -> crate::prelude::Vector4<f32> {
         let ret = unsafe { cbg_Material_GetVector4F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
 
-    /// 指定した名前を持つ<see cref="Vector4F"/>の値を設定する
+    /// 指定した名前を持つVector4<f32>の値を設定する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Vector4F"/>のインスタンスの名前
-    /// * `value` - 設定する<see cref="Vector4F"/>のインスタンスの値
+    /// * `key` - 検索するVector4<f32>のインスタンスの名前
+    /// * `value` - 設定するVector4<f32>のインスタンスの値
 
     pub fn set_vector4f(&mut self, key: &str, mut value: crate::prelude::Vector4<f32>) -> () {
         unsafe {
@@ -2852,19 +2852,19 @@ impl Material {
         }
     }
 
-    /// 指定した名前を持つ<see cref="Matrix44F"/>のインスタンスを取得する
+    /// 指定した名前を持つMatrix44<f32>のインスタンスを取得する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Matrix44F"/>のインスタンスの名前
+    /// * `key` - 検索するMatrix44<f32>のインスタンスの名前
 
     pub fn get_matrix44f(&mut self, key: &str) -> crate::prelude::Matrix44<f32> {
         let ret = unsafe { cbg_Material_GetMatrix44F(self.self_ptr, encode_string(&key).as_ptr()) };
         ret.into()
     }
 
-    /// 指定した名前を持つ<see cref="Matrix44F"/>の値を設定する
+    /// 指定した名前を持つMatrix44<f32>の値を設定する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Matrix44F"/>のインスタンスの名前
-    /// * `value` - 設定する<see cref="Matrix44F"/>のインスタンスの値
+    /// * `key` - 検索するMatrix44<f32>のインスタンスの名前
+    /// * `value` - 設定するMatrix44<f32>のインスタンスの値
 
     pub fn set_matrix44f(&mut self, key: &str, mut value: crate::prelude::Matrix44<f32>) -> () {
         unsafe {
@@ -2876,19 +2876,19 @@ impl Material {
         }
     }
 
-    /// 指定した名前を持つ<see cref="Texture2D"/>のインスタンスを取得する
+    /// 指定した名前を持つTexture2Dのインスタンスを取得する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Texture2D"/>のインスタンスの名前
+    /// * `key` - 検索するTexture2Dのインスタンスの名前
 
     pub fn get_texture(&mut self, key: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
         Texture2D::try_get_from_cache(ret)
     }
 
-    /// 指定した名前を持つ<see cref="Texture2D"/>の値を設定する
+    /// 指定した名前を持つTexture2Dの値を設定する
     /// # Arguments
-    /// * `key` - 検索する<see cref="Texture2D"/>のインスタンスの名前
-    /// * `value` - 設定する<see cref="Texture2D"/>のインスタンスの値
+    /// * `key` - 検索するTexture2Dのインスタンスの名前
+    /// * `value` - 設定するTexture2Dのインスタンスの値
 
     pub fn set_texture(&mut self, key: &str, value: &mut Texture2D) -> () {
         unsafe {
@@ -2952,7 +2952,7 @@ impl Renderer {
 
     /// スプライトを描画します。
     /// # Arguments
-    /// * `sprite` - 描画する<see cref="RenderedSprite"/>のインスタンス
+    /// * `sprite` - 描画するRenderedSpriteのインスタンス
 
     pub fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
         unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr()) }
@@ -2960,7 +2960,7 @@ impl Renderer {
 
     /// テキストを描画します。
     /// # Arguments
-    /// * `text` - 描画する<see cref="RenderedText"/>のインスタンス
+    /// * `text` - 描画するRenderedTextのインスタンス
 
     pub fn draw_text(&mut self, text: &mut RenderedText) -> () {
         unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr()) }
@@ -2968,7 +2968,7 @@ impl Renderer {
 
     /// ポリゴンを描画します。
     /// # Arguments
-    /// * `polygon` - 描画する<see cref="RenderedPolygon"/>のインスタンス
+    /// * `polygon` - 描画するRenderedPolygonのインスタンス
 
     pub fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
         unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr()) }
@@ -4733,7 +4733,7 @@ impl StreamFile {
         Some(o)
     }
 
-    /// 指定ファイルを読み込む<see cref="StreamFile"/>の新しいインスタンスを生成します。
+    /// 指定ファイルを読み込むStreamFileの新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
@@ -4848,7 +4848,7 @@ impl StaticFile {
         Some(o)
     }
 
-    /// 指定ファイルを読み込んだ<see cref="StaticFile"/>の新しいインスタンスを生成します。
+    /// 指定ファイルを読み込んだStaticFileの新しいインスタンスを生成します。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
@@ -5402,7 +5402,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Trace"/>でログを出力します。
+    /// LogLevel.Traceでログを出力します。
 
     pub fn trace(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5414,7 +5414,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Debug"/>でログを出力します。
+    /// LogLevel.Debugでログを出力します。
 
     pub fn debug(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5426,7 +5426,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Info"/>でログを出力します。
+    /// LogLevel.Infoでログを出力します。
 
     pub fn info(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5438,7 +5438,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Warning"/>でログを出力します。
+    /// LogLevel.Warningでログを出力します。
 
     pub fn warn(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5450,7 +5450,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Error"/>でログを出力します。
+    /// LogLevel.Errorでログを出力します。
 
     pub fn error(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
@@ -5462,7 +5462,7 @@ impl Log {
         }
     }
 
-    /// <see cref="LogLevel.Critical"/>でログを出力します。
+    /// LogLevel.Criticalでログを出力します。
 
     pub fn critical(&mut self, category: LogCategory, message: &str) -> () {
         unsafe {
