@@ -77,12 +77,22 @@ pub(crate) struct Vertex {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Color {
     pub r: c_uchar,
     pub g: c_uchar,
     pub b: c_uchar,
     pub a: c_uchar,
+}
+
+impl Color {
+    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Color {
+        Color { r, g, b, a }
+    }
+
+    pub fn new3(r: u8, g: u8, b: u8) -> Color {
+        Color { r, g, b, a: 255 }
+    }
 }
 
 pub mod rect;

@@ -20,7 +20,7 @@ pub mod prelude {
     pub use crate::engine::Engine;
 
     pub use crate::core::*;
-    pub use crate::structs::{color::Color, rect::Rect};
+    pub use crate::structs::{rect::Rect, Color};
 }
 
 pub mod core {
