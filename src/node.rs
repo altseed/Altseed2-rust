@@ -11,15 +11,15 @@ use crate::error::*;
 #[macro_use]
 pub mod boiler_plate;
 
-mod camera;
 mod list;
-mod sprite;
-mod text;
 mod transform;
 
-pub use sprite::SpriteNode;
-pub use text::TextNode;
-pub use transform::Transform;
+#[macro_use]
+mod drawn;
+
+mod camera;
+mod sprite;
+mod text;
 
 use list::*;
 
@@ -125,9 +125,11 @@ pub trait Node: HasNodeBase + Downcast {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
+
     fn on_updated(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
+
     fn on_removed(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
@@ -135,51 +137,7 @@ pub trait Node: HasNodeBase + Downcast {
 
 impl_downcast!(Node);
 
-use crate::auto_generated_core_binding::{Graphics, Renderer};
-
-impl dyn Node {
-    pub(crate) fn is_drawn_node(&self) -> bool {
-        self.is::<SpriteNode>() || self.is::<TextNode>()
-    }
-
-    pub(crate) unsafe fn downcast_z_order(&self) -> i32 {
-        if let Some(x) = self.downcast_ref::<SpriteNode>() {
-            x.get_z_order()
-        } else if let Some(x) = self.downcast_ref::<TextNode>() {
-            x.get_z_order()
-        } else {
-            panic!("Never call downcast_z_order to a non-DrawnNode");
-        }
-    }
-
-    pub(crate) unsafe fn downcast_on_drawn(
-        &mut self,
-        graphics: &mut Graphics,
-        renderer: &mut Renderer,
-    ) {
-        if let Some(x) = self.downcast_mut::<SpriteNode>() {
-            x.on_drawn(graphics, renderer);
-        } else if let Some(x) = self.downcast_mut::<TextNode>() {
-            x.on_drawn(graphics, renderer);
-        } else {
-            panic!("Never call downcast_on_drawn to a non-DrawnNode");
-        }
-    }
-}
-
-pub trait DrawnNode: Node {
-    fn transform(&self) -> &crate::prelude::Transform;
-    fn transform_mut(&mut self) -> &mut crate::prelude::Transform;
-    /// 描画順を取得します。
-    fn get_z_order(&self) -> i32;
-    /// 描画順を設定します。
-    fn set_z_order(&mut self, z_order: i32) -> &mut dyn DrawnNode;
-    /// マテリアルを取得します。
-    fn get_material(&mut self) -> Rc<RefCell<crate::prelude::Material>>;
-    /// マテリアルを設定します。
-    fn set_material(&mut self, mat: Rc<RefCell<crate::prelude::Material>>) -> &mut dyn DrawnNode;
-}
-
-// pub(crate) trait HasOnDrawn {
-//     fn on_drawn(&mut self, graphics: &mut Graphics, renderer: &mut Renderer);
-// }
+pub use drawn::*;
+pub use sprite::Sprite;
+pub use text::Text;
+pub use transform::*;

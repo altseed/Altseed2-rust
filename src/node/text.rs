@@ -4,34 +4,26 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate as altseed2;
-use crate::auto_generated_core_binding::{Font, Graphics, RenderedText, Renderer};
-use crate::node::*;
-use crate::{create_node, define_node};
+use crate::auto_generated_core_binding::{Font, RenderedText};
+use crate::prelude::{Drawn, Vector2};
 
-define_drawn_node! {
-    pub struct TextNode: RenderedText { }
-}
-
-impl Node for TextNode {}
-
-impl TextNode {
-    pub(crate) fn on_drawn(&mut self, _: &mut Graphics, renderer: &mut Renderer) {
-        if self.trans.is_updated() {
-            self.trans.update();
-            self.instance.set_transform(self.trans.get());
-        }
-        renderer.draw_text(&mut self.instance);
+define_drawn! {
+    pub struct Text {
+        instance: RenderedText,
     }
 }
 
-impl TextNode {
+impl Text {
     pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(create_node!(TextNode {
+        Rc::new(RefCell::new(Text {
             instance: RenderedText::create().unwrap(),
-            trans: Transform::default(),
+            trans: super::Transform::default(),
             z_order: 0,
-        })))
+        }))
+    }
+
+    pub(crate) fn instance(&mut self) -> &mut RenderedText {
+        &mut self.instance
     }
 
     /// テキストを取得します。

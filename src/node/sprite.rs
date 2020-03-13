@@ -1,35 +1,25 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::node::*;
-use crate::prelude::Rect;
+use crate::auto_generated_core_binding::{RenderedSprite, Texture2D};
+use crate::prelude::{Drawn, Rect, Vector2};
 
-use crate as altseed2;
-use crate::auto_generated_core_binding::{Graphics, RenderedSprite, Renderer, Texture2D};
-use crate::create_node;
-
-define_drawn_node! {
-    pub struct SpriteNode: RenderedSprite { }
-}
-
-impl Node for SpriteNode {}
-
-impl SpriteNode {
-    pub(crate) fn on_drawn(&mut self, _: &mut Graphics, renderer: &mut Renderer) {
-        if self.trans.is_updated() {
-            self.trans.update();
-            self.instance.set_transform(self.trans.get());
-        }
-        renderer.draw_sprite(&mut self.instance);
+define_drawn! {
+    pub struct Sprite {
+        instance: RenderedSprite,
     }
 }
 
-impl SpriteNode {
+impl Sprite {
     pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(create_node!(SpriteNode {
+        Rc::new(RefCell::new(Sprite {
             instance: RenderedSprite::create().unwrap(),
-            trans: Transform::default(),
+            trans: super::Transform::default(),
             z_order: 0,
-        })))
+        }))
+    }
+
+    pub(crate) fn instance(&mut self) -> &mut RenderedSprite {
+        &mut self.instance
     }
 
     /// テクスチャを取得します。

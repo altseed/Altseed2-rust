@@ -28,7 +28,7 @@ pub mod prelude {
     pub use crate::engine::Engine;
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        DrawnNode, HasNodeBase, Node, NodeBase, NodeState, SpriteNode, TextNode, Transform,
+        Drawn, DrawnNode, HasNodeBase, Node, NodeBase, NodeState, Sprite, Text, Transform,
     };
 
     pub use crate::core::*;

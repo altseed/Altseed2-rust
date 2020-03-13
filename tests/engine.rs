@@ -33,13 +33,21 @@ fn node() -> AltseedResult<()> {
 #[test]
 fn sprite() -> AltseedResult<()> {
     let mut engine = Engine::initialize("sprite", 800, 600)?;
+
     let texture = engine.create_texture2d("./Core/TestData/IO/AltseedPink.png")?;
-    let sprite = SpriteNode::new();
-    sprite
-        .borrow_mut()
-        .set_texture(&texture)
-        .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
-    engine.add_node(sprite)?;
+
+    let node = {
+        let sprite = Sprite::new();
+
+        sprite
+            .borrow_mut()
+            .set_texture(&texture)
+            .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
+
+        DrawnNode::new(sprite)
+    };
+
+    engine.add_node(node)?;
 
     let mut count = 0;
     while count < 20 && engine.do_events() {

@@ -5,7 +5,7 @@ use std::{
 
 use crate::engine::Engine;
 use crate::error::*;
-use crate::node::{Node, NodeState};
+use crate::node::{DrawnNode, Node, NodeState};
 
 #[derive(Debug)]
 pub(crate) struct NodeList {
@@ -71,8 +71,9 @@ impl NodeList {
                 item.on_added(engine)?;
             }
 
-            if item.borrow().is_drawn_node() {
-                engine.drawn_nodes.borrow_mut().push(Rc::downgrade(&item));
+            if item.borrow().is::<DrawnNode>() {
+                let rc = unsafe { Rc::from_raw(Rc::into_raw(item.clone()) as *const _) };
+                engine.drawn_nodes.borrow_mut().push(Rc::downgrade(&rc));
                 engine.sort_drawn_nodes = true;
             }
         }

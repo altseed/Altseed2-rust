@@ -47,7 +47,7 @@ pub struct Engine {
     log: Log,
     tool: Tool,
     root_node: Rc<RefCell<NodeBase>>,
-    pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<dyn Node>>>>,
+    pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
     pub(crate) sort_drawn_nodes: bool,
 }
 
@@ -157,7 +157,7 @@ impl Engine {
         if self.sort_drawn_nodes {
             self.drawn_nodes
                 .borrow_mut()
-                .sort_by_key(|x| unsafe { x.upgrade().unwrap().borrow().downcast_z_order() });
+                .sort_by_key(|x| x.upgrade().unwrap().borrow().get_z_order());
             self.sort_drawn_nodes = false;
         }
 
@@ -174,10 +174,7 @@ impl Engine {
 
         // DrawnNodeの呼び出し
         for node in self.drawn_nodes.borrow().iter().filter_map(Weak::upgrade) {
-            unsafe {
-                node.borrow_mut()
-                    .downcast_on_drawn(&mut graphics, &mut renderer);
-            }
+            node.borrow_mut().on_drawn(&mut graphics, &mut renderer);
         }
 
         {
