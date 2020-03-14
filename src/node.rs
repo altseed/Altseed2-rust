@@ -18,6 +18,7 @@ mod transform;
 mod drawn;
 
 mod camera;
+mod polygon;
 mod sprite;
 mod text;
 
@@ -138,6 +139,7 @@ pub trait Node: HasNodeBase + Downcast {
 impl_downcast!(Node);
 
 pub use drawn::*;
+pub use polygon::Polygon;
 pub use sprite::Sprite;
 pub use text::Text;
 pub use transform::*;
