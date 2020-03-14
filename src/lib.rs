@@ -20,6 +20,9 @@ pub mod math;
 pub mod node;
 
 pub mod structs;
+
+mod array;
+
 #[cfg(test)]
 mod tests;
 

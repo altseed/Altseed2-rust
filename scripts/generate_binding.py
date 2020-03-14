@@ -3,7 +3,7 @@ import os, sys
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-from bindings import define, math, tool, input, core, graphics, io, logger, sound, tool, window
+from bindings import define, math, tool, input, core, graphics, io, logger, sound, tool, window, common
 from bindings.CppBindingGenerator import BindingGeneratorRust, CacheMode
 
 args = sys.argv

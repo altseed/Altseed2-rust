@@ -667,7 +667,6 @@ pub enum LogCategory {
 }
 
 #[link(name = "Altseed_Core")]
-// #[link_args = "-Wl,-rpath,."]
 extern "C" {
     fn cbg_Configuration_Constructor_0() -> *mut RawPtr;
 
@@ -717,11 +716,11 @@ extern "C" {
 
     fn cbg_Int8Array_Resize(self_ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Int8Array_GetData(self_ptr: *mut RawPtr) -> c_void;
+    fn cbg_Int8Array_GetData(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_Int8Array_Assign(self_ptr: *mut RawPtr, ptr: c_void, size: c_int) -> ();
+    fn cbg_Int8Array_Assign(self_ptr: *mut RawPtr, ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Int8Array_CopyTo(self_ptr: *mut RawPtr, ptr: c_void) -> ();
+    fn cbg_Int8Array_CopyTo(self_ptr: *mut RawPtr, ptr: *mut RawPtr) -> ();
 
     fn cbg_Int8Array_GetAt(self_ptr: *mut RawPtr, index: c_int) -> c_uchar;
 
@@ -737,11 +736,11 @@ extern "C" {
 
     fn cbg_Int32Array_Resize(self_ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Int32Array_GetData(self_ptr: *mut RawPtr) -> c_void;
+    fn cbg_Int32Array_GetData(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_Int32Array_Assign(self_ptr: *mut RawPtr, ptr: c_void, size: c_int) -> ();
+    fn cbg_Int32Array_Assign(self_ptr: *mut RawPtr, ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Int32Array_CopyTo(self_ptr: *mut RawPtr, ptr: c_void) -> ();
+    fn cbg_Int32Array_CopyTo(self_ptr: *mut RawPtr, ptr: *mut RawPtr) -> ();
 
     fn cbg_Int32Array_GetAt(self_ptr: *mut RawPtr, index: c_int) -> c_int;
 
@@ -757,11 +756,11 @@ extern "C" {
 
     fn cbg_VertexArray_Resize(self_ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_VertexArray_GetData(self_ptr: *mut RawPtr) -> c_void;
+    fn cbg_VertexArray_GetData(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_VertexArray_Assign(self_ptr: *mut RawPtr, ptr: c_void, size: c_int) -> ();
+    fn cbg_VertexArray_Assign(self_ptr: *mut RawPtr, ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_VertexArray_CopyTo(self_ptr: *mut RawPtr, ptr: c_void) -> ();
+    fn cbg_VertexArray_CopyTo(self_ptr: *mut RawPtr, ptr: *mut RawPtr) -> ();
 
     fn cbg_VertexArray_GetAt(self_ptr: *mut RawPtr, index: c_int) -> crate::structs::Vertex;
 
@@ -781,11 +780,11 @@ extern "C" {
 
     fn cbg_FloatArray_Resize(self_ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_FloatArray_GetData(self_ptr: *mut RawPtr) -> c_void;
+    fn cbg_FloatArray_GetData(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_FloatArray_Assign(self_ptr: *mut RawPtr, ptr: c_void, size: c_int) -> ();
+    fn cbg_FloatArray_Assign(self_ptr: *mut RawPtr, ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_FloatArray_CopyTo(self_ptr: *mut RawPtr, ptr: c_void) -> ();
+    fn cbg_FloatArray_CopyTo(self_ptr: *mut RawPtr, ptr: *mut RawPtr) -> ();
 
     fn cbg_FloatArray_GetAt(self_ptr: *mut RawPtr, index: c_int) -> c_float;
 
@@ -801,11 +800,11 @@ extern "C" {
 
     fn cbg_Vector2FArray_Resize(self_ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Vector2FArray_GetData(self_ptr: *mut RawPtr) -> c_void;
+    fn cbg_Vector2FArray_GetData(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_Vector2FArray_Assign(self_ptr: *mut RawPtr, ptr: c_void, size: c_int) -> ();
+    fn cbg_Vector2FArray_Assign(self_ptr: *mut RawPtr, ptr: *mut RawPtr, size: c_int) -> ();
 
-    fn cbg_Vector2FArray_CopyTo(self_ptr: *mut RawPtr, ptr: c_void) -> ();
+    fn cbg_Vector2FArray_CopyTo(self_ptr: *mut RawPtr, ptr: *mut RawPtr) -> ();
 
     fn cbg_Vector2FArray_GetAt(self_ptr: *mut RawPtr, index: c_int) -> crate::structs::Vector2F;
 
@@ -1808,12 +1807,12 @@ impl Int8Array {
         unsafe { cbg_Int8Array_Resize(self.self_ptr, size) }
     }
 
-    pub fn get_data(&mut self) -> c_void {
+    pub fn get_data(&mut self) -> *mut RawPtr {
         let ret = unsafe { cbg_Int8Array_GetData(self.self_ptr) };
         ret
     }
 
-    pub fn assign(&mut self, ptr: c_void, size: i32) -> () {
+    pub fn assign(&mut self, ptr: *mut RawPtr, size: i32) -> () {
         unsafe { cbg_Int8Array_Assign(self.self_ptr, ptr, size) }
     }
 
@@ -1821,7 +1820,7 @@ impl Int8Array {
     /// # Arguments
     /// * `ptr` - ポインタ
 
-    pub fn copy_to(&mut self, ptr: c_void) -> () {
+    pub fn copy_to(&mut self, ptr: *mut RawPtr) -> () {
         unsafe { cbg_Int8Array_CopyTo(self.self_ptr, ptr) }
     }
 
@@ -1922,12 +1921,12 @@ impl Int32Array {
         unsafe { cbg_Int32Array_Resize(self.self_ptr, size) }
     }
 
-    pub fn get_data(&mut self) -> c_void {
+    pub fn get_data(&mut self) -> *mut RawPtr {
         let ret = unsafe { cbg_Int32Array_GetData(self.self_ptr) };
         ret
     }
 
-    pub fn assign(&mut self, ptr: c_void, size: i32) -> () {
+    pub fn assign(&mut self, ptr: *mut RawPtr, size: i32) -> () {
         unsafe { cbg_Int32Array_Assign(self.self_ptr, ptr, size) }
     }
 
@@ -1935,7 +1934,7 @@ impl Int32Array {
     /// # Arguments
     /// * `ptr` - ポインタ
 
-    pub fn copy_to(&mut self, ptr: c_void) -> () {
+    pub fn copy_to(&mut self, ptr: *mut RawPtr) -> () {
         unsafe { cbg_Int32Array_CopyTo(self.self_ptr, ptr) }
     }
 
@@ -2036,12 +2035,12 @@ impl VertexArray {
         unsafe { cbg_VertexArray_Resize(self.self_ptr, size) }
     }
 
-    pub fn get_data(&mut self) -> c_void {
+    pub fn get_data(&mut self) -> *mut RawPtr {
         let ret = unsafe { cbg_VertexArray_GetData(self.self_ptr) };
         ret
     }
 
-    pub fn assign(&mut self, ptr: c_void, size: i32) -> () {
+    pub fn assign(&mut self, ptr: *mut RawPtr, size: i32) -> () {
         unsafe { cbg_VertexArray_Assign(self.self_ptr, ptr, size) }
     }
 
@@ -2049,7 +2048,7 @@ impl VertexArray {
     /// # Arguments
     /// * `ptr` - ポインタ
 
-    pub fn copy_to(&mut self, ptr: c_void) -> () {
+    pub fn copy_to(&mut self, ptr: *mut RawPtr) -> () {
         unsafe { cbg_VertexArray_CopyTo(self.self_ptr, ptr) }
     }
 
@@ -2150,12 +2149,12 @@ impl FloatArray {
         unsafe { cbg_FloatArray_Resize(self.self_ptr, size) }
     }
 
-    pub fn get_data(&mut self) -> c_void {
+    pub fn get_data(&mut self) -> *mut RawPtr {
         let ret = unsafe { cbg_FloatArray_GetData(self.self_ptr) };
         ret
     }
 
-    pub fn assign(&mut self, ptr: c_void, size: i32) -> () {
+    pub fn assign(&mut self, ptr: *mut RawPtr, size: i32) -> () {
         unsafe { cbg_FloatArray_Assign(self.self_ptr, ptr, size) }
     }
 
@@ -2163,7 +2162,7 @@ impl FloatArray {
     /// # Arguments
     /// * `ptr` - ポインタ
 
-    pub fn copy_to(&mut self, ptr: c_void) -> () {
+    pub fn copy_to(&mut self, ptr: *mut RawPtr) -> () {
         unsafe { cbg_FloatArray_CopyTo(self.self_ptr, ptr) }
     }
 
@@ -2264,12 +2263,12 @@ impl Vector2FArray {
         unsafe { cbg_Vector2FArray_Resize(self.self_ptr, size) }
     }
 
-    pub fn get_data(&mut self) -> c_void {
+    pub fn get_data(&mut self) -> *mut RawPtr {
         let ret = unsafe { cbg_Vector2FArray_GetData(self.self_ptr) };
         ret
     }
 
-    pub fn assign(&mut self, ptr: c_void, size: i32) -> () {
+    pub fn assign(&mut self, ptr: *mut RawPtr, size: i32) -> () {
         unsafe { cbg_Vector2FArray_Assign(self.self_ptr, ptr, size) }
     }
 
@@ -2277,7 +2276,7 @@ impl Vector2FArray {
     /// # Arguments
     /// * `ptr` - ポインタ
 
-    pub fn copy_to(&mut self, ptr: c_void) -> () {
+    pub fn copy_to(&mut self, ptr: *mut RawPtr) -> () {
         unsafe { cbg_Vector2FArray_CopyTo(self.self_ptr, ptr) }
     }
 
