@@ -1,3 +1,4 @@
+#![feature(link_args)]
 #![feature(type_name_of_val)]
 
 #[macro_use]

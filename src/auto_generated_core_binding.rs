@@ -667,6 +667,7 @@ pub enum LogCategory {
 }
 
 #[link(name = "Altseed_Core")]
+// #[link_args = "-Wl,-rpath,."]
 extern "C" {
     fn cbg_Configuration_Constructor_0() -> *mut RawPtr;
 
