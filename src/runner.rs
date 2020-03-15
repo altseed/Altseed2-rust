@@ -5,7 +5,7 @@ use std::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 // https://keens.github.io/blog/2019/07/07/rustnofuturetosonorunnerwotsukuttemita/
 
 #[derive(Debug, Clone)]
-struct SpinWaker;
+pub(crate) struct SpinWaker;
 
 static SPIN_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
     SpinWaker::unsafe_clone,
@@ -15,7 +15,7 @@ static SPIN_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
 );
 
 impl SpinWaker {
-    fn waker() -> Waker {
+    pub(crate) fn waker() -> Waker {
         unsafe { Waker::from_raw(Self::new().into_raw_waker()) }
     }
 
@@ -58,67 +58,59 @@ impl SpinWaker {
 use std::cell::RefCell;
 use std::collections::VecDeque;
 
-type PinsQueue = RefCell<VecDeque<Pin<Box<dyn Future<Output = ()>>>>>;
+type PinsQueue<E> = VecDeque<Pin<Box<dyn Future<Output = Result<(), E>>>>>;
 
-pub struct TaskRunner<'a> {
-    context: RefCell<Context<'a>>,
-    added_pins: PinsQueue,
-    pins: PinsQueue,
-    pins_tmp: PinsQueue,
+pub struct TaskRunner<'a, E> {
+    context: Context<'a>,
+    added_pins: PinsQueue<E>,
+    pins: PinsQueue<E>,
+    pins_tmp: PinsQueue<E>,
 }
 
-impl<'a> TaskRunner<'a> {
-    pub(crate) fn waker() -> std::task::Waker {
-        SpinWaker::waker()
-    }
-
+impl<'a, E> TaskRunner<'a, E> {
     pub(crate) fn new(waker: &'a Waker) -> Self {
         TaskRunner {
-            context: RefCell::new(Context::from_waker(waker)),
-            added_pins: RefCell::new(VecDeque::new()),
-            pins: RefCell::new(VecDeque::new()),
-            pins_tmp: RefCell::new(VecDeque::new()),
+            context: Context::from_waker(waker),
+            added_pins: VecDeque::new(),
+            pins: VecDeque::new(),
+            pins_tmp: VecDeque::new(),
         }
     }
 
-    pub(crate) fn update(&self) {
-        let mut pins = self.pins.borrow_mut();
+    pub(crate) fn update(&mut self) -> Result<(), E> {
+        self.pins.append(&mut self.added_pins);
 
-        {
-            let mut added = self.added_pins.borrow_mut();
-            pins.append(&mut added);
-            added.clear();
+        if self.pins.is_empty() {
+            return Ok(());
         }
 
-        if pins.is_empty() {
-            return;
-        }
-
-        let mut pins_tmp = self.pins_tmp.borrow_mut();
-
-        let mut context = self.context.borrow_mut();
-        while let Some(mut p) = pins.pop_back() {
-            match p.as_mut().poll(&mut context) {
-                Poll::Pending => pins_tmp.push_back(p),
-                Poll::Ready(()) => (),
+        while let Some(mut p) = self.pins.pop_back() {
+            match p.as_mut().poll(&mut self.context) {
+                Poll::Pending => self.pins_tmp.push_back(p),
+                Poll::Ready(error) => {
+                    std::mem::swap(&mut self.pins, &mut self.pins_tmp);
+                    return error;
+                }
             }
         }
 
-        std::mem::swap(&mut pins, &mut pins_tmp);
+        std::mem::swap(&mut self.pins, &mut self.pins_tmp);
+
+        Ok(())
     }
 
-    pub fn run<F>(&self, future: F)
+    pub fn run<F>(&mut self, future: F)
     where
-        F: Future<Output = ()> + 'static,
+        F: Future<Output = Result<(), E>> + 'static,
     {
         let future = Pin::from(Box::new(future));
         self.run_pin(future)
     }
 
-    pub fn run_pin<F>(&self, future: Pin<Box<F>>)
+    pub fn run_pin<F>(&mut self, future: Pin<Box<F>>)
     where
-        F: Future<Output = ()> + 'static,
+        F: Future<Output = Result<(), E>> + 'static,
     {
-        self.added_pins.borrow_mut().push_back(future);
+        self.added_pins.push_back(future);
     }
 }

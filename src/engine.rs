@@ -36,8 +36,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::runner::TaskRunner;
+use crate::runner::{SpinWaker, TaskRunner};
 
+#[derive(Clone)]
 pub struct Loader {
     pub(crate) phantom: PhantomData<()>,
 }
@@ -107,8 +108,8 @@ pub struct Engine {
     root_node: Rc<RefCell<NodeBase>>,
     pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
     pub(crate) sort_drawn_nodes: bool,
-    runner: TaskRunner<'static>,
-    loader: Arc<Mutex<Loader>>,
+    runner: TaskRunner<'static, AltseedError>,
+    loader: Loader,
 }
 
 impl Drop for Engine {
@@ -125,14 +126,9 @@ impl Engine {
         config: Option<Configuration>,
     ) -> Option<Engine> {
         let mut c = config.unwrap_or(Configuration::new()?);
-        if Core::initialize(
-            title,
-            width,
-            height,
-            &mut c)
-        {
+        if Core::initialize(title, width, height, &mut c) {
             lazy_static! {
-                static ref WAKER: std::task::Waker = TaskRunner::waker();
+                static ref WAKER: std::task::Waker = SpinWaker::waker();
             }
 
             let e = Engine {
@@ -154,9 +150,9 @@ impl Engine {
                 drawn_nodes: RefCell::new(Vec::new()),
                 sort_drawn_nodes: false,
                 runner: TaskRunner::new(&WAKER),
-                loader: Arc::new(Mutex::new(Loader {
+                loader: Loader {
                     phantom: PhantomData,
-                })),
+                },
             };
 
             Some(e)
@@ -186,8 +182,7 @@ impl Engine {
         .set_is_fullscreen(config.fullscreen)
         .set_is_resizable(config.resizable)
         .set_console_logging_enabled(config.console_logging)
-        .set_tool_enabled(config.tool)
-        ;
+        .set_tool_enabled(config.tool);
 
         Engine::initialize_core(title, width, height, Some(configuration))
             .ok_or(AltseedError::InitializationFailed)
@@ -214,7 +209,7 @@ impl Engine {
         }
 
         // 非同期処理の継続を取り出す
-        self.runner.update();
+        self.runner.update()?;
 
         // 再帰的にノードを更新
         update_node_base(
@@ -281,38 +276,17 @@ impl Engine {
         self.root_node.borrow().remove_child(child)
     }
 
+    /// ルートノードを取得します。
+    pub fn root_node(&self) -> &Rc<RefCell<NodeBase>> {
+        &self.root_node
+    }
+
     /// 非同期タスクを実行します。
     pub fn run_task<F>(&mut self, future: F)
     where
-        F: Future<Output = ()> + 'static,
+        F: Future<Output = AltseedResult<()>> + 'static,
     {
         self.runner.run(future);
-    }
-
-    /// 指定したファイルからテクスチャを読み込みます。
-    pub fn load_texture2d(&mut self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
-        Loader::create_texture2d(path)
-    }
-
-    /// 指定したファイルから動的にフォントを生成します。
-    pub fn load_dynamic_font(&mut self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
-        Loader::create_dynamic_font(path, size)
-    }
-
-    /// 指定したファイルから静的にフォントを生成します。
-    pub fn load_static_font(&mut self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
-        Loader::create_static_font(path)
-    }
-
-    /// 指定したファイルからサウンドを生成します。
-    /// # Arguments
-    /// - is_decompressed: サウンド生成時に解凍するかどうか(falseの場合、解凍しながら再生されます。)
-    pub fn load_sound(
-        &mut self,
-        path: &str,
-        is_decompressed: bool,
-    ) -> AltseedResult<Rc<RefCell<Sound>>> {
-        Loader::create_sound(path, is_decompressed)
     }
 
     /// コアの機能
@@ -356,65 +330,66 @@ impl Engine {
     }
 
     /// ファイル読み込みを管理する
-    pub fn loader(&self) -> &Arc<Mutex<Loader>> {
+    pub fn loader(&self) -> &Loader {
         &self.loader
     }
 }
 
 impl Loader {
     /// 指定したファイルからテクスチャを読み込みます。
-    pub fn load_texture2d(&mut self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
-        Self::create_texture2d(path)
-    }
-
-    /// 指定したファイルから動的にフォントを生成します。
-    pub fn load_dynamic_font(&mut self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
-        Self::create_dynamic_font(path, size)
-    }
-
-    /// 指定したファイルから静的にフォントを生成します。
-    pub fn load_static_font(&mut self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
-        Self::create_static_font(path)
-    }
-
-    /// 指定したファイルからサウンドを生成します。
-    /// # Arguments
-    /// - is_decompressed: サウンド生成時に解凍するかどうか(falseの場合、解凍しながら再生されます。)
-    pub fn load_sound(
-        &mut self,
-        path: &str,
-        is_decompressed: bool,
-    ) -> AltseedResult<Rc<RefCell<Sound>>> {
-        Self::create_sound(path, is_decompressed)
-    }
-
-    pub(crate) fn create_texture2d(path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
+    pub fn load_texture2d(&self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
         Texture2D::load(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Texture2D,
             path.to_owned(),
         ))
     }
 
-    pub(crate) fn create_dynamic_font(path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
+    /// 指定したファイルから動的にフォントを生成します。
+    pub fn load_dynamic_font(&self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
         Font::load_dynamic_font(path, size).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Font,
             path.to_owned(),
         ))
     }
 
-    pub(crate) fn create_static_font(path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
+    /// 指定したファイルから静的にフォントを生成します。
+    pub fn load_static_font(&self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
         Font::load_static_font(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Font,
             path.to_owned(),
         ))
     }
 
-    pub(crate) fn create_sound(
+    /// 指定したファイルからサウンドを生成します。
+    /// # Arguments
+    /// - is_decompressed: サウンド生成時に解凍するかどうか(falseの場合、解凍しながら再生されます。)
+    pub fn load_sound(
+        &self,
         path: &str,
         is_decompressed: bool,
     ) -> AltseedResult<Rc<RefCell<Sound>>> {
         Sound::load(path, is_decompressed).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Sound,
+            path.to_owned(),
+        ))
+    }
+
+    /// 指定ファイルを読み込んだStaticFileの新しいインスタンスを生成します。
+    /// # Arguments
+    /// * `path` - 読み込むファイルのパス
+    pub fn create_static_file(&self, path: &str) -> AltseedResult<Arc<Mutex<StaticFile>>> {
+        StaticFile::create(path).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::StaticFile,
+            path.to_owned(),
+        ))
+    }
+
+    /// 指定ファイルを読み込むStreamFileの新しいインスタンスを生成します。
+    /// # Arguments
+    /// * `path` - 読み込むファイルのパス
+    pub fn create_stream_file(&self, path: &str) -> AltseedResult<Arc<Mutex<StreamFile>>> {
+        StreamFile::create(path).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::StreamFile,
             path.to_owned(),
         ))
     }

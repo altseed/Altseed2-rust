@@ -221,9 +221,17 @@ macro_rules! define_drawn {
         }
 
         impl $name {
+            pub fn get_pos(&self) -> Vector2<f32> {
+                self.transform().pos().clone()
+            }
+
             pub fn set_pos(&mut self, pos: Vector2<f32>) -> &mut Self {
                 *self.transform_mut().pos_mut() = pos;
                 self
+            }
+
+            pub fn get_center(&self) -> Vector2<f32> {
+                self.transform().center().clone()
             }
 
             pub fn set_center(&mut self, center: Vector2<f32>) -> &mut Self {
@@ -231,9 +239,17 @@ macro_rules! define_drawn {
                 self
             }
 
+            pub fn get_scale(&self) -> Vector2<f32> {
+                self.transform().scale().clone()
+            }
+
             pub fn set_scale(&mut self, scale: Vector2<f32>) -> &mut Self {
                 *self.transform_mut().scale_mut() = scale;
                 self
+            }
+
+            pub fn get_angle(&self) -> f32 {
+                self.transform().angle().clone()
             }
 
             pub fn set_angle(&mut self, angle: f32) -> &mut Self {

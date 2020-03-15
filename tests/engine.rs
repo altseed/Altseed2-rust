@@ -37,7 +37,9 @@ fn node() -> AltseedResult<()> {
 fn sprite() -> AltseedResult<()> {
     let mut engine = Engine::initialize("sprite", 800, 600)?;
 
-    let texture = engine.load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
+    let texture = engine
+        .loader()
+        .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
     let node = {
         let sprite = Sprite::new();

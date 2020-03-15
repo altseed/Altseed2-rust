@@ -62,14 +62,11 @@ impl Transform {
     }
 
     pub(crate) fn update(&mut self) {
-        let mut t = Matrix44::identity();
-        t *= Matrix44::translation(self.center.x, self.center.y, 0.0);
-        t *= Matrix44::translation(self.pos.x, self.pos.y, 0.0);
-        t *= Matrix44::rotation_z(self.angle);
-        t *= Matrix44::scale(self.scale.x, self.scale.y, 1.0);
-        t *= Matrix44::translation(-self.center.x, -self.center.y, 0.0);
-
-        self.transform = t;
+        self.transform = Matrix44::translation(self.center.x, self.center.y, 0.0)
+            * Matrix44::translation(self.pos.x, self.pos.y, 0.0)
+            * Matrix44::rotation_z(self.angle)
+            * Matrix44::scale(self.scale.x, self.scale.y, 1.0)
+            * Matrix44::translation(-self.center.x, -self.center.y, 0.0);
         self.updated = false;
     }
 

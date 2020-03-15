@@ -53,7 +53,6 @@ macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
                 $( $x ),+
             }
         }
-
     }
 
     vector_to_array!($name[$($x),+]);
@@ -183,9 +182,29 @@ macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
     }
 };}
 
+macro_rules! impl_convert {
+    ($name:ident[$( $x:ident ),+], $t1: ty, $t2: ty) => {
+        impl From<$name<$t1>> for $name<$t2> {
+            fn from(item: $name<$t1>) -> $name<$t2> {
+                $name { $($x: item.$x as $t2),+ }
+            }
+        }
+
+        impl From<$name<$t2>> for $name<$t1> {
+            fn from(item: $name<$t2>) -> $name<$t1> {
+                $name { $($x: item.$x as $t1),+ }
+            }
+        }
+    };
+}
+
 define_vector!(Vector2[x, y]);
 define_vector!(Vector3[x, y, z]);
 define_vector!(Vector4[x, y, z, w]);
+
+impl_convert!(Vector2[x, y], i32, f32);
+impl_convert!(Vector3[x, y, z], i32, f32);
+impl_convert!(Vector4[x, y, z, w], i32, f32);
 
 impl<T> Vector2<T>
 where

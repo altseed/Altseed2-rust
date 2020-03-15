@@ -31,7 +31,7 @@ mod tests;
 pub mod prelude {
     pub use crate::math::*;
 
-    pub use crate::engine::Engine;
+    pub use crate::engine::{Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
         Drawn, DrawnNode, HasNodeBase, Node, NodeBase, NodeState, Polygon, Sprite, Text, Transform,
