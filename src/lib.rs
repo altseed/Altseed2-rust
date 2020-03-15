@@ -13,6 +13,8 @@ extern crate num;
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
 
+mod runner;
+
 pub mod engine;
 pub mod error;
 pub mod math;
@@ -43,8 +45,8 @@ pub mod core {
     pub use crate::auto_generated_core_binding::{
         BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode, Joystick,
         JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log, LogCategory,
-        LogLevel, Material, Mouse, MouseButtons, Shader, Sound, SoundMixer, StaticFile, StreamFile,
-        Texture2D, Tool, WritingDirection,
+        LogLevel, Material, Mouse, MouseButtons, ResourceType, Shader, Sound, SoundMixer,
+        StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
     };
 
     pub mod tool {

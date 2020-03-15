@@ -2388,11 +2388,34 @@ impl HasRawPtr for Keyboard {
 }
 
 impl Keyboard {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Keyboard> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Keyboard>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Keyboard { self_ptr })
+        Some(Rc::new(RefCell::new(Keyboard { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static KEYBOARD_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Keyboard>>>> = RefCell::new(HashMap::new());
+        }
+        KEYBOARD_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
     }
 
     /// キーの状態を取得します。
@@ -2406,9 +2429,9 @@ impl Keyboard {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Keyboard> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Keyboard>>> {
         let ret = unsafe { cbg_Keyboard_GetInstance() };
-        Keyboard::cbg_create_raw(ret)
+        Keyboard::try_get_from_cache(ret)
     }
 }
 
@@ -2433,22 +2456,45 @@ impl HasRawPtr for Mouse {
 }
 
 impl Mouse {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Mouse> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Mouse>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Mouse {
+        Some(Rc::new(RefCell::new(Mouse {
             self_ptr,
             position: None,
             cursor_mode: None,
+        })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static MOUSE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Mouse>>>> = RefCell::new(HashMap::new());
+        }
+        MOUSE_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
         })
     }
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Mouse> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Mouse>>> {
         let ret = unsafe { cbg_Mouse_GetInstance() };
-        Mouse::cbg_create_raw(ret)
+        Mouse::try_get_from_cache(ret)
     }
 
     /// マウスボタンの状態を取得します。
@@ -2518,18 +2564,41 @@ impl HasRawPtr for Joystick {
 }
 
 impl Joystick {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Joystick> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Joystick>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Joystick { self_ptr })
+        Some(Rc::new(RefCell::new(Joystick { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static JOYSTICK_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Joystick>>>> = RefCell::new(HashMap::new());
+        }
+        JOYSTICK_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
     }
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Joystick> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Joystick>>> {
         let ret = unsafe { cbg_Joystick_GetInstance() };
-        Joystick::cbg_create_raw(ret)
+        Joystick::try_get_from_cache(ret)
     }
 
     /// 指定したジョイスティックが親であるかどうかを取得します。
@@ -3935,16 +4004,39 @@ impl HasRawPtr for Tool {
 }
 
 impl Tool {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Tool> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Tool>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Tool { self_ptr })
+        Some(Rc::new(RefCell::new(Tool { self_ptr })))
     }
 
-    pub(crate) fn get_instance() -> Option<Tool> {
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static TOOL_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Tool>>>> = RefCell::new(HashMap::new());
+        }
+        TOOL_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Tool>>> {
         let ret = unsafe { cbg_Tool_GetInstance() };
-        Tool::cbg_create_raw(ret)
+        Tool::try_get_from_cache(ret)
     }
 
     /// `End()` を呼び出してください。
@@ -4909,18 +5001,41 @@ impl HasRawPtr for File {
 }
 
 impl File {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<File> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<File>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(File { self_ptr })
+        Some(Rc::new(RefCell::new(File { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static FILE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<File>>>> = RefCell::new(HashMap::new());
+        }
+        FILE_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
     }
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<File> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<File>>> {
         let ret = unsafe { cbg_File_GetInstance() };
-        File::cbg_create_raw(ret)
+        File::try_get_from_cache(ret)
     }
 
     /// ファイル読み込み時に自動的に保管されるディレクトリを追加します。
@@ -5163,16 +5278,39 @@ impl HasRawPtr for SoundMixer {
 }
 
 impl SoundMixer {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<SoundMixer> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<SoundMixer>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(SoundMixer { self_ptr })
+        Some(Rc::new(RefCell::new(SoundMixer { self_ptr })))
     }
 
-    pub(crate) fn get_instance() -> Option<SoundMixer> {
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static SOUNDMIXER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<SoundMixer>>>> = RefCell::new(HashMap::new());
+        }
+        SOUNDMIXER_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<SoundMixer>>> {
         let ret = unsafe { cbg_SoundMixer_GetInstance() };
-        SoundMixer::cbg_create_raw(ret)
+        SoundMixer::try_get_from_cache(ret)
     }
 
     /// 音を再生します。
@@ -5375,18 +5513,41 @@ impl HasRawPtr for Log {
 }
 
 impl Log {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Log> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Log>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Log { self_ptr })
+        Some(Rc::new(RefCell::new(Log { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static LOG_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Log>>>> = RefCell::new(HashMap::new());
+        }
+        LOG_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
     }
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Log> {
+    pub(crate) fn get_instance() -> Option<Rc<RefCell<Log>>> {
         let ret = unsafe { cbg_Log_GetInstance() };
-        Log::cbg_create_raw(ret)
+        Log::try_get_from_cache(ret)
     }
 
     /// ログを出力します。

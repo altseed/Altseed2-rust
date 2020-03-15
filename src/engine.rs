@@ -28,27 +28,85 @@ use crate::error::*;
 use crate::node::*;
 use std::{
     cell::RefCell,
+    future::Future,
+    marker::PhantomData,
     rc::{Rc, Weak},
     sync::{Arc, Mutex},
 };
 
-#[derive(Debug)]
-pub struct Engine {
+use crate::runner::TaskRunner;
+
+pub struct Loader {
+    pub(crate) phantom: PhantomData<()>,
+}
+
+pub struct CoreContainer {
     pub(crate) core: Core,
-    pub(crate) graphics: RefCell<Graphics>,
-    pub(crate) renderer: RefCell<Renderer>,
     pub(crate) resources: Resources,
     pub(crate) window: Window,
-    file: File,
-    keyboard: Keyboard,
-    mouse: Mouse,
-    joystick: Joystick,
-    sound: SoundMixer,
-    log: Log,
-    tool: Tool,
+}
+
+impl CoreContainer {
+    /// ウインドウのタイトルを取得します。
+    pub fn get_window_title(&mut self) -> String {
+        self.window.get_title()
+    }
+
+    /// ウインドウのタイトルを設定します。
+    pub fn set_window_title(&mut self, title: &str) -> &mut Self {
+        self.window.set_title(title.to_owned());
+        self
+    }
+
+    /// フレームレートの制御方法を取得します。
+    pub fn get_framerate_mode(&mut self) -> FramerateMode {
+        self.core.get_framerate_mode()
+    }
+
+    /// フレームレートの制御方法を設定します。
+    pub fn set_framerate_mode(&mut self, mode: FramerateMode) -> &mut Self {
+        self.core.set_framerate_mode(mode);
+        self
+    }
+
+    /// 目標フレームレートを取得します。
+    pub fn get_target_fps(&mut self) -> f32 {
+        self.core.get_target_fps()
+    }
+
+    /// 目標フレームレートを設定します。
+    pub fn set_target_fps(&mut self, fps: f32) -> &mut Self {
+        self.core.set_target_fps(fps);
+        self
+    }
+
+    /// 現在のFPSを取得します。
+    pub fn get_current_fps(&mut self) -> f32 {
+        self.core.get_current_fps()
+    }
+
+    /// 前のフレームからの経過時間(秒)を取得します。
+    pub fn get_delta_second(&mut self) -> f32 {
+        self.core.get_delta_second()
+    }
+}
+
+pub struct Engine {
+    container: Rc<RefCell<CoreContainer>>,
+    graphics: Graphics,
+    renderer: Renderer,
+    file: Rc<RefCell<File>>,
+    keyboard: Rc<RefCell<Keyboard>>,
+    mouse: Rc<RefCell<Mouse>>,
+    joystick: Rc<RefCell<Joystick>>,
+    sound: Rc<RefCell<SoundMixer>>,
+    log: Rc<RefCell<Log>>,
+    tool: Rc<RefCell<Tool>>,
     root_node: Rc<RefCell<NodeBase>>,
     pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
     pub(crate) sort_drawn_nodes: bool,
+    runner: TaskRunner<'static>,
+    loader: Arc<Mutex<Loader>>,
 }
 
 impl Drop for Engine {
@@ -70,12 +128,18 @@ impl Engine {
             height,
             &mut config.unwrap_or(Configuration::new()?),
         ) {
+            lazy_static! {
+                static ref WAKER: std::task::Waker = TaskRunner::waker();
+            }
+
             let e = Engine {
-                core: Core::get_instance()?,
-                graphics: RefCell::new(Graphics::get_instance()?),
-                renderer: RefCell::new(Renderer::get_instance()?),
-                resources: Resources::get_instance()?,
-                window: Window::get_instance()?,
+                container: Rc::new(RefCell::new(CoreContainer {
+                    core: Core::get_instance()?,
+                    resources: Resources::get_instance()?,
+                    window: Window::get_instance()?,
+                })),
+                graphics: Graphics::get_instance()?,
+                renderer: Renderer::get_instance()?,
                 file: File::get_instance()?,
                 keyboard: Keyboard::get_instance()?,
                 mouse: Mouse::get_instance()?,
@@ -86,6 +150,10 @@ impl Engine {
                 root_node: Rc::new(RefCell::new(NodeBase::default())),
                 drawn_nodes: RefCell::new(Vec::new()),
                 sort_drawn_nodes: false,
+                runner: TaskRunner::new(&WAKER),
+                loader: Arc::new(Mutex::new(Loader {
+                    phantom: PhantomData,
+                })),
             };
 
             Some(e)
@@ -130,16 +198,18 @@ impl Engine {
     }
 
     pub fn do_events(&mut self) -> bool {
-        self.core.do_event() && self.graphics.borrow_mut().do_events()
+        self.container.borrow_mut().core.do_event() && self.graphics.do_events()
     }
 
-    /// エンジンを更新します。
     pub fn update(&mut self) -> AltseedResult<()> {
-        if !self.graphics.borrow_mut().begin_frame() {
+        if !self.graphics.begin_frame() {
             return Err(AltseedError::CoreError(
                 "Graphics::begin_frame failed".to_owned(),
             ));
         }
+
+        // 非同期処理の継続を取り出す
+        self.runner.update();
 
         // 再帰的にノードを更新
         update_node_base(
@@ -161,11 +231,8 @@ impl Engine {
             self.sort_drawn_nodes = false;
         }
 
-        let mut graphics = self.graphics.borrow_mut();
-        let mut renderer = self.renderer.borrow_mut();
-
         // レンダーターゲットの指定
-        graphics
+        self.graphics
             .get_command_list()
             .ok_or(AltseedError::CoreError(
                 "Graphics::get_command_list failed".to_owned(),
@@ -174,19 +241,23 @@ impl Engine {
 
         // DrawnNodeの呼び出し
         for node in self.drawn_nodes.borrow().iter().filter_map(Weak::upgrade) {
-            node.borrow_mut().on_drawn(&mut graphics, &mut renderer);
+            node.borrow_mut()
+                .on_drawn(&mut self.graphics, &mut self.renderer);
         }
 
         {
-            let mut cmdlist = graphics.get_command_list().ok_or(AltseedError::CoreError(
-                "Graphics::get_command_list failed".to_owned(),
-            ))?;
+            let mut cmdlist = self
+                .graphics
+                .get_command_list()
+                .ok_or(AltseedError::CoreError(
+                    "Graphics::get_command_list failed".to_owned(),
+                ))?;
 
             // コマンドリストに描画
-            renderer.render(&mut cmdlist);
+            self.renderer.render(&mut cmdlist);
         }
 
-        if !graphics.end_frame() {
+        if !self.graphics.end_frame() {
             return Err(AltseedError::CoreError(
                 "Graphics::end_frame failed".to_owned(),
             ));
@@ -205,128 +276,141 @@ impl Engine {
         self.root_node.borrow().remove_child(child)
     }
 
-    /// ウインドウのタイトルを取得します。
-    pub fn get_window_title(&mut self) -> String {
-        self.window.get_title()
-    }
-
-    /// ウインドウのタイトルを設定します。
-    pub fn set_window_title(&mut self, title: &str) -> &mut Self {
-        self.window.set_title(title.to_owned());
-        self
-    }
-
-    /// フレームレートの制御方法を取得します。
-    pub fn get_framerate_mode(&mut self) -> FramerateMode {
-        self.core.get_framerate_mode()
-    }
-
-    /// フレームレートの制御方法を設定します。
-    pub fn set_framerate_mode(&mut self, mode: FramerateMode) -> &mut Self {
-        self.core.set_framerate_mode(mode);
-        self
-    }
-
-    /// 目標フレームレートを取得します。
-    pub fn get_target_fps(&mut self) -> f32 {
-        self.core.get_target_fps()
-    }
-
-    /// 目標フレームレートを設定します。
-    pub fn set_target_fps(&mut self, fps: f32) -> &mut Self {
-        self.core.set_target_fps(fps);
-        self
-    }
-
-    /// 現在のFPSを取得します。
-    pub fn get_current_fps(&mut self) -> f32 {
-        self.core.get_current_fps()
-    }
-
-    /// 前のフレームからの経過時間(秒)を取得します。
-    pub fn get_delta_second(&mut self) -> f32 {
-        self.core.get_delta_second()
+    /// 非同期タスクを実行します。
+    pub fn run_task<F>(&mut self, future: F)
+    where
+        F: Future<Output = ()> + 'static,
+    {
+        self.runner.run(future);
     }
 
     /// 指定したファイルからテクスチャを読み込みます。
-    pub fn create_texture2d(&mut self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
-        if !self.file().exists(path) {
-            return Err(AltseedError::FileNotFound(path.to_owned()));
-        }
-
-        Texture2D::load(path).ok_or(AltseedError::FailedToCreateTexture2D(path.to_owned()))
+    pub fn load_texture2d(&mut self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
+        Loader::create_texture2d(path)
     }
 
     /// 指定したファイルから動的にフォントを生成します。
-    pub fn create_dynamic_font(
-        &mut self,
-        path: &str,
-        size: i32,
-    ) -> AltseedResult<Arc<Mutex<Font>>> {
-        if !self.file().exists(path) {
-            return Err(AltseedError::FileNotFound(path.to_owned()));
-        }
-
-        Font::load_dynamic_font(path, size)
-            .ok_or(AltseedError::FailedToCreateDynamicFont(path.to_owned()))
+    pub fn load_dynamic_font(&mut self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
+        Loader::create_dynamic_font(path, size)
     }
 
     /// 指定したファイルから静的にフォントを生成します。
-    pub fn create_static_font(&mut self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
-        if !self.file().exists(path) {
-            return Err(AltseedError::FileNotFound(path.to_owned()));
-        }
-
-        Font::load_static_font(path).ok_or(AltseedError::FailedToCreateStaticFont(path.to_owned()))
+    pub fn load_static_font(&mut self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
+        Loader::create_static_font(path)
     }
 
     /// 指定したファイルからサウンドを生成します。
     /// # Arguments
     /// - is_decompressed: サウンド生成時に解凍するかどうか(falseの場合、解凍しながら再生されます。)
-    pub fn create_sound(
+    pub fn load_sound(
         &mut self,
         path: &str,
         is_decompressed: bool,
     ) -> AltseedResult<Rc<RefCell<Sound>>> {
-        if !self.file().exists(path) {
-            return Err(AltseedError::FileNotFound(path.to_owned()));
-        }
+        Loader::create_sound(path, is_decompressed)
+    }
 
-        Sound::load(path, is_decompressed).ok_or(AltseedError::FailedToCreateSound(path.to_owned()))
+    /// コアの機能
+    pub fn core(&self) -> &Rc<RefCell<CoreContainer>> {
+        &self.container
     }
 
     /// ファイルを管理するクラスを取得します。
-    pub fn file(&mut self) -> &mut File {
-        &mut self.file
+    pub fn file(&self) -> &Rc<RefCell<File>> {
+        &self.file
     }
 
     /// キーボードを管理するクラスを取得します。
-    pub fn keyboard(&mut self) -> &mut Keyboard {
-        &mut self.keyboard
+    pub fn keyboard(&self) -> &Rc<RefCell<Keyboard>> {
+        &self.keyboard
     }
 
     /// マウスを管理するクラスを取得します。
-    pub fn mouse(&mut self) -> &mut Mouse {
-        &mut self.mouse
+    pub fn mouse(&self) -> &Rc<RefCell<Mouse>> {
+        &self.mouse
     }
 
     /// ジョイスティックを管理するクラスを取得します。
-    pub fn joystick(&mut self) -> &mut Joystick {
-        &mut self.joystick
+    pub fn joystick(&self) -> &Rc<RefCell<Joystick>> {
+        &self.joystick
     }
 
     /// ログを管理するクラスを取得します。
-    pub fn log(&mut self) -> &mut Log {
-        &mut self.log
+    pub fn log(&self) -> &Rc<RefCell<Log>> {
+        &self.log
     }
 
     /// 音を管理するクラスを取得します。
-    pub fn sound(&mut self) -> &mut SoundMixer {
-        &mut self.sound
+    pub fn sound(&self) -> &Rc<RefCell<SoundMixer>> {
+        &self.sound
     }
 
     /// リソースを管理するクラスを取得します。
-    pub fn tool(&mut self) -> &mut Tool {
-        &mut self.tool
+    pub fn tool(&self) -> &Rc<RefCell<Tool>> {
+        &self.tool
+    }
+
+    /// ファイル読み込みを管理する
+    pub fn loader(&self) -> &Arc<Mutex<Loader>> {
+        &self.loader
+    }
+}
+
+impl Loader {
+    /// 指定したファイルからテクスチャを読み込みます。
+    pub fn load_texture2d(&mut self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
+        Self::create_texture2d(path)
+    }
+
+    /// 指定したファイルから動的にフォントを生成します。
+    pub fn load_dynamic_font(&mut self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
+        Self::create_dynamic_font(path, size)
+    }
+
+    /// 指定したファイルから静的にフォントを生成します。
+    pub fn load_static_font(&mut self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
+        Self::create_static_font(path)
+    }
+
+    /// 指定したファイルからサウンドを生成します。
+    /// # Arguments
+    /// - is_decompressed: サウンド生成時に解凍するかどうか(falseの場合、解凍しながら再生されます。)
+    pub fn load_sound(
+        &mut self,
+        path: &str,
+        is_decompressed: bool,
+    ) -> AltseedResult<Rc<RefCell<Sound>>> {
+        Self::create_sound(path, is_decompressed)
+    }
+
+    pub(crate) fn create_texture2d(path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
+        Texture2D::load(path).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::Texture2D,
+            path.to_owned(),
+        ))
+    }
+
+    pub(crate) fn create_dynamic_font(path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
+        Font::load_dynamic_font(path, size).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::Font,
+            path.to_owned(),
+        ))
+    }
+
+    pub(crate) fn create_static_font(path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
+        Font::load_static_font(path).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::Font,
+            path.to_owned(),
+        ))
+    }
+
+    pub(crate) fn create_sound(
+        path: &str,
+        is_decompressed: bool,
+    ) -> AltseedResult<Rc<RefCell<Sound>>> {
+        Sound::load(path, is_decompressed).ok_or(AltseedError::FailedToCreateResource(
+            ResourceType::Sound,
+            path.to_owned(),
+        ))
     }
 }

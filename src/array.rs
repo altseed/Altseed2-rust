@@ -4,6 +4,7 @@ macro_rules! impl_array {
     };
 
     ($name: ty, $ty: ty, $tyraw: ty) => {
+        #[allow(dead_code)]
         impl $name {
             pub fn to_vec(&mut self) -> Vec<$ty> {
                 let mut v = Vec::<$tyraw>::with_capacity(self.get_count() as usize);
