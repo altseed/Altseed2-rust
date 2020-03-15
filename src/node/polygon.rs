@@ -1,7 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::array::*;
-use crate::auto_generated_core_binding::{RenderedPolygon, Texture2D, Vector2FArray, VertexArray};
+use crate::auto_generated_core_binding::{
+    AsTexture2D, RenderedPolygon, Texture2D, Vector2FArray, VertexArray,
+};
 use crate::prelude::{Drawn, Rect, Vector2};
 use crate::structs::vertex::Vertex;
 
@@ -25,16 +27,19 @@ impl Polygon {
     }
 
     /// テクスチャを取得します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
         self.instance.get_texture()
     }
 
     /// テクスチャを設定します。
-    pub fn set_texture(&mut self, texture: &Rc<RefCell<Texture2D>>) -> &mut Self {
+    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, texture: &Rc<RefCell<T>>) -> &mut Self {
         let size = texture.borrow_mut().get_size();
-        self.instance
-            .set_texture(texture.clone())
-            .set_src(Rect::new(0.0, 0.0, size.x as f32, size.y as f32));
+        self.instance.set_texture(texture).set_src(Rect::new(
+            0.0,
+            0.0,
+            size.x as f32,
+            size.y as f32,
+        ));
         self
     }
 

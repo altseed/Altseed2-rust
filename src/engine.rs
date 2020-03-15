@@ -4,22 +4,24 @@ use crate::auto_generated_core_binding::*;
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Config {
     /// 全画面モードかどうか
-    is_fullscreen_mode: bool,
+    fullscreen: bool,
     /// 画面サイズ可変かどうか
-    is_resizable: bool,
+    resizable: bool,
     /// ログをコンソールに出力するかどうか
-    enabled_console_logging: bool,
+    console_logging: bool,
     /// ログファイル名
     log_filename: Option<String>,
+    tool: bool,
 }
 
 impl Default for Config {
     fn default() -> Self {
         Config {
-            is_fullscreen_mode: false,
-            is_resizable: false,
-            enabled_console_logging: true,
+            fullscreen: false,
+            resizable: false,
+            console_logging: true,
             log_filename: Some("Log.txt".to_owned()),
+            tool: false,
         }
     }
 }
@@ -101,7 +103,7 @@ pub struct Engine {
     joystick: Rc<RefCell<Joystick>>,
     sound: Rc<RefCell<SoundMixer>>,
     log: Rc<RefCell<Log>>,
-    tool: Rc<RefCell<Tool>>,
+    tool: Option<Rc<RefCell<Tool>>>,
     root_node: Rc<RefCell<NodeBase>>,
     pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
     pub(crate) sort_drawn_nodes: bool,
@@ -122,12 +124,13 @@ impl Engine {
         height: i32,
         config: Option<Configuration>,
     ) -> Option<Engine> {
+        let mut c = config.unwrap_or(Configuration::new()?);
         if Core::initialize(
             title,
             width,
             height,
-            &mut config.unwrap_or(Configuration::new()?),
-        ) {
+            &mut c)
+        {
             lazy_static! {
                 static ref WAKER: std::task::Waker = TaskRunner::waker();
             }
@@ -146,7 +149,7 @@ impl Engine {
                 joystick: Joystick::get_instance()?,
                 sound: SoundMixer::get_instance()?,
                 log: Log::get_instance()?,
-                tool: Tool::get_instance()?,
+                tool: Tool::get_instance(),
                 root_node: Rc::new(RefCell::new(NodeBase::default())),
                 drawn_nodes: RefCell::new(Vec::new()),
                 sort_drawn_nodes: false,
@@ -176,13 +179,15 @@ impl Engine {
         let mut configuration = Configuration::new().unwrap();
         match config.log_filename {
             Some(filename) => configuration
-                .set_enabled_file_logging(true)
-                .set_log_filename(filename),
-            _ => configuration.set_enabled_file_logging(false),
+                .set_file_logging_enabled(true)
+                .set_log_file_name(filename),
+            _ => configuration.set_file_logging_enabled(false),
         }
-        .set_is_fullscreen_mode(config.is_fullscreen_mode)
-        .set_is_resizable(config.is_resizable)
-        .set_enabled_console_logging(config.enabled_console_logging);
+        .set_is_fullscreen(config.fullscreen)
+        .set_is_resizable(config.resizable)
+        .set_console_logging_enabled(config.console_logging)
+        .set_tool_enabled(config.tool)
+        ;
 
         Engine::initialize_core(title, width, height, Some(configuration))
             .ok_or(AltseedError::InitializationFailed)
@@ -345,8 +350,8 @@ impl Engine {
         &self.sound
     }
 
-    /// リソースを管理するクラスを取得します。
-    pub fn tool(&self) -> &Rc<RefCell<Tool>> {
+    /// ツールを管理するクラスを取得します。
+    pub fn tool(&self) -> &Option<Rc<RefCell<Tool>>> {
         &self.tool
     }
 

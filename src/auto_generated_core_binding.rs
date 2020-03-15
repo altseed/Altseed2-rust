@@ -346,6 +346,13 @@ pub enum JoystickAxisType {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ShaderStageType {
+    Vertex,
+    Pixel,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BuiltinShaderType {
     SpriteUnlitVS,
     SpriteUnlitPS,
@@ -670,20 +677,23 @@ pub enum LogCategory {
 extern "C" {
     fn cbg_Configuration_Constructor_0() -> *mut RawPtr;
 
-    fn cbg_Configuration_GetIsFullscreenMode(self_ptr: *mut RawPtr) -> bool;
-    fn cbg_Configuration_SetIsFullscreenMode(self_ptr: *mut RawPtr, value: bool) -> ();
+    fn cbg_Configuration_GetIsFullscreen(self_ptr: *mut RawPtr) -> bool;
+    fn cbg_Configuration_SetIsFullscreen(self_ptr: *mut RawPtr, value: bool) -> ();
 
     fn cbg_Configuration_GetIsResizable(self_ptr: *mut RawPtr) -> bool;
     fn cbg_Configuration_SetIsResizable(self_ptr: *mut RawPtr, value: bool) -> ();
 
-    fn cbg_Configuration_GetEnabledConsoleLogging(self_ptr: *mut RawPtr) -> bool;
-    fn cbg_Configuration_SetEnabledConsoleLogging(self_ptr: *mut RawPtr, value: bool) -> ();
+    fn cbg_Configuration_GetConsoleLoggingEnabled(self_ptr: *mut RawPtr) -> bool;
+    fn cbg_Configuration_SetConsoleLoggingEnabled(self_ptr: *mut RawPtr, value: bool) -> ();
 
-    fn cbg_Configuration_GetEnabledFileLogging(self_ptr: *mut RawPtr) -> bool;
-    fn cbg_Configuration_SetEnabledFileLogging(self_ptr: *mut RawPtr, value: bool) -> ();
+    fn cbg_Configuration_GetFileLoggingEnabled(self_ptr: *mut RawPtr) -> bool;
+    fn cbg_Configuration_SetFileLoggingEnabled(self_ptr: *mut RawPtr, value: bool) -> ();
 
-    fn cbg_Configuration_GetLogFilename(self_ptr: *mut RawPtr) -> *const u16;
-    fn cbg_Configuration_SetLogFilename(self_ptr: *mut RawPtr, value: *const u16) -> ();
+    fn cbg_Configuration_GetLogFileName(self_ptr: *mut RawPtr) -> *const u16;
+    fn cbg_Configuration_SetLogFileName(self_ptr: *mut RawPtr, value: *const u16) -> ();
+
+    fn cbg_Configuration_GetToolEnabled(self_ptr: *mut RawPtr) -> bool;
+    fn cbg_Configuration_SetToolEnabled(self_ptr: *mut RawPtr, value: bool) -> ();
 
     fn cbg_Configuration_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -911,9 +921,15 @@ extern "C" {
 
     fn cbg_Texture2D_Reload(self_ptr: *mut RawPtr) -> bool;
 
+    fn cbg_Texture2D_GetPath(self_ptr: *mut RawPtr) -> *const u16;
+
     fn cbg_Texture2D_GetSize(self_ptr: *mut RawPtr) -> crate::structs::Vector2I;
 
     fn cbg_Texture2D_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_RenderTexture_Create(size: *mut crate::structs::Vector2I) -> *mut RawPtr;
+
+    fn cbg_RenderTexture_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Material_Constructor_0() -> *mut RawPtr;
 
@@ -941,8 +957,10 @@ extern "C" {
 
     fn cbg_Material_SetTexture(self_ptr: *mut RawPtr, key: *const u16, value: *mut RawPtr) -> ();
 
-    fn cbg_Material_GetShader(self_ptr: *mut RawPtr) -> *mut RawPtr;
-    fn cbg_Material_SetShader(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
+    fn cbg_Material_GetShader(self_ptr: *mut RawPtr, shaderStage: c_int) -> *mut RawPtr;
+
+    fn cbg_Material_SetShader(self_ptr: *mut RawPtr, shaderStage: c_int, shader: *mut RawPtr)
+        -> ();
 
     fn cbg_Material_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -959,6 +977,16 @@ extern "C" {
     fn cbg_Renderer_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_CommandList_SetRenderTargetWithScreen(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_CommandList_GetScreenTexture(self_ptr: *mut RawPtr) -> *mut RawPtr;
+
+    fn cbg_CommandList_SetRenderTarget(
+        self_ptr: *mut RawPtr,
+        target: *mut RawPtr,
+        viewport: *mut crate::structs::RectI,
+    ) -> ();
+
+    fn cbg_CommandList_RenderToRenderTarget(self_ptr: *mut RawPtr, material: *mut RawPtr) -> ();
 
     fn cbg_CommandList_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1029,6 +1057,8 @@ extern "C" {
 
     fn cbg_BuiltinShader_Release(self_ptr: *mut RawPtr) -> ();
 
+    fn cbg_Shader_Create(code: *const u16, name: *const u16, shaderStage: c_int) -> *mut RawPtr;
+
     fn cbg_Shader_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Glyph_GetTextureSize(self_ptr: *mut RawPtr) -> crate::structs::Vector2I;
@@ -1085,6 +1115,10 @@ extern "C" {
     fn cbg_Tool_Begin(self_ptr: *mut RawPtr, name: *const u16, flags: c_int) -> bool;
 
     fn cbg_Tool_End(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_Tool_NewFrame(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_Tool_Render(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Tool_Dummy(self_ptr: *mut RawPtr, size: *mut crate::structs::Vector2F) -> ();
 
@@ -1505,6 +1539,8 @@ extern "C" {
     fn cbg_Window_GetTitle(self_ptr: *mut RawPtr) -> *const u16;
     fn cbg_Window_SetTitle(self_ptr: *mut RawPtr, value: *const u16) -> ();
 
+    fn cbg_Window_GetSize(self_ptr: *mut RawPtr) -> crate::structs::Vector2I;
+
     fn cbg_Window_Release(self_ptr: *mut RawPtr) -> ();
 
 }
@@ -1513,11 +1549,12 @@ extern "C" {
 #[derive(Debug)]
 pub struct Configuration {
     self_ptr: *mut RawPtr,
-    is_fullscreen_mode: Option<bool>,
+    is_fullscreen: Option<bool>,
     is_resizable: Option<bool>,
-    enabled_console_logging: Option<bool>,
-    enabled_file_logging: Option<bool>,
-    log_filename: Option<String>,
+    console_logging_enabled: Option<bool>,
+    file_logging_enabled: Option<bool>,
+    log_file_name: Option<String>,
+    tool_enabled: Option<bool>,
 }
 
 impl HasRawPtr for Configuration {
@@ -1527,17 +1564,18 @@ impl HasRawPtr for Configuration {
 }
 
 impl Configuration {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Configuration> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
         Some(Configuration {
             self_ptr,
-            is_fullscreen_mode: None,
+            is_fullscreen: None,
             is_resizable: None,
-            enabled_console_logging: None,
-            enabled_file_logging: None,
-            log_filename: None,
+            console_logging_enabled: None,
+            file_logging_enabled: None,
+            log_file_name: None,
+            tool_enabled: None,
         })
     }
 
@@ -1548,11 +1586,11 @@ impl Configuration {
     }
 
     /// 全画面モードかどうかを取得または設定します。
-    pub fn get_is_fullscreen_mode(&mut self) -> bool {
-        if let Some(value) = self.is_fullscreen_mode.clone() {
+    pub fn get_is_fullscreen(&mut self) -> bool {
+        if let Some(value) = self.is_fullscreen.clone() {
             return value;
         }
-        let ret = unsafe { cbg_Configuration_GetIsFullscreenMode(self.self_ptr) };
+        let ret = unsafe { cbg_Configuration_GetIsFullscreen(self.self_ptr) };
         ret
     }
 
@@ -1566,36 +1604,45 @@ impl Configuration {
     }
 
     /// ログをコンソールに出力するかどうかを取得または設定します。
-    pub fn get_enabled_console_logging(&mut self) -> bool {
-        if let Some(value) = self.enabled_console_logging.clone() {
+    pub fn get_console_logging_enabled(&mut self) -> bool {
+        if let Some(value) = self.console_logging_enabled.clone() {
             return value;
         }
-        let ret = unsafe { cbg_Configuration_GetEnabledConsoleLogging(self.self_ptr) };
+        let ret = unsafe { cbg_Configuration_GetConsoleLoggingEnabled(self.self_ptr) };
         ret
     }
 
     /// ログをファイルに出力するかどうかを取得または設定します。
-    pub fn get_enabled_file_logging(&mut self) -> bool {
-        if let Some(value) = self.enabled_file_logging.clone() {
+    pub fn get_file_logging_enabled(&mut self) -> bool {
+        if let Some(value) = self.file_logging_enabled.clone() {
             return value;
         }
-        let ret = unsafe { cbg_Configuration_GetEnabledFileLogging(self.self_ptr) };
+        let ret = unsafe { cbg_Configuration_GetFileLoggingEnabled(self.self_ptr) };
         ret
     }
 
     /// ログファイル名を取得または設定します。
-    pub fn get_log_filename(&mut self) -> String {
-        if let Some(value) = self.log_filename.clone() {
+    pub fn get_log_file_name(&mut self) -> String {
+        if let Some(value) = self.log_file_name.clone() {
             return value;
         }
-        let ret = unsafe { cbg_Configuration_GetLogFilename(self.self_ptr) };
+        let ret = unsafe { cbg_Configuration_GetLogFileName(self.self_ptr) };
         decode_string(ret)
     }
 
+    /// ツール機能を使用するかどうかを取得または設定します。
+    pub fn get_tool_enabled(&mut self) -> bool {
+        if let Some(value) = self.tool_enabled.clone() {
+            return value;
+        }
+        let ret = unsafe { cbg_Configuration_GetToolEnabled(self.self_ptr) };
+        ret
+    }
+
     /// 全画面モードかどうかを取得または設定します。
-    pub fn set_is_fullscreen_mode(&mut self, value: bool) -> &mut Self {
-        self.is_fullscreen_mode = Some(value.clone());
-        unsafe { cbg_Configuration_SetIsFullscreenMode(self.self_ptr, value) }
+    pub fn set_is_fullscreen(&mut self, value: bool) -> &mut Self {
+        self.is_fullscreen = Some(value.clone());
+        unsafe { cbg_Configuration_SetIsFullscreen(self.self_ptr, value) }
         self
     }
 
@@ -1607,23 +1654,30 @@ impl Configuration {
     }
 
     /// ログをコンソールに出力するかどうかを取得または設定します。
-    pub fn set_enabled_console_logging(&mut self, value: bool) -> &mut Self {
-        self.enabled_console_logging = Some(value.clone());
-        unsafe { cbg_Configuration_SetEnabledConsoleLogging(self.self_ptr, value) }
+    pub fn set_console_logging_enabled(&mut self, value: bool) -> &mut Self {
+        self.console_logging_enabled = Some(value.clone());
+        unsafe { cbg_Configuration_SetConsoleLoggingEnabled(self.self_ptr, value) }
         self
     }
 
     /// ログをファイルに出力するかどうかを取得または設定します。
-    pub fn set_enabled_file_logging(&mut self, value: bool) -> &mut Self {
-        self.enabled_file_logging = Some(value.clone());
-        unsafe { cbg_Configuration_SetEnabledFileLogging(self.self_ptr, value) }
+    pub fn set_file_logging_enabled(&mut self, value: bool) -> &mut Self {
+        self.file_logging_enabled = Some(value.clone());
+        unsafe { cbg_Configuration_SetFileLoggingEnabled(self.self_ptr, value) }
         self
     }
 
     /// ログファイル名を取得または設定します。
-    pub fn set_log_filename(&mut self, value: String) -> &mut Self {
-        self.log_filename = Some(value.clone());
-        unsafe { cbg_Configuration_SetLogFilename(self.self_ptr, encode_string(&value).as_ptr()) }
+    pub fn set_log_file_name(&mut self, value: String) -> &mut Self {
+        self.log_file_name = Some(value.clone());
+        unsafe { cbg_Configuration_SetLogFileName(self.self_ptr, encode_string(&value).as_ptr()) }
+        self
+    }
+
+    /// ツール機能を使用するかどうかを取得または設定します。
+    pub fn set_tool_enabled(&mut self, value: bool) -> &mut Self {
+        self.tool_enabled = Some(value.clone());
+        unsafe { cbg_Configuration_SetToolEnabled(self.self_ptr, value) }
         self
     }
 }
@@ -1649,7 +1703,7 @@ impl HasRawPtr for Core {
 }
 
 impl Core {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Core> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -1763,7 +1817,7 @@ impl HasRawPtr for Int8Array {
 }
 
 impl Int8Array {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Int8Array>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -1848,7 +1902,10 @@ impl Int8Array {
 
     pub fn create(size: i32) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_Int8Array_Create(size) };
-        Int8Array::try_get_from_cache(ret)
+        {
+            let ret = Int8Array::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 格納されている要素の数を取得します。
@@ -1877,7 +1934,7 @@ impl HasRawPtr for Int32Array {
 }
 
 impl Int32Array {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Int32Array>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -1962,7 +2019,10 @@ impl Int32Array {
 
     pub fn create(size: i32) -> Option<Rc<RefCell<Int32Array>>> {
         let ret = unsafe { cbg_Int32Array_Create(size) };
-        Int32Array::try_get_from_cache(ret)
+        {
+            let ret = Int32Array::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 格納されている要素の数を取得します。
@@ -1991,7 +2051,7 @@ impl HasRawPtr for VertexArray {
 }
 
 impl VertexArray {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<VertexArray>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2076,7 +2136,10 @@ impl VertexArray {
 
     pub fn create(size: i32) -> Option<Rc<RefCell<VertexArray>>> {
         let ret = unsafe { cbg_VertexArray_Create(size) };
-        VertexArray::try_get_from_cache(ret)
+        {
+            let ret = VertexArray::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 格納されている要素の数を取得します。
@@ -2105,7 +2168,7 @@ impl HasRawPtr for FloatArray {
 }
 
 impl FloatArray {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<FloatArray>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2190,7 +2253,10 @@ impl FloatArray {
 
     pub fn create(size: i32) -> Option<Rc<RefCell<FloatArray>>> {
         let ret = unsafe { cbg_FloatArray_Create(size) };
-        FloatArray::try_get_from_cache(ret)
+        {
+            let ret = FloatArray::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 格納されている要素の数を取得します。
@@ -2219,7 +2285,7 @@ impl HasRawPtr for Vector2FArray {
 }
 
 impl Vector2FArray {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Vector2FArray>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2304,7 +2370,10 @@ impl Vector2FArray {
 
     pub fn create(size: i32) -> Option<Rc<RefCell<Vector2FArray>>> {
         let ret = unsafe { cbg_Vector2FArray_Create(size) };
-        Vector2FArray::try_get_from_cache(ret)
+        {
+            let ret = Vector2FArray::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 格納されている要素の数を取得します。
@@ -2333,7 +2402,7 @@ impl HasRawPtr for Resources {
 }
 
 impl Resources {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Resources> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2388,7 +2457,7 @@ impl HasRawPtr for Keyboard {
 }
 
 impl Keyboard {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Keyboard>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2431,7 +2500,10 @@ impl Keyboard {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<Keyboard>>> {
         let ret = unsafe { cbg_Keyboard_GetInstance() };
-        Keyboard::try_get_from_cache(ret)
+        {
+            let ret = Keyboard::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 }
 
@@ -2456,7 +2528,7 @@ impl HasRawPtr for Mouse {
 }
 
 impl Mouse {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Mouse>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2494,7 +2566,10 @@ impl Mouse {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<Mouse>>> {
         let ret = unsafe { cbg_Mouse_GetInstance() };
-        Mouse::try_get_from_cache(ret)
+        {
+            let ret = Mouse::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// マウスボタンの状態を取得します。
@@ -2564,7 +2639,7 @@ impl HasRawPtr for Joystick {
 }
 
 impl Joystick {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Joystick>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2598,7 +2673,10 @@ impl Joystick {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<Joystick>>> {
         let ret = unsafe { cbg_Joystick_GetInstance() };
-        Joystick::try_get_from_cache(ret)
+        {
+            let ret = Joystick::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 指定したジョイスティックが親であるかどうかを取得します。
@@ -2718,7 +2796,7 @@ impl HasRawPtr for Graphics {
 }
 
 impl Graphics {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Graphics> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2762,7 +2840,10 @@ impl Graphics {
     /// 組み込みのシェーダを取得します。
     pub fn get_builtin_shader(&mut self) -> Option<Rc<RefCell<BuiltinShader>>> {
         let ret = unsafe { cbg_Graphics_GetBuiltinShader(self.self_ptr) };
-        BuiltinShader::try_get_from_cache(ret)
+        {
+            let ret = BuiltinShader::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 }
 
@@ -2784,8 +2865,39 @@ impl HasRawPtr for Texture2D {
     }
 }
 
+pub trait AsTexture2D: std::fmt::Debug + HasRawPtr {
+    /// 再読み込みを行います。
+
+    fn reload(&mut self) -> bool;
+    /// 読み込んだファイルのパスを取得します。
+
+    fn get_path(&mut self) -> String;
+    /// テクスチャの大きさ(ピクセル)を取得します。
+    fn get_size(&mut self) -> crate::prelude::Vector2<i32>;
+}
+impl AsTexture2D for Texture2D {
+    /// 再読み込みを行います。
+
+    fn reload(&mut self) -> bool {
+        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
+        ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+
+    fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
+        decode_string(ret)
+    }
+
+    /// テクスチャの大きさ(ピクセル)を取得します。
+    fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
+        let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
+        ret.into()
+    }
+}
 impl Texture2D {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Texture2D>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -2821,20 +2933,10 @@ impl Texture2D {
 
     pub(crate) fn load(path: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Texture2D_Load(encode_string(&path).as_ptr()) };
-        Texture2D::try_get_from_cache(ret)
-    }
-
-    /// 再読み込みを行います。
-
-    pub fn reload(&mut self) -> bool {
-        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
-        ret
-    }
-
-    /// テクスチャの大きさ(ピクセル)を取得します。
-    pub fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
-        let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
-        ret.into()
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 }
 
@@ -2844,11 +2946,88 @@ impl Drop for Texture2D {
     }
 }
 
+#[derive(Debug)]
+pub struct RenderTexture {
+    self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for RenderTexture {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsTexture2D for RenderTexture {
+    /// 再読み込みを行います。
+
+    fn reload(&mut self) -> bool {
+        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
+        ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+
+    fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
+        decode_string(ret)
+    }
+
+    /// テクスチャの大きさ(ピクセル)を取得します。
+    fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
+        let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
+        ret.into()
+    }
+}
+impl RenderTexture {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(RenderTexture { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static RENDERTEXTURE_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RenderTexture>>>> = RefCell::new(HashMap::new());
+        }
+        RENDERTEXTURE_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    pub fn create(mut size: crate::prelude::Vector2<i32>) -> Option<Rc<RefCell<RenderTexture>>> {
+        let ret = unsafe { cbg_RenderTexture_Create(&mut size.into() as *mut _) };
+        {
+            let ret = RenderTexture::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+}
+
+impl Drop for RenderTexture {
+    fn drop(&mut self) {
+        unsafe { cbg_RenderTexture_Release(self.self_ptr) };
+    }
+}
+
 /// マテリアル
 #[derive(Debug)]
 pub struct Material {
     self_ptr: *mut RawPtr,
-    shader: Option<Rc<RefCell<Shader>>>,
 }
 
 impl HasRawPtr for Material {
@@ -2858,14 +3037,11 @@ impl HasRawPtr for Material {
 }
 
 impl Material {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Material>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(Material {
-            self_ptr,
-            shader: None,
-        })))
+        Some(Rc::new(RefCell::new(Material { self_ptr })))
     }
 
     fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
@@ -2951,7 +3127,10 @@ impl Material {
 
     pub fn get_texture(&mut self, key: &str) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
-        Texture2D::try_get_from_cache(ret)
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 指定した名前を持つTexture2Dの値を設定する
@@ -2959,7 +3138,7 @@ impl Material {
     /// * `key` - 検索するTexture2Dのインスタンスの名前
     /// * `value` - 設定するTexture2Dのインスタンスの値
 
-    pub fn set_texture(&mut self, key: &str, value: &mut Texture2D) -> () {
+    pub fn set_texture<T0: AsTexture2D>(&mut self, key: &str, value: &mut T0) -> () {
         unsafe {
             cbg_Material_SetTexture(
                 self.self_ptr,
@@ -2969,20 +3148,16 @@ impl Material {
         }
     }
 
-    /// 使用するシェーダを取得する
-    pub fn get_shader(&mut self) -> Option<Rc<RefCell<Shader>>> {
-        if let Some(value) = self.shader.clone() {
-            return Some(value);
+    pub fn get_shader(&mut self, shader_stage: ShaderStageType) -> Option<Rc<RefCell<Shader>>> {
+        let ret = unsafe { cbg_Material_GetShader(self.self_ptr, shader_stage as i32) };
+        {
+            let ret = Shader::try_get_from_cache(ret)?;
+            Some(ret)
         }
-        let ret = unsafe { cbg_Material_GetShader(self.self_ptr) };
-        Shader::try_get_from_cache(ret)
     }
 
-    /// 使用するシェーダを取得する
-    pub fn set_shader(&mut self, value: Rc<RefCell<Shader>>) -> &mut Self {
-        self.shader = Some(value.clone());
-        unsafe { cbg_Material_SetShader(self.self_ptr, value.borrow_mut().self_ptr()) }
-        self
+    pub fn set_shader(&mut self, shader_stage: ShaderStageType, shader: &mut Shader) -> () {
+        unsafe { cbg_Material_SetShader(self.self_ptr, shader_stage as i32, shader.self_ptr()) }
     }
 }
 
@@ -3005,7 +3180,7 @@ impl HasRawPtr for Renderer {
 }
 
 impl Renderer {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Renderer> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3071,7 +3246,7 @@ impl HasRawPtr for CommandList {
 }
 
 impl CommandList {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<CommandList> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3082,6 +3257,32 @@ impl CommandList {
 
     pub fn set_render_target_with_screen(&mut self) -> () {
         unsafe { cbg_CommandList_SetRenderTargetWithScreen(self.self_ptr) }
+    }
+
+    pub fn get_screen_texture(&mut self) -> Option<Rc<RefCell<RenderTexture>>> {
+        let ret = unsafe { cbg_CommandList_GetScreenTexture(self.self_ptr) };
+        {
+            let ret = RenderTexture::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+
+    pub fn set_render_target(
+        &mut self,
+        target: &mut RenderTexture,
+        mut viewport: crate::structs::rect::Rect<i32>,
+    ) -> () {
+        unsafe {
+            cbg_CommandList_SetRenderTarget(
+                self.self_ptr,
+                target.self_ptr(),
+                &mut viewport.into() as *mut _,
+            )
+        }
+    }
+
+    pub fn render_to_render_target(&mut self, material: &mut Material) -> () {
+        unsafe { cbg_CommandList_RenderToRenderTarget(self.self_ptr, material.self_ptr()) }
     }
 }
 
@@ -3104,7 +3305,7 @@ impl HasRawPtr for Rendered {
     }
 }
 
-pub trait AsRendered {
+pub trait AsRendered: std::fmt::Debug + HasRawPtr {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32>;
     /// 変換行列を取得または設定します。
@@ -3127,7 +3328,7 @@ impl AsRendered for Rendered {
     }
 }
 impl Rendered {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rendered> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3155,7 +3356,7 @@ impl Drop for Rendered {
 #[derive(Debug)]
 pub(crate) struct RenderedSprite {
     self_ptr: *mut RawPtr,
-    texture: Option<Rc<RefCell<Texture2D>>>,
+    texture: Option<Rc<RefCell<dyn AsTexture2D>>>,
     src: Option<crate::structs::rect::Rect<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     transform: Option<crate::prelude::Matrix44<f32>>,
@@ -3184,7 +3385,7 @@ impl AsRendered for RenderedSprite {
     }
 }
 impl RenderedSprite {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedSprite> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3205,12 +3406,15 @@ impl RenderedSprite {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
         if let Some(value) = self.texture.clone() {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedSprite_GetTexture(self.self_ptr) };
-        Texture2D::try_get_from_cache(ret)
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 描画範囲を取得または設定します。
@@ -3228,11 +3432,14 @@ impl RenderedSprite {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedSprite_GetMaterial(self.self_ptr) };
-        Material::try_get_from_cache(ret)
+        {
+            let ret = Material::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture(&mut self, value: Rc<RefCell<Texture2D>>) -> &mut Self {
+    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, value: &Rc<RefCell<T>>) -> &mut Self {
         self.texture = Some(value.clone());
         unsafe { cbg_RenderedSprite_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
         self
@@ -3301,7 +3508,7 @@ impl AsRendered for RenderedText {
     }
 }
 impl RenderedText {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedText> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3329,7 +3536,10 @@ impl RenderedText {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedText_GetMaterial(self.self_ptr) };
-        Material::try_get_from_cache(ret)
+        {
+            let ret = Material::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// テキストを取得または設定します。
@@ -3347,7 +3557,10 @@ impl RenderedText {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedText_GetFont(self.self_ptr) };
-        Font::try_get_from_cache(ret)
+        {
+            let ret = Font::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 文字の太さを取得または設定します。(0 ~ 255)
@@ -3427,7 +3640,7 @@ impl Drop for RenderedText {
 pub(crate) struct RenderedPolygon {
     self_ptr: *mut RawPtr,
     vertexes: Option<Rc<RefCell<VertexArray>>>,
-    texture: Option<Rc<RefCell<Texture2D>>>,
+    texture: Option<Rc<RefCell<dyn AsTexture2D>>>,
     src: Option<crate::structs::rect::Rect<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     transform: Option<crate::prelude::Matrix44<f32>>,
@@ -3456,7 +3669,7 @@ impl AsRendered for RenderedPolygon {
     }
 }
 impl RenderedPolygon {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedPolygon> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3489,16 +3702,22 @@ impl RenderedPolygon {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedPolygon_GetVertexes(self.self_ptr) };
-        VertexArray::try_get_from_cache(ret)
+        {
+            let ret = VertexArray::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
         if let Some(value) = self.texture.clone() {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedPolygon_GetTexture(self.self_ptr) };
-        Texture2D::try_get_from_cache(ret)
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 描画範囲を取得または設定します。
@@ -3516,7 +3735,10 @@ impl RenderedPolygon {
             return Some(value);
         }
         let ret = unsafe { cbg_RenderedPolygon_GetMaterial(self.self_ptr) };
-        Material::try_get_from_cache(ret)
+        {
+            let ret = Material::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 頂点情報を取得または設定します。
@@ -3527,7 +3749,7 @@ impl RenderedPolygon {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture(&mut self, value: Rc<RefCell<Texture2D>>) -> &mut Self {
+    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, value: &Rc<RefCell<T>>) -> &mut Self {
         self.texture = Some(value.clone());
         unsafe { cbg_RenderedPolygon_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
         self
@@ -3591,7 +3813,7 @@ impl AsRendered for RenderedCamera {
     }
 }
 impl RenderedCamera {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<RenderedCamera> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3628,7 +3850,7 @@ impl HasRawPtr for BuiltinShader {
 }
 
 impl BuiltinShader {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<BuiltinShader>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3664,7 +3886,10 @@ impl BuiltinShader {
 
     pub(crate) fn create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_BuiltinShader_Create(self.self_ptr, type_ as i32) };
-        Shader::try_get_from_cache(ret)
+        {
+            let ret = Shader::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 }
 
@@ -3687,7 +3912,7 @@ impl HasRawPtr for Shader {
 }
 
 impl Shader {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Shader>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3716,6 +3941,24 @@ impl Shader {
             Some(o)
         })
     }
+
+    pub fn create(
+        code: &str,
+        name: &str,
+        shader_stage: ShaderStageType,
+    ) -> Option<Rc<RefCell<Shader>>> {
+        let ret = unsafe {
+            cbg_Shader_Create(
+                encode_string(&code).as_ptr(),
+                encode_string(&name).as_ptr(),
+                shader_stage as i32,
+            )
+        };
+        {
+            let ret = Shader::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
 }
 
 impl Drop for Shader {
@@ -3740,7 +3983,7 @@ impl HasRawPtr for Glyph {
 }
 
 impl Glyph {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Glyph>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3828,7 +4071,7 @@ impl HasRawPtr for Font {
 }
 
 impl Font {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Font>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -3864,7 +4107,10 @@ impl Font {
 
     pub(crate) fn load_dynamic_font(path: &str, size: i32) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadDynamicFont(encode_string(&path).as_ptr(), size) };
-        Font::try_get_from_cache(ret)
+        {
+            let ret = Font::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 静的にフォントを生成します
@@ -3873,7 +4119,10 @@ impl Font {
 
     pub(crate) fn load_static_font(path: &str) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadStaticFont(encode_string(&path).as_ptr()) };
-        Font::try_get_from_cache(ret)
+        {
+            let ret = Font::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 文字情報を取得する
@@ -3882,7 +4131,10 @@ impl Font {
 
     pub fn get_glyph(&mut self, character: i32) -> Option<Arc<Mutex<Glyph>>> {
         let ret = unsafe { cbg_Font_GetGlyph(self.self_ptr, character) };
-        Glyph::try_get_from_cache(ret)
+        {
+            let ret = Glyph::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 文字列テクスチャを得る
@@ -3891,7 +4143,10 @@ impl Font {
 
     pub fn get_font_texture(&mut self, index: i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetFontTexture(self.self_ptr, index) };
-        Texture2D::try_get_from_cache(ret)
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// カーニングを得る
@@ -3940,7 +4195,10 @@ impl Font {
 
     pub fn create_image_font(base_font: &mut Font) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_CreateImageFont(base_font.self_ptr()) };
-        Font::try_get_from_cache(ret)
+        {
+            let ret = Font::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// テクスチャ文字を追加する
@@ -3948,7 +4206,11 @@ impl Font {
     /// * `character` - 文字
     /// * `texture` - テクスチャ
 
-    pub(crate) fn add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
+    pub(crate) fn add_image_glyph<T0: AsTexture2D>(
+        &mut self,
+        character: i32,
+        texture: &mut T0,
+    ) -> () {
         unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr()) }
     }
 
@@ -3958,7 +4220,10 @@ impl Font {
 
     pub fn get_image_glyph(&mut self, character: i32) -> Option<Rc<RefCell<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetImageGlyph(self.self_ptr, character) };
-        Texture2D::try_get_from_cache(ret)
+        {
+            let ret = Texture2D::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// フォントのサイズを取得する
@@ -4004,7 +4269,7 @@ impl HasRawPtr for Tool {
 }
 
 impl Tool {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Tool>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -4036,7 +4301,10 @@ impl Tool {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<Tool>>> {
         let ret = unsafe { cbg_Tool_GetInstance() };
-        Tool::try_get_from_cache(ret)
+        {
+            let ret = Tool::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// `End()` を呼び出してください。
@@ -4056,6 +4324,18 @@ impl Tool {
 
     pub fn end(&mut self) -> () {
         unsafe { cbg_Tool_End(self.self_ptr) }
+    }
+
+    ///
+
+    pub fn new_frame(&mut self) -> () {
+        unsafe { cbg_Tool_NewFrame(self.self_ptr) }
+    }
+
+    ///
+
+    pub fn render(&mut self) -> () {
+        unsafe { cbg_Tool_Render(self.self_ptr) }
     }
 
     ///
@@ -4796,7 +5076,7 @@ impl HasRawPtr for StreamFile {
 }
 
 impl StreamFile {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StreamFile>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -4831,7 +5111,10 @@ impl StreamFile {
 
     pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
         let ret = unsafe { cbg_StreamFile_Create(encode_string(&path).as_ptr()) };
-        StreamFile::try_get_from_cache(ret)
+        {
+            let ret = StreamFile::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 指定した分ファイルを読み込む
@@ -4847,7 +5130,10 @@ impl StreamFile {
 
     pub(crate) fn get_temp_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StreamFile_GetTempBuffer(self.self_ptr) };
-        Int8Array::try_get_from_cache(ret)
+        {
+            let ret = Int8Array::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 読み込んだファイルのパスを取得します。
@@ -4911,7 +5197,7 @@ impl HasRawPtr for StaticFile {
 }
 
 impl StaticFile {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<StaticFile>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -4946,14 +5232,20 @@ impl StaticFile {
 
     pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
         let ret = unsafe { cbg_StaticFile_Create(encode_string(&path).as_ptr()) };
-        StaticFile::try_get_from_cache(ret)
+        {
+            let ret = StaticFile::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 読み込んだファイルのデータを取得します。
 
     pub(crate) fn get_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StaticFile_GetBuffer(self.self_ptr) };
-        Int8Array::try_get_from_cache(ret)
+        {
+            let ret = Int8Array::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 再読み込みを行います。
@@ -5001,7 +5293,7 @@ impl HasRawPtr for File {
 }
 
 impl File {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<File>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -5035,7 +5327,10 @@ impl File {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<File>>> {
         let ret = unsafe { cbg_File_GetInstance() };
-        File::try_get_from_cache(ret)
+        {
+            let ret = File::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// ファイル読み込み時に自動的に保管されるディレクトリを追加します。
@@ -5145,7 +5440,7 @@ impl HasRawPtr for Sound {
 }
 
 impl Sound {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Sound>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -5187,7 +5482,10 @@ impl Sound {
 
     pub(crate) fn load(path: &str, is_decompressed: bool) -> Option<Rc<RefCell<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
-        Sound::try_get_from_cache(ret)
+        {
+            let ret = Sound::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 読み込んだファイルのパスを取得します。
@@ -5278,7 +5576,7 @@ impl HasRawPtr for SoundMixer {
 }
 
 impl SoundMixer {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<SoundMixer>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -5310,7 +5608,10 @@ impl SoundMixer {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<SoundMixer>>> {
         let ret = unsafe { cbg_SoundMixer_GetInstance() };
-        SoundMixer::try_get_from_cache(ret)
+        {
+            let ret = SoundMixer::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// 音を再生します。
@@ -5513,7 +5814,7 @@ impl HasRawPtr for Log {
 }
 
 impl Log {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Log>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -5547,7 +5848,10 @@ impl Log {
 
     pub(crate) fn get_instance() -> Option<Rc<RefCell<Log>>> {
         let ret = unsafe { cbg_Log_GetInstance() };
-        Log::try_get_from_cache(ret)
+        {
+            let ret = Log::try_get_from_cache(ret)?;
+            Some(ret)
+        }
     }
 
     /// ログを出力します。
@@ -5661,7 +5965,7 @@ impl HasRawPtr for Window {
 }
 
 impl Window {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Window> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
         if self_ptr == NULLPTR {
             return None;
         }
@@ -5685,6 +5989,12 @@ impl Window {
         }
         let ret = unsafe { cbg_Window_GetTitle(self.self_ptr) };
         decode_string(ret)
+    }
+
+    /// ウィンドウサイズを取得します
+    pub fn get_size(&mut self) -> crate::prelude::Vector2<i32> {
+        let ret = unsafe { cbg_Window_GetSize(self.self_ptr) };
+        ret.into()
     }
 
     /// ウィンドウに表示するタイトルを取得または設定します
