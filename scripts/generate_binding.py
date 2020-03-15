@@ -51,13 +51,6 @@ no_cache_classes = [
     graphics.CommandList,
     window.Window,
     io.Resources,
-    io.File,
-    input.Keyboard,
-    input.Mouse,
-    input.Joystick,
-    sound.SoundMixer,
-    logger.Log,
-    tool.Tool,
     graphics.Rendered,
     graphics.RenderedCamera,
     graphics.RenderedPolygon,
@@ -66,7 +59,8 @@ no_cache_classes = [
 ]
 
 for class_ in no_cache_classes:
-    class_.cache_mode = CacheMode.NoCache
+    if class_.cache_mode != CacheMode.ThreadSafeCache:
+        class_.cache_mode = CacheMode.NoCache
 
 # staticメソッドは怖いので隠す
 def hide_method(class_, name):

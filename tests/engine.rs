@@ -4,7 +4,10 @@ use altseed2::prelude::*;
 fn engine() -> AltseedResult<()> {
     let mut engine = Engine::initialize("engine", 800, 600)?;
     let mut count = 0;
-    println!("window title: {:?}", engine.get_window_title());
+    println!(
+        "window title: {:?}",
+        engine.core().borrow_mut().get_window_title()
+    );
     while count < 20 && engine.do_events() {
         count += 1;
         engine.update()?;
@@ -34,7 +37,7 @@ fn node() -> AltseedResult<()> {
 fn sprite() -> AltseedResult<()> {
     let mut engine = Engine::initialize("sprite", 800, 600)?;
 
-    let texture = engine.create_texture2d("./Core/TestData/IO/AltseedPink.png")?;
+    let texture = engine.load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
     let node = {
         let sprite = Sprite::new();
