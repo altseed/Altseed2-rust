@@ -959,8 +959,7 @@ extern "C" {
 
     fn cbg_Material_GetShader(self_ptr: *mut RawPtr, shaderStage: c_int) -> *mut RawPtr;
 
-    fn cbg_Material_SetShader(self_ptr: *mut RawPtr, shaderStage: c_int, shader: *mut RawPtr)
-        -> ();
+    fn cbg_Material_SetShader(self_ptr: *mut RawPtr, shader: *mut RawPtr) -> ();
 
     fn cbg_Material_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1051,13 +1050,30 @@ extern "C" {
 
     fn cbg_RenderedPolygon_Release(self_ptr: *mut RawPtr) -> ();
 
+    fn cbg_RenderedCamera_Create() -> *mut RawPtr;
+
+    fn cbg_RenderedCamera_GetCenterOffset(self_ptr: *mut RawPtr) -> crate::structs::Vector2F;
+    fn cbg_RenderedCamera_SetCenterOffset(
+        self_ptr: *mut RawPtr,
+        value: *mut crate::structs::Vector2F,
+    ) -> ();
+
+    fn cbg_RenderedCamera_GetTargetTexture(self_ptr: *mut RawPtr) -> *mut RawPtr;
+    fn cbg_RenderedCamera_SetTargetTexture(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
+
     fn cbg_RenderedCamera_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_BuiltinShader_Create(self_ptr: *mut RawPtr, type_: c_int) -> *mut RawPtr;
 
     fn cbg_BuiltinShader_Release(self_ptr: *mut RawPtr) -> ();
 
-    fn cbg_Shader_Create(code: *const u16, name: *const u16, shaderStage: c_int) -> *mut RawPtr;
+    fn cbg_Shader_Create(name: *const u16, code: *const u16, shaderStage: c_int) -> *mut RawPtr;
+
+    fn cbg_Shader_GetStageType(self_ptr: *mut RawPtr) -> c_int;
+
+    fn cbg_Shader_GetCode(self_ptr: *mut RawPtr) -> *const u16;
+
+    fn cbg_Shader_GetName(self_ptr: *mut RawPtr) -> *const u16;
 
     fn cbg_Shader_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1587,8 +1603,8 @@ impl Configuration {
 
     /// 全画面モードかどうかを取得または設定します。
     pub fn get_is_fullscreen(&mut self) -> bool {
-        if let Some(value) = self.is_fullscreen.clone() {
-            return value;
+        if let Some(value) = &self.is_fullscreen {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetIsFullscreen(self.self_ptr) };
         ret
@@ -1596,8 +1612,8 @@ impl Configuration {
 
     /// 画面サイズ可変かどうかを取得または設定します。
     pub fn get_is_resizable(&mut self) -> bool {
-        if let Some(value) = self.is_resizable.clone() {
-            return value;
+        if let Some(value) = &self.is_resizable {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetIsResizable(self.self_ptr) };
         ret
@@ -1605,8 +1621,8 @@ impl Configuration {
 
     /// ログをコンソールに出力するかどうかを取得または設定します。
     pub fn get_console_logging_enabled(&mut self) -> bool {
-        if let Some(value) = self.console_logging_enabled.clone() {
-            return value;
+        if let Some(value) = &self.console_logging_enabled {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetConsoleLoggingEnabled(self.self_ptr) };
         ret
@@ -1614,8 +1630,8 @@ impl Configuration {
 
     /// ログをファイルに出力するかどうかを取得または設定します。
     pub fn get_file_logging_enabled(&mut self) -> bool {
-        if let Some(value) = self.file_logging_enabled.clone() {
-            return value;
+        if let Some(value) = &self.file_logging_enabled {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetFileLoggingEnabled(self.self_ptr) };
         ret
@@ -1623,8 +1639,8 @@ impl Configuration {
 
     /// ログファイル名を取得または設定します。
     pub fn get_log_file_name(&mut self) -> String {
-        if let Some(value) = self.log_file_name.clone() {
-            return value;
+        if let Some(value) = &self.log_file_name {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetLogFileName(self.self_ptr) };
         decode_string(ret)
@@ -1632,8 +1648,8 @@ impl Configuration {
 
     /// ツール機能を使用するかどうかを取得または設定します。
     pub fn get_tool_enabled(&mut self) -> bool {
-        if let Some(value) = self.tool_enabled.clone() {
-            return value;
+        if let Some(value) = &self.tool_enabled {
+            return value.clone();
         }
         let ret = unsafe { cbg_Configuration_GetToolEnabled(self.self_ptr) };
         ret
@@ -1767,8 +1783,8 @@ impl Core {
 
     /// 目標のFPSを取得または設定します。
     pub fn get_target_fps(&mut self) -> f32 {
-        if let Some(value) = self.target_fps.clone() {
-            return value;
+        if let Some(value) = &self.target_fps {
+            return value.clone();
         }
         let ret = unsafe { cbg_Core_GetTargetFPS(self.self_ptr) };
         ret
@@ -1776,8 +1792,8 @@ impl Core {
 
     /// フレームレートモードを取得または設定します。デフォルトでは可変フレームレートです。
     pub fn get_framerate_mode(&mut self) -> FramerateMode {
-        if let Some(value) = self.framerate_mode.clone() {
-            return value;
+        if let Some(value) = &self.framerate_mode {
+            return value.clone();
         }
         let ret = unsafe { cbg_Core_GetFramerateMode(self.self_ptr) };
         unsafe { std::mem::transmute(ret) }
@@ -2583,8 +2599,8 @@ impl Mouse {
 
     /// マウスカーソルの座標を取得または設定します。
     pub fn get_position(&mut self) -> crate::prelude::Vector2<f32> {
-        if let Some(value) = self.position.clone() {
-            return value;
+        if let Some(value) = &self.position {
+            return value.clone();
         }
         let ret = unsafe { cbg_Mouse_GetPosition(self.self_ptr) };
         ret.into()
@@ -2592,8 +2608,8 @@ impl Mouse {
 
     /// カーソルのモードを取得または設定します。
     pub fn get_cursor_mode(&mut self) -> CursorMode {
-        if let Some(value) = self.cursor_mode.clone() {
-            return value;
+        if let Some(value) = &self.cursor_mode {
+            return value.clone();
         }
         let ret = unsafe { cbg_Mouse_GetCursorMode(self.self_ptr) };
         unsafe { std::mem::transmute(ret) }
@@ -3156,8 +3172,8 @@ impl Material {
         }
     }
 
-    pub fn set_shader(&mut self, shader_stage: ShaderStageType, shader: &mut Shader) -> () {
-        unsafe { cbg_Material_SetShader(self.self_ptr, shader_stage as i32, shader.self_ptr()) }
+    pub fn set_shader(&mut self, shader: &mut Shader) -> () {
+        unsafe { cbg_Material_SetShader(self.self_ptr, shader.self_ptr()) }
     }
 }
 
@@ -3314,8 +3330,8 @@ pub trait AsRendered: std::fmt::Debug + HasRawPtr {
 impl AsRendered for Rendered {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
+        if let Some(value) = &self.transform {
+            return value.clone();
         }
         let ret = unsafe { cbg_Rendered_GetTransform(self.self_ptr) };
         ret.into()
@@ -3371,8 +3387,8 @@ impl HasRawPtr for RenderedSprite {
 impl AsRendered for RenderedSprite {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
+        if let Some(value) = &self.transform {
+            return value.clone();
         }
         let ret = unsafe { cbg_Rendered_GetTransform(self.self_ptr) };
         ret.into()
@@ -3407,8 +3423,8 @@ impl RenderedSprite {
 
     /// テクスチャを取得または設定します。
     pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
-        if let Some(value) = self.texture.clone() {
-            return Some(value);
+        if let Some(value) = &self.texture {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedSprite_GetTexture(self.self_ptr) };
         {
@@ -3419,8 +3435,8 @@ impl RenderedSprite {
 
     /// 描画範囲を取得または設定します。
     pub fn get_src(&mut self) -> crate::structs::rect::Rect<f32> {
-        if let Some(value) = self.src.clone() {
-            return value;
+        if let Some(value) = &self.src {
+            return value.clone();
         }
         let ret = unsafe { cbg_RenderedSprite_GetSrc(self.self_ptr) };
         ret.into()
@@ -3428,8 +3444,8 @@ impl RenderedSprite {
 
     /// マテリアルを取得または設定します。
     pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
-        if let Some(value) = self.material.clone() {
-            return Some(value);
+        if let Some(value) = &self.material {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedSprite_GetMaterial(self.self_ptr) };
         {
@@ -3494,8 +3510,8 @@ impl HasRawPtr for RenderedText {
 impl AsRendered for RenderedText {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
+        if let Some(value) = &self.transform {
+            return value.clone();
         }
         let ret = unsafe { cbg_Rendered_GetTransform(self.self_ptr) };
         ret.into()
@@ -3532,8 +3548,8 @@ impl RenderedText {
 
     /// マテリアルを取得または設定します。
     pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
-        if let Some(value) = self.material.clone() {
-            return Some(value);
+        if let Some(value) = &self.material {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedText_GetMaterial(self.self_ptr) };
         {
@@ -3544,8 +3560,8 @@ impl RenderedText {
 
     /// テキストを取得または設定します。
     pub fn get_text(&mut self) -> String {
-        if let Some(value) = self.text.clone() {
-            return value;
+        if let Some(value) = &self.text {
+            return value.clone();
         }
         let ret = unsafe { cbg_RenderedText_GetText(self.self_ptr) };
         decode_string(ret)
@@ -3553,8 +3569,8 @@ impl RenderedText {
 
     /// フォントを取得または設定します。
     pub fn get_font(&mut self) -> Option<Arc<Mutex<Font>>> {
-        if let Some(value) = self.font.clone() {
-            return Some(value);
+        if let Some(value) = &self.font {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedText_GetFont(self.self_ptr) };
         {
@@ -3565,8 +3581,8 @@ impl RenderedText {
 
     /// 文字の太さを取得または設定します。(0 ~ 255)
     pub fn get_weight(&mut self) -> f32 {
-        if let Some(value) = self.weight.clone() {
-            return value;
+        if let Some(value) = &self.weight {
+            return value.clone();
         }
         let ret = unsafe { cbg_RenderedText_GetWeight(self.self_ptr) };
         ret
@@ -3574,8 +3590,8 @@ impl RenderedText {
 
     /// 色を取得または設定します。
     pub fn get_color(&mut self) -> crate::structs::Color {
-        if let Some(value) = self.color.clone() {
-            return value;
+        if let Some(value) = &self.color {
+            return value.clone();
         }
         let ret = unsafe { cbg_RenderedText_GetColor(self.self_ptr) };
         ret
@@ -3655,8 +3671,8 @@ impl HasRawPtr for RenderedPolygon {
 impl AsRendered for RenderedPolygon {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
+        if let Some(value) = &self.transform {
+            return value.clone();
         }
         let ret = unsafe { cbg_Rendered_GetTransform(self.self_ptr) };
         ret.into()
@@ -3698,8 +3714,8 @@ impl RenderedPolygon {
 
     /// 頂点情報を取得または設定します。
     pub fn get_vertexes(&mut self) -> Option<Rc<RefCell<VertexArray>>> {
-        if let Some(value) = self.vertexes.clone() {
-            return Some(value);
+        if let Some(value) = &self.vertexes {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedPolygon_GetVertexes(self.self_ptr) };
         {
@@ -3710,8 +3726,8 @@ impl RenderedPolygon {
 
     /// テクスチャを取得または設定します。
     pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
-        if let Some(value) = self.texture.clone() {
-            return Some(value);
+        if let Some(value) = &self.texture {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedPolygon_GetTexture(self.self_ptr) };
         {
@@ -3722,8 +3738,8 @@ impl RenderedPolygon {
 
     /// 描画範囲を取得または設定します。
     pub fn get_src(&mut self) -> crate::structs::rect::Rect<f32> {
-        if let Some(value) = self.src.clone() {
-            return value;
+        if let Some(value) = &self.src {
+            return value.clone();
         }
         let ret = unsafe { cbg_RenderedPolygon_GetSrc(self.self_ptr) };
         ret.into()
@@ -3731,8 +3747,8 @@ impl RenderedPolygon {
 
     /// マテリアルを取得または設定します。
     pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
-        if let Some(value) = self.material.clone() {
-            return Some(value);
+        if let Some(value) = &self.material {
+            return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedPolygon_GetMaterial(self.self_ptr) };
         {
@@ -3787,6 +3803,8 @@ impl Drop for RenderedPolygon {
 #[derive(Debug)]
 pub(crate) struct RenderedCamera {
     self_ptr: *mut RawPtr,
+    center_offset: Option<crate::prelude::Vector2<f32>>,
+    target_texture: Option<Rc<RefCell<RenderTexture>>>,
     transform: Option<crate::prelude::Matrix44<f32>>,
 }
 
@@ -3799,8 +3817,8 @@ impl HasRawPtr for RenderedCamera {
 impl AsRendered for RenderedCamera {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::prelude::Matrix44<f32> {
-        if let Some(value) = self.transform.clone() {
-            return value;
+        if let Some(value) = &self.transform {
+            return value.clone();
         }
         let ret = unsafe { cbg_Rendered_GetTransform(self.self_ptr) };
         ret.into()
@@ -3819,8 +3837,52 @@ impl RenderedCamera {
         }
         Some(RenderedCamera {
             self_ptr,
+            center_offset: None,
+            target_texture: None,
             transform: None,
         })
+    }
+
+    /// RenderedCameraを作成します。
+
+    pub fn create() -> Option<RenderedCamera> {
+        let ret = unsafe { cbg_RenderedCamera_Create() };
+        RenderedCamera::cbg_create_raw(ret)
+    }
+
+    /// CenterOffsetを取得または設定します。
+    pub fn get_center_offset(&mut self) -> crate::prelude::Vector2<f32> {
+        if let Some(value) = &self.center_offset {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_RenderedCamera_GetCenterOffset(self.self_ptr) };
+        ret.into()
+    }
+
+    /// TargetTextureを取得または設定します。
+    pub fn get_target_texture(&mut self) -> Option<Rc<RefCell<RenderTexture>>> {
+        if let Some(value) = &self.target_texture {
+            return Some(value.clone());
+        }
+        let ret = unsafe { cbg_RenderedCamera_GetTargetTexture(self.self_ptr) };
+        {
+            let ret = RenderTexture::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+
+    /// CenterOffsetを取得または設定します。
+    pub fn set_center_offset(&mut self, mut value: crate::prelude::Vector2<f32>) -> &mut Self {
+        self.center_offset = Some(value.clone());
+        unsafe { cbg_RenderedCamera_SetCenterOffset(self.self_ptr, &mut value.into() as *mut _) }
+        self
+    }
+
+    /// TargetTextureを取得または設定します。
+    pub fn set_target_texture(&mut self, value: Rc<RefCell<RenderTexture>>) -> &mut Self {
+        self.target_texture = Some(value.clone());
+        unsafe { cbg_RenderedCamera_SetTargetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
+        self
     }
 
     /// 変換行列を取得または設定します。
@@ -3942,15 +4004,21 @@ impl Shader {
         })
     }
 
+    /// コードをコンパイルしてシェーダを生成する
+    /// # Arguments
+    /// * `name` - シェーダの名前
+    /// * `code` - コンパイルするコード
+    /// * `shader_stage` -
+
     pub fn create(
-        code: &str,
         name: &str,
+        code: &str,
         shader_stage: ShaderStageType,
     ) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe {
             cbg_Shader_Create(
-                encode_string(&code).as_ptr(),
                 encode_string(&name).as_ptr(),
+                encode_string(&code).as_ptr(),
                 shader_stage as i32,
             )
         };
@@ -3958,6 +4026,23 @@ impl Shader {
             let ret = Shader::try_get_from_cache(ret)?;
             Some(ret)
         }
+    }
+
+    pub fn get_stage_type(&mut self) -> ShaderStageType {
+        let ret = unsafe { cbg_Shader_GetStageType(self.self_ptr) };
+        unsafe { std::mem::transmute(ret) }
+    }
+
+    /// インスタンス生成に使用したコードを取得します
+    pub fn get_code(&mut self) -> String {
+        let ret = unsafe { cbg_Shader_GetCode(self.self_ptr) };
+        decode_string(ret)
+    }
+
+    /// 名前を取得します
+    pub fn get_name(&mut self) -> String {
+        let ret = unsafe { cbg_Shader_GetName(self.self_ptr) };
+        decode_string(ret)
     }
 }
 
@@ -5504,8 +5589,8 @@ impl Sound {
 
     /// ループ開始地点(秒)を取得または設定します。
     pub fn get_loop_starting_point(&mut self) -> f32 {
-        if let Some(value) = self.loop_starting_point.clone() {
-            return value;
+        if let Some(value) = &self.loop_starting_point {
+            return value.clone();
         }
         let ret = unsafe { cbg_Sound_GetLoopStartingPoint(self.self_ptr) };
         ret
@@ -5513,8 +5598,8 @@ impl Sound {
 
     /// ループ終了地点(秒)を取得または設定します。
     pub fn get_loop_end_point(&mut self) -> f32 {
-        if let Some(value) = self.loop_end_point.clone() {
-            return value;
+        if let Some(value) = &self.loop_end_point {
+            return value.clone();
         }
         let ret = unsafe { cbg_Sound_GetLoopEndPoint(self.self_ptr) };
         ret
@@ -5522,8 +5607,8 @@ impl Sound {
 
     /// ループするかどうかを取得または設定します。
     pub fn get_is_looping_mode(&mut self) -> bool {
-        if let Some(value) = self.is_looping_mode.clone() {
-            return value;
+        if let Some(value) = &self.is_looping_mode {
+            return value.clone();
         }
         let ret = unsafe { cbg_Sound_GetIsLoopingMode(self.self_ptr) };
         ret
@@ -5984,8 +6069,8 @@ impl Window {
 
     /// ウィンドウに表示するタイトルを取得または設定します
     pub fn get_title(&mut self) -> String {
-        if let Some(value) = self.title.clone() {
-            return value;
+        if let Some(value) = &self.title {
+            return value.clone();
         }
         let ret = unsafe { cbg_Window_GetTitle(self.self_ptr) };
         decode_string(ret)
