@@ -34,7 +34,8 @@ pub mod prelude {
     pub use crate::engine::{Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        BaseNode, Drawn, DrawnNode, HasBaseNode, Node, NodeState, Polygon, Sprite, Text, Transform,
+        BaseNode, CameraNode, Drawn, DrawnNode, HasBaseNode, Node, NodeState, Polygon, Sprite,
+        Text, Transform,
     };
 
     pub use crate::core::*;
@@ -45,8 +46,8 @@ pub mod core {
     pub use crate::auto_generated_core_binding::{
         AsTexture2D, BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode,
         Joystick, JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log,
-        LogCategory, LogLevel, Material, Mouse, MouseButtons, ResourceType, Shader, Sound,
-        SoundMixer, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
+        LogCategory, LogLevel, Material, Mouse, MouseButtons, RenderTexture, ResourceType, Shader,
+        Sound, SoundMixer, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
     };
 
     pub mod tool {

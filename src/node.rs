@@ -11,7 +11,7 @@ use crate::error::*;
 #[macro_use]
 pub mod boiler_plate;
 
-mod list;
+pub(crate) mod list;
 mod transform;
 
 #[macro_use]
@@ -138,6 +138,7 @@ pub trait Node: HasBaseNode + Downcast {
 
 impl_downcast!(Node);
 
+pub use camera::*;
 pub use drawn::*;
 pub use polygon::Polygon;
 pub use sprite::Sprite;

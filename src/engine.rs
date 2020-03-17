@@ -106,10 +106,13 @@ pub struct Engine {
     log: Rc<RefCell<Log>>,
     tool: Option<Rc<RefCell<Tool>>>,
     root_node: Rc<RefCell<BaseNode>>,
-    pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
-    pub(crate) sort_drawn_nodes: bool,
-    runner: TaskRunner<'static, AltseedError>,
     loader: Loader,
+
+    drawn_nodes: list::SortVec<i32, DrawnNode>,
+    camera_nodes: list::SortVec<u32, CameraNode>,
+    runner: TaskRunner<'static, AltseedError>,
+
+    closed: bool,
 }
 
 impl Drop for Engine {
@@ -119,14 +122,20 @@ impl Drop for Engine {
 }
 
 impl Engine {
-    fn initialize_core(
-        title: &str,
-        width: i32,
-        height: i32,
-        config: Option<Configuration>,
-    ) -> Option<Engine> {
-        let mut c = config.unwrap_or(Configuration::new()?);
-        if Core::initialize(title, width, height, &mut c) {
+    fn initialize_core(title: &str, width: i32, height: i32, config: Config) -> Option<Engine> {
+        let mut configuration = Configuration::new().unwrap();
+        match config.log_filename {
+            Some(filename) => configuration
+                .set_file_logging_enabled(true)
+                .set_log_file_name(filename),
+            _ => configuration.set_file_logging_enabled(false),
+        }
+        .set_is_fullscreen(config.fullscreen)
+        .set_is_resizable(config.resizable)
+        .set_console_logging_enabled(config.console_logging)
+        .set_tool_enabled(config.tool);
+
+        if Core::initialize(title, width, height, &mut configuration) {
             lazy_static! {
                 static ref WAKER: std::task::Waker = SpinWaker::waker();
             }
@@ -146,13 +155,15 @@ impl Engine {
                 sound: SoundMixer::get_instance()?,
                 log: Log::get_instance()?,
                 tool: Tool::get_instance(),
-                root_node: Rc::new(RefCell::new(BaseNode::default())),
-                drawn_nodes: RefCell::new(Vec::new()),
-                sort_drawn_nodes: false,
-                runner: TaskRunner::new(&WAKER),
                 loader: Loader {
                     phantom: PhantomData,
                 },
+                root_node: Rc::new(RefCell::new(BaseNode::default())),
+                drawn_nodes: list::SortVec::new(),
+                camera_nodes: list::SortVec::new(),
+                runner: TaskRunner::new(&WAKER),
+
+                closed: false,
             };
 
             Some(e)
@@ -172,19 +183,7 @@ impl Engine {
         height: i32,
         config: Config,
     ) -> AltseedResult<Engine> {
-        let mut configuration = Configuration::new().unwrap();
-        match config.log_filename {
-            Some(filename) => configuration
-                .set_file_logging_enabled(true)
-                .set_log_file_name(filename),
-            _ => configuration.set_file_logging_enabled(false),
-        }
-        .set_is_fullscreen(config.fullscreen)
-        .set_is_resizable(config.resizable)
-        .set_console_logging_enabled(config.console_logging)
-        .set_tool_enabled(config.tool);
-
-        Engine::initialize_core(title, width, height, Some(configuration))
+        Engine::initialize_core(title, width, height, config)
             .ok_or(AltseedError::InitializationFailed)
     }
 
@@ -193,21 +192,38 @@ impl Engine {
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
     pub fn initialize(title: &str, width: i32, height: i32) -> AltseedResult<Engine> {
-        Engine::initialize_core(title, width, height, None)
+        Engine::initialize_core(title, width, height, Config::default())
             .ok_or(AltseedError::InitializationFailed)
     }
 
-    pub fn do_events(&mut self) -> bool {
-        self.container.borrow_mut().core.do_event() && self.graphics.do_events()
+    /// ウィンドウを閉じます。
+    pub fn close(&mut self) {
+        self.closed = true;
     }
 
-    pub fn update(&mut self) -> AltseedResult<()> {
-        if !self.graphics.begin_frame() {
-            return Err(AltseedError::CoreError(
-                "Graphics::begin_frame failed".to_owned(),
-            ));
+    fn do_events(&mut self) -> AltseedResult<bool> {
+        if self.closed {
+            return Ok(false);
         }
 
+        if self.container.borrow_mut().core.do_event() && self.graphics.do_events() {
+            if !self.graphics.begin_frame() {
+                return Err(AltseedError::CoreError(
+                    "Graphics::begin_frame failed".to_owned(),
+                ));
+            }
+
+            if let Some(tool) = &self.tool {
+                tool.borrow_mut().new_frame();
+            }
+
+            return Ok(true);
+        }
+
+        Ok(false)
+    }
+
+    fn update(&mut self) -> AltseedResult<()> {
         // 非同期処理の継続を取り出す
         self.runner.update()?;
 
@@ -217,20 +233,6 @@ impl Engine {
             self,
         )?;
 
-        // 生存していないDrawnNodeは取り除く
-        self.drawn_nodes.borrow_mut().retain(|x| match x.upgrade() {
-            None => false,
-            Some(x) => x.borrow().node_base().state == NodeState::Registered,
-        });
-
-        // 更新があったらz_order順にソート
-        if self.sort_drawn_nodes {
-            self.drawn_nodes
-                .borrow_mut()
-                .sort_by_key(|x| x.upgrade().unwrap().borrow().get_z_order());
-            self.sort_drawn_nodes = false;
-        }
-
         // レンダーターゲットの指定
         self.graphics
             .get_command_list()
@@ -239,8 +241,21 @@ impl Engine {
             ))?
             .set_render_target_with_screen();
 
+        // filterとsortを実行
+        self.drawn_nodes.update();
+        self.camera_nodes.update();
+
+        // for camera in self.camera_nodes.iter().filter_map(Weak::upgrade) {
+        //     match camera.borrow_mut().get_target_texture() {
+        //         Some(tex) => {
+        //             // self.renderer.set_camera(camera.instance())
+        //         },
+        //         None => self.renderer.reset_camera(),
+        //     }
+        // }
+
         // DrawnNodeの呼び出し
-        for node in self.drawn_nodes.borrow().iter().filter_map(Weak::upgrade) {
+        for node in self.drawn_nodes.iter().filter_map(Weak::upgrade) {
             node.borrow_mut()
                 .on_drawn(&mut self.graphics, &mut self.renderer);
         }
@@ -257,6 +272,10 @@ impl Engine {
             self.renderer.render(&mut cmdlist);
         }
 
+        if let Some(tool) = &self.tool {
+            tool.borrow_mut().render();
+        }
+
         if !self.graphics.end_frame() {
             return Err(AltseedError::CoreError(
                 "Graphics::end_frame failed".to_owned(),
@@ -264,6 +283,38 @@ impl Engine {
         }
 
         Ok(())
+    }
+
+    /// メインループを実行します
+    pub fn run(mut self) -> AltseedResult<()> {
+        while self.do_events()? {
+            self.update()?;
+        }
+
+        Ok(())
+    }
+
+    /// 毎フレーム実行する関数を指定してメインループを実行します。
+    pub fn run_with<F: FnMut(&mut Engine) -> AltseedResult<()>>(
+        mut self,
+        mut f: F,
+    ) -> AltseedResult<()> {
+        while self.do_events()? {
+            f(&mut self)?;
+            self.update()?;
+        }
+
+        Ok(())
+    }
+
+    /// DrawnNodeのon_addedの中から呼び出される。
+    pub(crate) fn add_drawn_node(&mut self, item: Weak<RefCell<DrawnNode>>) {
+        self.drawn_nodes.add(item)
+    }
+
+    /// CameraNodeのon_addedの中から呼び出される。
+    pub(crate) fn add_camera_node(&mut self, item: Weak<RefCell<CameraNode>>) {
+        self.camera_nodes.add(item)
     }
 
     /// エンジンに新しいノードを追加します

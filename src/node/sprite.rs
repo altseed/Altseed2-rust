@@ -15,6 +15,7 @@ impl Sprite {
             instance: RenderedSprite::create().unwrap(),
             trans: super::Transform::default(),
             z_order: 0,
+            is_drawn: true,
         }))
     }
 

@@ -23,6 +23,10 @@ pub trait Drawn {
 
     /// マテリアルを設定します。
     fn set_material(&mut self, mat: Rc<RefCell<Material>>);
+
+    fn is_drawn(&self) -> bool;
+
+    fn is_drawn_mut(&mut self) -> &mut bool;
 }
 
 #[derive(Debug, Clone)]
@@ -63,17 +67,30 @@ impl From<Rc<RefCell<Polygon>>> for DrawnKind {
 define_node! {
     pub struct DrawnNode {
         kind: DrawnKind,
+        self_weak: Option<Weak<RefCell<DrawnNode>>>,
     }
 }
 
-impl Node for DrawnNode {}
+impl Node for DrawnNode {
+    fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+        let mut weak = None;
+        std::mem::swap(&mut weak, &mut self.self_weak);
+        engine.add_drawn_node(weak.unwrap());
+        Ok(())
+    }
+}
 
 impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(DrawnNode {
+        let rc = Rc::new(RefCell::new(DrawnNode {
             node_base: BaseNode::default(),
             kind: kind.into(),
-        }))
+            self_weak: None,
+        }));
+
+        rc.borrow_mut().self_weak = Some(Rc::downgrade(&rc));
+
+        rc
     }
 
     pub fn kind(&self) -> &DrawnKind {
@@ -85,6 +102,8 @@ impl DrawnNode {
     }
 
     pub(crate) fn on_drawn(&mut self, _: &mut Graphics, renderer: &mut Renderer) {
+        if !self.get_is_drawn() { return; }
+
         match self.kind.clone() {
             DrawnKind::Sprite(x) => {
                 let mut x = x.borrow_mut();
@@ -105,6 +124,12 @@ impl DrawnNode {
     }
 }
 
+impl list::SortedItem<i32> for DrawnNode {
+    fn sorted_key(&self) -> i32 {
+        self.get_z_order()
+    }
+}
+
 impl DrawnNode {
     pub fn get_z_order(&self) -> i32 {
         self.kind.get_drawn().borrow().z_order()
@@ -112,6 +137,15 @@ impl DrawnNode {
 
     pub fn set_z_order(&mut self, z_order: i32) -> &mut Self {
         *self.kind.get_drawn().borrow_mut().z_order_mut() = z_order;
+        self
+    }
+
+    pub fn get_is_drawn(&self) -> bool {
+        self.kind.get_drawn().borrow().is_drawn()
+    }
+
+    pub fn set_is_drawn(&mut self, is_drawn: bool) -> &mut Self {
+        *self.kind.get_drawn().borrow_mut().is_drawn_mut() = is_drawn;
         self
     }
 
@@ -189,6 +223,7 @@ macro_rules! define_drawn {
         pub struct $name{
             trans: crate::node::Transform,
             z_order: i32,
+            is_drawn: bool,
             $(
                 $(#[$meta_v])*
                 $variant: $ty,
@@ -231,9 +266,27 @@ macro_rules! define_drawn {
                 mat: Rc<RefCell<crate::prelude::Material>>) {
                 self.instance.set_material(mat);
             }
+
+            fn is_drawn(&self) -> bool {
+                self.is_drawn
+            }
+
+            fn is_drawn_mut(&mut self) -> &mut bool {
+                &mut self.is_drawn
+            }
         }
 
         impl $name {
+            pub fn set_z_order(&mut self, z_order: i32) -> &mut Self {
+                self.z_order = z_order;
+                self
+            }
+
+            pub fn set_is_drawn(&mut self, is_drawn: bool) -> &mut Self {
+                self.is_drawn = is_drawn;
+                self
+            }
+
             pub fn get_pos(&self) -> Vector2<f32> {
                 self.transform().pos().clone()
             }

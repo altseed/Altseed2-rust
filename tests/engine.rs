@@ -3,17 +3,21 @@ use altseed2::prelude::*;
 #[test]
 fn engine() -> AltseedResult<()> {
     let mut engine = Engine::initialize("engine", 800, 600)?;
-    let mut count = 0;
     println!(
         "window title: {:?}",
         engine.core().borrow_mut().get_window_title()
     );
-    while count < 20 && engine.do_events() {
-        count += 1;
-        engine.update()?;
-    }
 
-    Ok(())
+    let mut count = 0;
+
+    engine.run_with(|e| {
+        count += 1;
+        if count == 20 {
+            e.close();
+        }
+
+        Ok(())
+    })
 }
 
 use std::{cell::RefCell, rc::Rc};
@@ -25,12 +29,14 @@ fn node() -> AltseedResult<()> {
     engine.add_node(node).unwrap();
 
     let mut count = 0;
-    while count < 20 && engine.do_events() {
+    engine.run_with(|e| {
         count += 1;
-        engine.update()?;
-    }
+        if count == 20 {
+            e.close();
+        }
 
-    Ok(())
+        Ok(())
+    })
 }
 
 #[test]
@@ -55,10 +61,12 @@ fn sprite() -> AltseedResult<()> {
     engine.add_node(node)?;
 
     let mut count = 0;
-    while count < 20 && engine.do_events() {
+    engine.run_with(|e| {
         count += 1;
-        engine.update()?;
-    }
+        if count == 20 {
+            e.close();
+        }
 
-    Ok(())
+        Ok(())
+    })
 }

@@ -67,7 +67,8 @@ fn load_async() -> AltseedResult<()> {
     });
 
     let mut count = 0;
-    while engine.do_events() {
+
+    engine.run_with(|e| {
         {
             let a = node.borrow().get_angle();
             node.borrow_mut().set_angle(a + PI * 0.01);
@@ -81,12 +82,10 @@ fn load_async() -> AltseedResult<()> {
         } else {
             count += 1;
             if count > 20 {
-                break;
+                e.close();
             }
         }
 
-        engine.update()?;
-    }
-
-    Ok(())
+        Ok(())
+    })
 }

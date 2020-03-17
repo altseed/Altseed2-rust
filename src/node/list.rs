@@ -5,7 +5,7 @@ use std::{
 
 use crate::engine::Engine;
 use crate::error::*;
-use crate::node::{DrawnNode, Node, NodeState};
+use crate::node::{Node, NodeState};
 
 #[derive(Debug)]
 pub(crate) struct NodeList {
@@ -70,12 +70,6 @@ impl NodeList {
                 base.owner = Some(owner.clone());
                 item.on_added(engine)?;
             }
-
-            if item.borrow().is::<DrawnNode>() {
-                let rc = unsafe { Rc::from_raw(Rc::into_raw(item.clone()) as *const _) };
-                engine.drawn_nodes.borrow_mut().push(Rc::downgrade(&rc));
-                engine.sort_drawn_nodes = true;
-            }
         }
 
         for item in self.remove_queue.borrow().iter() {
@@ -109,4 +103,51 @@ impl NodeList {
     //         }
     //     }
     // }
+}
+
+use std::{cmp::Ord, marker::PhantomData, slice::Iter};
+
+pub(crate) trait SortedItem<T: Ord> {
+    fn sorted_key(&self) -> T;
+}
+
+#[derive(Debug)]
+pub(crate) struct SortVec<K: Ord, T: Node + SortedItem<K>> {
+    vec: Vec<Weak<RefCell<T>>>,
+    updated: bool,
+    phantom: PhantomData<K>,
+}
+
+impl<K: Ord, T: Node + SortedItem<K>> SortVec<K, T> {
+    pub fn new() -> Self {
+        SortVec {
+            vec: Vec::new(),
+            updated: false,
+            phantom: PhantomData,
+        }
+    }
+
+    pub fn iter(&mut self) -> Iter<'_, Weak<RefCell<T>>> {
+        self.vec.iter()
+    }
+
+    pub fn add(&mut self, item: Weak<RefCell<T>>) {
+        self.vec.push(item);
+        self.updated = true;
+    }
+
+    pub fn update(&mut self) {
+        // 生存していないNodeは取り除く
+        self.vec.retain(|x| match x.upgrade() {
+            None => false,
+            Some(x) => x.borrow().node_base().state == NodeState::Registered,
+        });
+
+        // 更新があったらソート
+        if self.updated {
+            self.vec
+                .sort_by_key(|x| x.upgrade().unwrap().borrow().sorted_key());
+            self.updated = false;
+        }
+    }
 }
