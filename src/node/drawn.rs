@@ -5,7 +5,7 @@ use crate::math::Vector2;
 use crate::node::*;
 
 use crate as altseed2;
-use crate::{create_node, define_node};
+use crate::{define_node};
 
 pub trait Drawn {
     fn transform(&self) -> &Transform;
@@ -63,7 +63,7 @@ impl Node for DrawnNode {}
 impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(DrawnNode {
-            node_base: NodeBase::default(),
+            node_base: BaseNode::default(),
             kind: kind.into(),
         }))
     }

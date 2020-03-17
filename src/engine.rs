@@ -105,7 +105,7 @@ pub struct Engine {
     sound: Rc<RefCell<SoundMixer>>,
     log: Rc<RefCell<Log>>,
     tool: Option<Rc<RefCell<Tool>>>,
-    root_node: Rc<RefCell<NodeBase>>,
+    root_node: Rc<RefCell<BaseNode>>,
     pub(crate) drawn_nodes: RefCell<Vec<Weak<RefCell<DrawnNode>>>>,
     pub(crate) sort_drawn_nodes: bool,
     runner: TaskRunner<'static, AltseedError>,
@@ -146,7 +146,7 @@ impl Engine {
                 sound: SoundMixer::get_instance()?,
                 log: Log::get_instance()?,
                 tool: Tool::get_instance(),
-                root_node: Rc::new(RefCell::new(NodeBase::default())),
+                root_node: Rc::new(RefCell::new(BaseNode::default())),
                 drawn_nodes: RefCell::new(Vec::new()),
                 sort_drawn_nodes: false,
                 runner: TaskRunner::new(&WAKER),
@@ -277,7 +277,7 @@ impl Engine {
     }
 
     /// ルートノードを取得します。
-    pub fn root_node(&self) -> &Rc<RefCell<NodeBase>> {
+    pub fn root_node(&self) -> &Rc<RefCell<BaseNode>> {
         &self.root_node
     }
 

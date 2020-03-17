@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite, Texture2D};
+use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite};
 use crate::prelude::{Drawn, Rect, Vector2};
 
 define_drawn! {

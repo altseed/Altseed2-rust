@@ -28,19 +28,19 @@ macro_rules! define_node {(
         $(#[$meta_s])*
         #[derive(Debug)]
         pub struct $name< $( $N $(: $b0 $(+$b)* )? ),* > {
-            node_base: altseed2::node::NodeBase,
+            node_base: altseed2::node::BaseNode,
             $(
                 $(#[$meta_v])*
                 $variant: $ty,
             )*
         }
 
-        impl< $( $N $(: $b0 $(+$b)* )? ),* > altseed2::node::HasNodeBase for $name< $( $N ),* > {
-            fn node_base(&self) -> &NodeBase {
+        impl< $( $N $(: $b0 $(+$b)* )? ),* > altseed2::node::HasBaseNode for $name< $( $N ),* > {
+            fn node_base(&self) -> &BaseNode {
                 &self.node_base
             }
 
-            fn node_base_mut(&mut self) -> &mut altseed2::node::NodeBase {
+            fn node_base_mut(&mut self) -> &mut altseed2::node::BaseNode {
                 &mut self.node_base
             }
         }
@@ -55,7 +55,7 @@ macro_rules! create_node {(
         )*
     }) => {
         $name {
-            node_base: altseed2::node::NodeBase::default(),
+            node_base: altseed2::node::BaseNode::default(),
             $($variant : $e,)*
         }
     };

@@ -33,15 +33,15 @@ pub enum NodeState {
 }
 
 #[derive(Debug)]
-pub struct NodeBase {
+pub struct BaseNode {
     pub(crate) state: NodeState,
     pub(crate) children: NodeList,
     pub(crate) owner: Option<Weak<RefCell<dyn Node>>>,
 }
 
-impl Default for NodeBase {
+impl Default for BaseNode {
     fn default() -> Self {
-        NodeBase {
+        BaseNode {
             state: NodeState::Free,
             children: NodeList::new(),
             owner: None,
@@ -49,27 +49,27 @@ impl Default for NodeBase {
     }
 }
 
-impl NodeBase {
-    pub fn new() -> Rc<RefCell<NodeBase>> {
+impl BaseNode {
+    pub fn new() -> Rc<RefCell<BaseNode>> {
         Rc::new(RefCell::new(Self::default()))
     }
 }
 
-impl HasNodeBase for NodeBase {
-    fn node_base(&self) -> &NodeBase {
+impl HasBaseNode for BaseNode {
+    fn node_base(&self) -> &BaseNode {
         self
     }
 
-    fn node_base_mut(&mut self) -> &mut NodeBase {
+    fn node_base_mut(&mut self) -> &mut BaseNode {
         self
     }
 }
 
-impl Node for NodeBase {}
+impl Node for BaseNode {}
 
-pub trait HasNodeBase: std::fmt::Debug {
-    fn node_base(&self) -> &NodeBase;
-    fn node_base_mut(&mut self) -> &mut NodeBase;
+pub trait HasBaseNode: std::fmt::Debug {
+    fn node_base(&self) -> &BaseNode;
+    fn node_base_mut(&mut self) -> &mut BaseNode;
 
     fn state(&self) -> NodeState {
         self.node_base().state
@@ -90,7 +90,7 @@ pub trait HasNodeBase: std::fmt::Debug {
     /// mutability concealed
     fn remove_child(&self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
         if let Some(owner) = child.borrow().owner() {
-            if self.node_base() as *const NodeBase != owner.borrow().node_base() as *const NodeBase
+            if self.node_base() as *const BaseNode != owner.borrow().node_base() as *const BaseNode
             {
                 return Err(AltseedError::RemovedInvalidNode(
                     std::any::type_name_of_val(self).to_owned(),
@@ -122,7 +122,7 @@ pub(crate) fn update_node_base(
 }
 
 #[allow(unused_variables)]
-pub trait Node: HasNodeBase + Downcast {
+pub trait Node: HasBaseNode + Downcast {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }

@@ -1,8 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::array::*;
 use crate::auto_generated_core_binding::{
-    AsTexture2D, RenderedPolygon, Texture2D, Vector2FArray, VertexArray,
+    AsTexture2D, RenderedPolygon, Vector2FArray, VertexArray,
 };
 use crate::prelude::{Drawn, Rect, Vector2};
 use crate::structs::vertex::Vertex;

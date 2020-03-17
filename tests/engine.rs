@@ -21,7 +21,7 @@ use std::{cell::RefCell, rc::Rc};
 #[test]
 fn node() -> AltseedResult<()> {
     let mut engine = Engine::initialize("node", 800, 600)?;
-    let node = Rc::new(RefCell::new(NodeBase::default()));
+    let node = Rc::new(RefCell::new(BaseNode::default()));
     engine.add_node(node).unwrap();
 
     let mut count = 0;

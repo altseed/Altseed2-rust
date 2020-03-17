@@ -55,7 +55,6 @@ impl SpinWaker {
     }
 }
 
-use std::cell::RefCell;
 use std::collections::VecDeque;
 
 type PinsQueue<E> = VecDeque<Pin<Box<dyn Future<Output = Result<(), E>>>>>;
