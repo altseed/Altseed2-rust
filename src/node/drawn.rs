@@ -5,7 +5,7 @@ use crate::math::Vector2;
 use crate::node::*;
 
 use crate as altseed2;
-use crate::{define_node};
+use crate::define_node;
 
 pub trait Drawn {
     fn transform(&self) -> &Transform;
@@ -29,6 +29,7 @@ pub trait Drawn {
 pub enum DrawnKind {
     Sprite(Rc<RefCell<Sprite>>),
     Text(Rc<RefCell<Text>>),
+    Polygon(Rc<RefCell<Polygon>>),
 }
 
 impl DrawnKind {
@@ -36,6 +37,7 @@ impl DrawnKind {
         match self.clone() {
             DrawnKind::Sprite(x) => x,
             DrawnKind::Text(x) => x,
+            DrawnKind::Polygon(x) => x,
         }
     }
 }
@@ -49,6 +51,12 @@ impl From<Rc<RefCell<Sprite>>> for DrawnKind {
 impl From<Rc<RefCell<Text>>> for DrawnKind {
     fn from(item: Rc<RefCell<Text>>) -> Self {
         DrawnKind::Text(item)
+    }
+}
+
+impl From<Rc<RefCell<Polygon>>> for DrawnKind {
+    fn from(item: Rc<RefCell<Polygon>>) -> Self {
+        DrawnKind::Polygon(item)
     }
 }
 
@@ -87,6 +95,11 @@ impl DrawnNode {
                 let mut x = x.borrow_mut();
                 x.update_transform();
                 renderer.draw_text(x.instance());
+            }
+            DrawnKind::Polygon(x) => {
+                let mut x = x.borrow_mut();
+                x.update_transform();
+                renderer.draw_polygon(x.instance());
             }
         }
     }

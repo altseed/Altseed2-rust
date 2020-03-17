@@ -38,7 +38,7 @@ pub mod prelude {
     };
 
     pub use crate::core::*;
-    pub use crate::structs::{rect::Rect, Color};
+    pub use crate::structs::{rect::Rect, vertex::Vertex, Color};
 }
 
 pub mod core {

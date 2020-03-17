@@ -31,5 +31,5 @@ use std::{cell::RefCell, rc::Rc};
 impl_array!(Int8Array, u8);
 impl_array!(Int32Array, i32);
 impl_array!(FloatArray, f32);
-impl_array!(VertexArray, vertex::Vertex, Vertex);
+impl_array!(VertexArray, vertex::Vertex, crate::structs::Vertex);
 impl_array!(Vector2FArray, Vector2<f32>, Vector2F);
