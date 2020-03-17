@@ -14,5 +14,5 @@ fn transform_pos() {
     *t.pos_mut() = pos;
     t.update();
 
-    assert_eq!(t.get(), Matrix44::translation(pos.x, pos.y, 0.0));
+    assert_eq!(*t.get(), Matrix44::translation(pos.x, pos.y, 0.0));
 }

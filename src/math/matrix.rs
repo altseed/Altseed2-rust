@@ -204,15 +204,6 @@ macro_rules! define_square_matrix {
     ($name:ident, $n:expr) => {
         define_matrix!($name, $n, $n);
 
-        impl<T> $name<T>
-        where
-            T: Zero + One + Copy + PartialEq + Default + Add<T, Output = T> + Mul<T, Output = T>,
-        {
-            pub fn identity() -> Self {
-                Self::one()
-            }
-        }
-
         impl<T> One for $name<T>
         where
             T: Zero + One + Copy + PartialEq + Default + Add<T, Output = T> + Mul<T, Output = T>,
@@ -319,9 +310,18 @@ define_square_matrix!(Matrix33, 3);
 define_square_matrix!(Matrix44, 4);
 
 impl Matrix44<f32> {
+    pub fn identity() -> &'static Self {
+        lazy_static! {
+            static ref IDENITTY: Matrix44<f32> = Matrix44::one();
+        }
+        &IDENITTY
+    }
+}
+
+impl Matrix44<f32> {
     /// 平行移動行列を取得する。
     pub fn translation(x: f32, y: f32, z: f32) -> Self {
-        let mut m = Self::identity();
+        let mut m = Self::identity().clone();
         m.values[0][3] = x;
         m.values[1][3] = y;
         m.values[2][3] = z;
@@ -330,7 +330,7 @@ impl Matrix44<f32> {
 
     // 拡大行列を取得する。
     pub fn scale(x: f32, y: f32, z: f32) -> Self {
-        let mut m = Self::identity();
+        let mut m = Self::identity().clone();
         m.values[0][0] = x;
         m.values[1][1] = y;
         m.values[2][2] = z;
@@ -345,7 +345,7 @@ impl Matrix44<f32> {
         let s = angle.sin();
         let c = angle.cos();
 
-        let mut m = Self::identity();
+        let mut m = Self::identity().clone();
 
         m.values[0][0] = c;
         m.values[1][0] = s;

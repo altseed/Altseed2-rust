@@ -19,7 +19,7 @@ impl Default for Transform {
             angle: 0.0,
             center: Vector2::new(0.0, 0.0),
             updated: false,
-            transform: Matrix44::identity(),
+            transform: Matrix44::identity().clone(),
         }
     }
 }
@@ -74,7 +74,7 @@ impl Transform {
         self.updated
     }
 
-    pub(crate) fn get(&self) -> Matrix44<f32> {
-        self.transform.clone()
+    pub(crate) fn get(&self) ->&Matrix44<f32> {
+        &self.transform
     }
 }
