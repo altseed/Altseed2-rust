@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::math::*;
 
 use std::f32::consts::PI;
 

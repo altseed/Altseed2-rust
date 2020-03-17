@@ -173,7 +173,6 @@ pub trait Node: HasBaseNode + Downcast {
     }
 }
 
-
 impl_downcast!(Node);
 
 pub use camera::*;

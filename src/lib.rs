@@ -29,13 +29,12 @@ mod array;
 mod tests;
 
 pub mod prelude {
-    pub use crate::math::*;
+    pub use crate::math::{Vector2, Vector3, Vector4};
 
     pub use crate::engine::{Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        BaseNode, CameraNode, Drawn, DrawnNode, HasBaseNode, Node, NodeState, Polygon, Sprite,
-        Text, Transform,
+        BaseNode, CameraNode, Drawn, DrawnNode, HasBaseNode, Node, NodeState, Polygon, Sprite, Text,
     };
 
     pub use crate::core::*;
