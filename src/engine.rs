@@ -376,7 +376,7 @@ impl Engine {
     }
 
     /// ツールを管理するクラスを取得します。
-    pub fn tool(&self) -> &Option<Rc<RefCell<Tool>>> {
+    pub unsafe fn tool(&self) -> &Option<Rc<RefCell<Tool>>> {
         &self.tool
     }
 
