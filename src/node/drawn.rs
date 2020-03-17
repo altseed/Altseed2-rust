@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::auto_generated_core_binding::{Graphics, Material, Renderer};
-use crate::math::Vector2;
+use crate::math::{Matrix44, Vector2};
 use crate::node::*;
 
 use crate as altseed2;
@@ -29,6 +29,14 @@ pub trait Drawn {
     fn is_drawn_mut(&mut self) -> &mut bool;
 }
 
+pub(crate) trait DrawnInternal: Drawn {
+    fn on_drawn(&mut self, renderer: &mut Renderer);
+    fn update_transform(
+        &mut self,
+        ancestors: Option<&crate::math::Matrix44<f32>>,
+    ) -> Option<&crate::math::Matrix44<f32>>;
+}
+
 #[derive(Debug, Clone)]
 pub enum DrawnKind {
     Sprite(Rc<RefCell<Sprite>>),
@@ -38,6 +46,14 @@ pub enum DrawnKind {
 
 impl DrawnKind {
     pub fn get_drawn(&self) -> Rc<RefCell<dyn Drawn>> {
+        match self.clone() {
+            DrawnKind::Sprite(x) => x,
+            DrawnKind::Text(x) => x,
+            DrawnKind::Polygon(x) => x,
+        }
+    }
+
+    pub(crate) fn get_drawn_internal(&self) -> Rc<RefCell<dyn DrawnInternal>> {
         match self.clone() {
             DrawnKind::Sprite(x) => x,
             DrawnKind::Text(x) => x,
@@ -102,25 +118,14 @@ impl DrawnNode {
     }
 
     pub(crate) fn on_drawn(&mut self, _: &mut Graphics, renderer: &mut Renderer) {
-        if !self.get_is_drawn() { return; }
-
-        match self.kind.clone() {
-            DrawnKind::Sprite(x) => {
-                let mut x = x.borrow_mut();
-                x.update_transform();
-                renderer.draw_sprite(x.instance());
-            }
-            DrawnKind::Text(x) => {
-                let mut x = x.borrow_mut();
-                x.update_transform();
-                renderer.draw_text(x.instance());
-            }
-            DrawnKind::Polygon(x) => {
-                let mut x = x.borrow_mut();
-                x.update_transform();
-                renderer.draw_polygon(x.instance());
-            }
+        if !self.get_is_drawn() {
+            return;
         }
+
+        self.kind
+            .get_drawn_internal()
+            .borrow_mut()
+            .on_drawn(renderer);
     }
 }
 
@@ -131,6 +136,17 @@ impl list::SortedItem<i32> for DrawnNode {
 }
 
 impl DrawnNode {
+    pub(crate) fn relative_transform(
+        &mut self,
+        ancestors: Option<&Matrix44<f32>>,
+    ) -> Option<Matrix44<f32>> {
+        self.kind
+            .get_drawn_internal()
+            .borrow_mut()
+            .update_transform(ancestors)
+            .map(Clone::clone)
+    }
+
     pub fn get_z_order(&self) -> i32 {
         self.kind.get_drawn().borrow().z_order()
     }
@@ -231,11 +247,13 @@ macro_rules! define_drawn {
         }
 
         impl $name {
-            pub(crate) fn update_transform(&mut self) {
-                if self.trans.is_updated() {
-                    self.trans.update();
+            fn update_transform(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> Option<&crate::math::Matrix44<f32>> {
+                if self.trans.update(ancestors) {
                     let t = self.trans.get();
-                    self.instance.set_transform(t);
+                    self.instance.set_transform(t.clone());
+                    Some(t)
+                } else {
+                    None
                 }
             }
         }

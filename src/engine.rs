@@ -228,9 +228,10 @@ impl Engine {
         self.runner.update()?;
 
         // 再帰的にノードを更新
-        update_node_base(
+        update_node_recursive(
             &unsafe { Rc::from_raw(Rc::into_raw(self.root_node.clone()) as *const _) },
             self,
+            None,
         )?;
 
         // レンダーターゲットの指定
@@ -255,7 +256,7 @@ impl Engine {
         // }
 
         // DrawnNodeの呼び出し
-        for node in self.drawn_nodes.iter().filter_map(Weak::upgrade) {
+        for node in self.drawn_nodes.iter().map(|x| Weak::upgrade(x).unwrap()) {
             node.borrow_mut()
                 .on_drawn(&mut self.graphics, &mut self.renderer);
         }
@@ -323,7 +324,7 @@ impl Engine {
     }
 
     /// エンジンに追加されているノードを削除します。
-    pub fn remove_node<T: Node + 'static>(&mut self, child: Rc<RefCell<T>>) -> AltseedResult<()> {
+    pub fn remove_node<T: Node + 'static>(&mut self, child: &mut T) -> AltseedResult<()> {
         self.root_node.borrow().remove_child(child)
     }
 

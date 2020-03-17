@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::auto_generated_core_binding::{
-    AsTexture2D, RenderedPolygon, Vector2FArray, VertexArray,
+    AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
 };
 use crate::prelude::{Drawn, Rect, Vector2};
 use crate::structs::vertex::Vertex;
@@ -9,6 +9,19 @@ use crate::structs::vertex::Vertex;
 define_drawn! {
     pub struct Polygon {
         instance: RenderedPolygon,
+    }
+}
+
+impl super::DrawnInternal for Polygon {
+    fn on_drawn(&mut self, renderer: &mut Renderer) {
+        renderer.draw_polygon(&mut self.instance);
+    }
+
+    fn update_transform(
+        &mut self,
+        ancestors: Option<&crate::math::Matrix44<f32>>,
+    ) -> Option<&crate::math::Matrix44<f32>> {
+        self.update_transform(ancestors)
     }
 }
 

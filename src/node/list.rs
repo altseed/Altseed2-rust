@@ -1,48 +1,37 @@
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     rc::{Rc, Weak},
 };
 
 use crate::engine::Engine;
 use crate::error::*;
 use crate::node::{Node, NodeState};
+use std::collections::VecDeque;
 
 #[derive(Debug)]
-pub(crate) struct NodeList {
-    pub(crate) items: RefCell<Vec<Rc<RefCell<dyn Node>>>>,
-    add_queue: RefCell<Vec<Rc<RefCell<dyn Node>>>>,
-    remove_queue: RefCell<Vec<Rc<RefCell<dyn Node>>>>,
+pub(crate) struct NodeVec {
+    items: RefCell<VecDeque<Rc<RefCell<dyn Node>>>>,
+    add_queue: RefCell<VecDeque<Rc<RefCell<dyn Node>>>>,
 }
 
-impl NodeList {
+impl NodeVec {
     pub(crate) fn new() -> Self {
-        NodeList {
-            items: RefCell::new(Vec::new()),
-            add_queue: RefCell::new(Vec::new()),
-            remove_queue: RefCell::new(Vec::new()),
+        NodeVec {
+            items: RefCell::new(VecDeque::new()),
+            add_queue: RefCell::new(VecDeque::new()),
         }
+    }
+
+    pub(crate) fn items(&self) -> Ref<'_, VecDeque<Rc<RefCell<dyn Node>>>> {
+        self.items.borrow()
     }
 
     pub(crate) fn add(&self, item: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
         let state = item.borrow().node_base().state;
         match state {
             NodeState::Free => {
-                self.add_queue.borrow_mut().push(item.clone());
+                self.add_queue.borrow_mut().push_back(item.clone());
                 item.borrow_mut().node_base_mut().state = NodeState::WaitingAdded;
-                Ok(())
-            }
-            state => Err(AltseedError::InvalidNodeState(
-                std::any::type_name_of_val(&item.borrow()).to_owned(),
-                state,
-            )),
-        }
-    }
-
-    pub(crate) fn remove(&self, item: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
-        match item.borrow().node_base().state {
-            NodeState::Registered => {
-                self.remove_queue.borrow_mut().push(item.clone());
-                item.borrow_mut().node_base_mut().state = NodeState::WaitingRemoved;
                 Ok(())
             }
             state => Err(AltseedError::InvalidNodeState(
@@ -58,51 +47,45 @@ impl NodeList {
         engine: &mut Engine,
     ) -> AltseedResult<()> {
         let mut items = self.items.borrow_mut();
-        items.retain(|x| x.borrow().node_base().state == NodeState::Registered);
+        {
+            let mut added = self.add_queue.borrow_mut();
+            for item in added.iter() {
+                items.push_back(item.clone());
+                item.borrow_mut().node_base_mut().owner = Some(owner.clone());
+            }
+            added.clear();
+        }
 
-        for item in self.add_queue.borrow().iter() {
-            {
-                items.push(item.clone());
+        let mut tmp = VecDeque::new();
 
-                let mut item = item.borrow_mut();
-                let mut base = item.node_base_mut();
-                base.state = NodeState::Registered;
-                base.owner = Some(owner.clone());
-                item.on_added(engine)?;
+        while let Some(item) = items.pop_front() {
+            let mut x = item.borrow_mut();
+            match x.state() {
+                NodeState::WaitingAdded => {
+                    tmp.push_back(item.clone());
+                    x.on_added(engine)?;
+                    x.node_base_mut().state = NodeState::Registered;
+                }
+                NodeState::Registered => {
+                    tmp.push_back(item.clone());
+                }
+                NodeState::WaitingRemoved => {
+                    x.on_removed(engine)?;
+                    x.node_base_mut().state = NodeState::Free;
+                }
+                _ => (),
             }
         }
 
-        for item in self.remove_queue.borrow().iter() {
-            let mut item = item.borrow_mut();
-            item.on_removed(engine)?;
-            let mut base = item.node_base_mut();
-            base.state = NodeState::Free;
-            base.owner = None;
-        }
-
-        self.remove_queue.borrow_mut().clear();
-        self.add_queue.borrow_mut().clear();
+        std::mem::swap(&mut tmp, &mut items);
 
         Ok(())
     }
 
     pub(crate) fn clear(&mut self) {
-        self.items.borrow_mut().clear();
-        self.remove_queue.borrow_mut().clear();
         self.add_queue.borrow_mut().clear();
+        self.items.borrow_mut().clear();
     }
-
-    // pub(crate) fn add_immediately(&mut self, node: Rc<RefCell<dyn Node>>) -> Result<(), String> {
-    //     match node.borrow().get_state() {
-    //         NodeState::Free => {
-    //             self.items.borrow_mut().push(node.clone());
-    //             Ok(())
-    //         },
-    //         state => {
-    //             Err(format!("Invalid NodeState: {:?}", state))
-    //         }
-    //     }
-    // }
 }
 
 use std::{cmp::Ord, marker::PhantomData, slice::Iter};

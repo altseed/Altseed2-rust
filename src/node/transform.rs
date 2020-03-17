@@ -61,20 +61,33 @@ impl Transform {
         &mut self.center
     }
 
-    pub(crate) fn update(&mut self) {
-        self.transform = Matrix44::translation(self.center.x, self.center.y, 0.0)
+    fn calculate(&self) -> Matrix44<f32> {
+        Matrix44::translation(self.center.x, self.center.y, 0.0)
             * Matrix44::translation(self.pos.x, self.pos.y, 0.0)
             * Matrix44::rotation_z(self.angle)
             * Matrix44::scale(self.scale.x, self.scale.y, 1.0)
-            * Matrix44::translation(-self.center.x, -self.center.y, 0.0);
-        self.updated = false;
+            * Matrix44::translation(-self.center.x, -self.center.y, 0.0)
     }
 
-    pub(crate) fn is_updated(&self) -> bool {
-        self.updated
+    pub(crate) fn update(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> bool {
+        match (self.updated, ancestors) {
+            (false, None) => false,
+            (true, None) => {
+                if self.updated {
+                    self.transform = self.calculate();
+                    self.updated = false;
+                }
+                true
+            }
+            (_, Some(p)) => {
+                self.transform = p * &self.calculate();
+                self.updated = false;
+                true
+            }
+        }
     }
 
-    pub(crate) fn get(&self) ->&Matrix44<f32> {
+    pub(crate) fn get(&self) -> &Matrix44<f32> {
         &self.transform
     }
 }

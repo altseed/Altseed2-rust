@@ -4,12 +4,25 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::auto_generated_core_binding::{Font, RenderedText};
+use crate::auto_generated_core_binding::{Font, RenderedText, Renderer};
 use crate::prelude::{Drawn, Vector2};
 
 define_drawn! {
     pub struct Text {
         instance: RenderedText,
+    }
+}
+
+impl super::DrawnInternal for Text {
+    fn on_drawn(&mut self, renderer: &mut Renderer) {
+        renderer.draw_text(&mut self.instance);
+    }
+
+    fn update_transform(
+        &mut self,
+        ancestors: Option<&crate::math::Matrix44<f32>>,
+    ) -> Option<&crate::math::Matrix44<f32>> {
+        self.update_transform(ancestors)
     }
 }
 
@@ -21,10 +34,6 @@ impl Text {
             z_order: 0,
             is_drawn: true,
         }))
-    }
-
-    pub(crate) fn instance(&mut self) -> &mut RenderedText {
-        &mut self.instance
     }
 
     /// テキストを取得します。

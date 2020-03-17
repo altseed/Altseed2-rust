@@ -1,11 +1,24 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite};
+use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite, Renderer};
 use crate::prelude::{Drawn, Rect, Vector2};
 
 define_drawn! {
     pub struct Sprite {
         instance: RenderedSprite,
+    }
+}
+
+impl super::DrawnInternal for Sprite {
+    fn on_drawn(&mut self, renderer: &mut Renderer) {
+        renderer.draw_sprite(&mut self.instance);
+    }
+
+    fn update_transform(
+        &mut self,
+        ancestors: Option<&crate::math::Matrix44<f32>>,
+    ) -> Option<&crate::math::Matrix44<f32>> {
+        self.update_transform(ancestors)
     }
 }
 
@@ -17,10 +30,6 @@ impl Sprite {
             z_order: 0,
             is_drawn: true,
         }))
-    }
-
-    pub(crate) fn instance(&mut self) -> &mut RenderedSprite {
-        &mut self.instance
     }
 
     /// テクスチャを取得します。

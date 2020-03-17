@@ -1,5 +1,5 @@
 use std::{
-    cell::RefCell,
+    cell::{Ref, RefCell},
     rc::{Rc, Weak},
 };
 
@@ -35,7 +35,7 @@ pub enum NodeState {
 #[derive(Debug)]
 pub struct BaseNode {
     pub(crate) state: NodeState,
-    pub(crate) children: NodeList,
+    pub(crate) children: NodeVec,
     pub(crate) owner: Option<Weak<RefCell<dyn Node>>>,
 }
 
@@ -43,7 +43,7 @@ impl Default for BaseNode {
     fn default() -> Self {
         BaseNode {
             state: NodeState::Free,
-            children: NodeList::new(),
+            children: NodeVec::new(),
             owner: None,
         }
     }
@@ -67,6 +67,8 @@ impl HasBaseNode for BaseNode {
 
 impl Node for BaseNode {}
 
+use std::collections::VecDeque;
+
 pub trait HasBaseNode: std::fmt::Debug {
     fn node_base(&self) -> &BaseNode;
     fn node_base_mut(&mut self) -> &mut BaseNode;
@@ -82,41 +84,72 @@ pub trait HasBaseNode: std::fmt::Debug {
         }
     }
 
+    fn children(&self) -> Ref<'_, VecDeque<Rc<RefCell<dyn Node>>>> {
+        self.node_base().children.items()
+    }
+
     /// mutability concealed
     fn add_child(&self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
         self.node_base().children.add(child)
     }
 
     /// mutability concealed
-    fn remove_child(&self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
-        if let Some(owner) = child.borrow().owner() {
+    fn remove_child(&self, child: &mut dyn Node) -> AltseedResult<()> {
+        if let Some(owner) = child.owner() {
             if self.node_base() as *const BaseNode != owner.borrow().node_base() as *const BaseNode
             {
                 return Err(AltseedError::RemovedInvalidNode(
                     std::any::type_name_of_val(self).to_owned(),
-                    std::any::type_name_of_val(&child.borrow()).to_owned(),
-                    std::any::type_name_of_val(&owner.borrow()).to_owned(),
+                    std::any::type_name_of_val(&child).to_owned(),
+                    std::any::type_name_of_val(&owner).to_owned(),
                 ));
             }
         }
 
-        self.node_base().children.remove(child)
+        match child.node_base().state {
+            NodeState::Registered => {
+                child.node_base_mut().state = NodeState::WaitingRemoved;
+                Ok(())
+            }
+            state => Err(AltseedError::InvalidNodeState(
+                std::any::type_name_of_val(&child).to_owned(),
+                state,
+            )),
+        }
     }
 }
 
-pub(crate) fn update_node_base(
+pub(crate) fn update_node_recursive(
     node: &Rc<RefCell<dyn Node>>,
     engine: &mut Engine,
+    ancestors: Option<&crate::math::Matrix44<f32>>,
 ) -> AltseedResult<()> {
+    node.borrow_mut().on_updating(engine)?;
+
     node.borrow()
         .node_base()
         .children
         .update(Rc::downgrade(node), engine)?;
 
-    for child in node.borrow().node_base().children.items.borrow().iter() {
-        update_node_base(&child, engine)?;
-        child.borrow_mut().on_updated(engine)?;
+    let t = node
+        .borrow_mut()
+        .downcast_mut::<DrawnNode>()
+        .map(|d| d.relative_transform(ancestors));
+
+    match t {
+        Some(t) => {
+            for child in node.borrow().children().iter() {
+                update_node_recursive(&child, engine, t.as_ref())?;
+            }
+        }
+        None => {
+            for child in node.borrow().children().iter() {
+                update_node_recursive(&child, engine, ancestors)?;
+            }
+        }
     }
+
+    node.borrow_mut().on_updated(engine)?;
 
     Ok(())
 }
@@ -124,6 +157,10 @@ pub(crate) fn update_node_base(
 #[allow(unused_variables)]
 pub trait Node: HasBaseNode + Downcast {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+        Ok(())
+    }
+
+    fn on_updating(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
@@ -135,6 +172,7 @@ pub trait Node: HasBaseNode + Downcast {
         Ok(())
     }
 }
+
 
 impl_downcast!(Node);
 

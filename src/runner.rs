@@ -63,7 +63,6 @@ pub struct TaskRunner<'a, E> {
     context: Context<'a>,
     added_pins: PinsQueue<E>,
     pins: PinsQueue<E>,
-    pins_tmp: PinsQueue<E>,
 }
 
 impl<'a, E> TaskRunner<'a, E> {
@@ -72,7 +71,6 @@ impl<'a, E> TaskRunner<'a, E> {
             context: Context::from_waker(waker),
             added_pins: VecDeque::new(),
             pins: VecDeque::new(),
-            pins_tmp: VecDeque::new(),
         }
     }
 
@@ -83,17 +81,19 @@ impl<'a, E> TaskRunner<'a, E> {
             return Ok(());
         }
 
-        while let Some(mut p) = self.pins.pop_back() {
+        let mut tmp = VecDeque::new();
+
+        while let Some(mut p) = self.pins.pop_front() {
             match p.as_mut().poll(&mut self.context) {
-                Poll::Pending => self.pins_tmp.push_back(p),
+                Poll::Pending => tmp.push_back(p),
                 Poll::Ready(error) => {
-                    std::mem::swap(&mut self.pins, &mut self.pins_tmp);
+                    std::mem::swap(&mut self.pins, &mut tmp);
                     return error;
                 }
             }
         }
 
-        std::mem::swap(&mut self.pins, &mut self.pins_tmp);
+        std::mem::swap(&mut self.pins, &mut tmp);
 
         Ok(())
     }
