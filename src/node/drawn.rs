@@ -34,7 +34,7 @@ pub(crate) trait DrawnInternal: Drawn {
     fn update_transform(
         &mut self,
         ancestors: Option<&crate::math::Matrix44<f32>>,
-    ) -> Option<&crate::math::Matrix44<f32>>;
+    ) -> Option<crate::math::Matrix44<f32>>;
 }
 
 #[derive(Debug, Clone)]
@@ -141,7 +141,6 @@ impl DrawnNode {
             .get_drawn_internal()
             .borrow_mut()
             .update_transform(ancestors)
-            .map(Clone::clone)
     }
 
     pub fn get_z_order(&self) -> i32 {
@@ -244,13 +243,13 @@ macro_rules! define_drawn {
         }
 
         impl $name {
-            fn update_transform(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> Option<&crate::math::Matrix44<f32>> {
+            fn update_transform(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> Option<crate::math::Matrix44<f32>> {
                 if self.trans.update(ancestors) {
                     let t = self.trans.get();
                     self.instance.set_transform(t.clone());
-                    Some(t)
+                    Some(t.clone())
                 } else {
-                    None
+                    ancestors.map(Clone::clone)
                 }
             }
         }

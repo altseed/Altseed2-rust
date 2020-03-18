@@ -20,7 +20,7 @@ impl super::DrawnInternal for Polygon {
     fn update_transform(
         &mut self,
         ancestors: Option<&crate::math::Matrix44<f32>>,
-    ) -> Option<&crate::math::Matrix44<f32>> {
+    ) -> Option<crate::math::Matrix44<f32>> {
         self.update_transform(ancestors)
     }
 }
