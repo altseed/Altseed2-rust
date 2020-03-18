@@ -12,16 +12,16 @@ use crate::error::*;
 pub mod boiler_plate;
 
 pub(crate) mod list;
-mod transform;
+pub mod transform;
 
 #[macro_use]
-mod drawn;
+pub mod drawn;
 
-mod camera;
-mod polygon;
-mod root;
-mod sprite;
-mod text;
+pub mod camera;
+pub mod polygon;
+pub mod root;
+pub mod sprite;
+pub mod text;
 
 use list::*;
 

@@ -5,9 +5,9 @@ pub trait Dot<T> {
     fn dot(self, other: T) -> Self::Output;
 }
 
-mod easing;
-mod matrix;
-mod vector;
+pub mod easing;
+pub mod matrix;
+pub mod vector;
 
 pub use easing::Easing;
 pub use matrix::*;
