@@ -32,7 +32,8 @@ impl SoundMixer {
 
     /// 音を再生します。
     pub fn play(&mut self, sound: &mut Sound) -> AltseedResult<SoundID> {
-        SoundID::new(self.instance.play(sound)).ok_or(AltseedError::FailedToPlaySound(sound.get_path()))
+        SoundID::new(self.instance.play(sound))
+            .ok_or(AltseedError::FailedToPlaySound(sound.get_path()))
     }
 
     /// 指定した音が再生中であるかを取得します。
