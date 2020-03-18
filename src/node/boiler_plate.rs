@@ -1,22 +1,27 @@
 #[macro_export]
-macro_rules! define_node {(
-    $(#[$meta_s:meta])*
+macro_rules! define_node {
+    // フィールドが空の場合
+    ($(#[$meta_s:meta])*
     pub struct $name: ident {
-        $(
-            $(#[$meta_v:meta])*
-            $variant: ident : $ty: ty,
-        )*
+
     }) => {
-        define_node!(
-            $(#[$meta_s])*
-                pub struct $name <> {
-                $(
-                    $(#[$meta_v])*
-                    $variant: $ty,
-                )*
+        $(#[$meta_s])*
+        #[derive(Debug)]
+        pub struct $name {
+            __node_base: altseed2::node::BaseNode,
+        }
+
+        impl altseed2::node::HasBaseNode for $name {
+            fn node_base(&self) -> &altseed2::node::BaseNode {
+                &self.__node_base
             }
-        );
+
+            fn node_base_mut(&mut self) -> &mut altseed2::node::BaseNode {
+                &mut self.__node_base
+            }
+        }
     };
+    // 基本の実装
     (
     $(#[$meta_s:meta])*
     pub struct $name: ident < $( $N:ident $(: $b0:ident $(+$b:ident)* )? ),* > {
@@ -45,19 +50,70 @@ macro_rules! define_node {(
             }
         }
     };
+    // フィールドの区切られ方で変わるので
+    ($(#[$meta_s:meta])*
+    pub struct $name: ident {
+        $(
+            $(#[$meta_v:meta])*
+            $variant: ident : $ty: ty
+        ),*
+    }) => {
+        define_node!(
+            $(#[$meta_s])*
+            pub struct $name <> {
+                $(
+                    $(#[$meta_v])*
+                    $variant: $ty
+                ),*
+            }
+        );
+    };
+    ($(#[$meta_s:meta])*
+    pub struct $name: ident {
+        $(
+            $(#[$meta_v:meta])*
+            $variant: ident : $ty: ty,
+        )*
+    }) => {
+        define_node!(
+            $(#[$meta_s])*
+            pub struct $name <> {
+                $(
+                    $(#[$meta_v])*
+                    $variant: $ty,
+                )*
+            }
+        );
+    };
+    (
+    $(#[$meta_s:meta])*
+    pub struct $name: ident < $( $N:ident $(: $b0:ident $(+$b:ident)* )? ),* > {
+        $(
+            $(#[$meta_v:meta])*
+            $variant: ident : $ty: ty
+        ),*
+    }) => {
+        define_node!(
+            $(#[$meta_s])*
+            pub struct $name < $( $N $(: $b0 $(+$b)* )? ),* > {
+                $(
+                    $(#[$meta_v])*
+                    $variant: $ty
+                ),*,
+            }
+        );
+    };
 }
 
 #[macro_export]
-macro_rules! create_node {(
-    $name: ident {
-        $(
-            $variant: ident : $e: expr
-        ),*
-    }) => {
-        create_node!(
-            $name {
-                $($variant: $e),* ,
-            }
+macro_rules! create_node {
+    ($name: ident { }) => {
+        std::rc::Rc::new(
+            std::cell::RefCell::new(
+                $name {
+                    __node_base: altseed2::node::BaseNode::default(),
+                }
+            )
         )
     };
     ($name: ident {
@@ -72,6 +128,17 @@ macro_rules! create_node {(
                     $($variant : $e,)*
                 }
             )
+        )
+    };
+    ($name: ident {
+        $(
+            $variant: ident : $e: expr
+        ),*
+    }) => {
+        create_node!(
+            $name {
+                $($variant: $e),* ,
+            }
         )
     };
 }
