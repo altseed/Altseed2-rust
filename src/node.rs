@@ -19,6 +19,7 @@ mod drawn;
 
 mod camera;
 mod polygon;
+mod root;
 mod sprite;
 mod text;
 
@@ -218,6 +219,7 @@ impl_downcast!(Node);
 pub use camera::*;
 pub use drawn::*;
 pub use polygon::Polygon;
+pub use root::RootNode;
 pub use sprite::Sprite;
 pub use text::Text;
 pub use transform::*;

@@ -20,6 +20,8 @@ pub enum AltseedError {
     CoreError(String),
     #[fail(display = "Failed to initialize the Engine")]
     InitializationFailed,
+    #[fail(display = "The Engine has already been initialized")]
+    AlreadyInitialized,
     #[fail(display = "Failed to create {} from '{}'", 0, 1)]
     FailedToCreateResource(ResourceType, String),
 

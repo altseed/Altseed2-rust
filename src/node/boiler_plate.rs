@@ -36,7 +36,7 @@ macro_rules! define_node {(
         }
 
         impl< $( $N $(: $b0 $(+$b)* )? ),* > altseed2::node::HasBaseNode for $name< $( $N ),* > {
-            fn node_base(&self) -> &BaseNode {
+            fn node_base(&self) -> &altseed2::node::BaseNode {
                 &self.__node_base
             }
 

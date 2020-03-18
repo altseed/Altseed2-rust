@@ -17,7 +17,9 @@ fn engine() -> AltseedResult<()> {
         }
 
         Ok(())
-    })
+    })?;
+
+    Ok(())
 }
 
 use std::{cell::RefCell, rc::Rc};
@@ -36,7 +38,9 @@ fn node() -> AltseedResult<()> {
         }
 
         Ok(())
-    })
+    })?;
+
+    Ok(())
 }
 
 #[test]
@@ -68,5 +72,7 @@ fn sprite() -> AltseedResult<()> {
         }
 
         Ok(())
-    })
+    })?;
+
+    Ok(())
 }

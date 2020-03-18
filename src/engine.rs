@@ -105,7 +105,7 @@ pub struct Engine {
     sound: Rc<RefCell<SoundMixer>>,
     log: Rc<RefCell<Log>>,
     tool: Option<Rc<RefCell<Tool>>>,
-    root_node: Rc<RefCell<BaseNode>>,
+    root_node: Rc<RefCell<RootNode>>,
     loader: Loader,
 
     drawn_nodes: list::SortVec<i32, DrawnNode>,
@@ -115,9 +115,14 @@ pub struct Engine {
     closed: bool,
 }
 
+lazy_static! {
+    static ref INITIALIZED: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
+}
+
 impl Drop for Engine {
     fn drop(&mut self) {
         Core::terminate();
+        *INITIALIZED.lock().unwrap() = false;
     }
 }
 
@@ -158,7 +163,7 @@ impl Engine {
                 loader: Loader {
                     phantom: PhantomData,
                 },
-                root_node: Rc::new(RefCell::new(BaseNode::default())),
+                root_node: RootNode::new(),
                 drawn_nodes: list::SortVec::new(),
                 camera_nodes: list::SortVec::new(),
                 runner: TaskRunner::new(&WAKER),
@@ -183,6 +188,13 @@ impl Engine {
         height: i32,
         config: Config,
     ) -> AltseedResult<Engine> {
+        let mut initialized = INITIALIZED.lock().unwrap();
+        if *initialized {
+            return Err(AltseedError::AlreadyInitialized);
+        }
+
+        *initialized = true;
+
         Engine::initialize_core(title, width, height, config)
             .ok_or(AltseedError::InitializationFailed)
     }
@@ -192,6 +204,13 @@ impl Engine {
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
     pub fn initialize(title: &str, width: i32, height: i32) -> AltseedResult<Engine> {
+        let mut initialized = INITIALIZED.lock().unwrap();
+        if *initialized {
+            return Err(AltseedError::AlreadyInitialized);
+        }
+
+        *initialized = true;
+
         Engine::initialize_core(title, width, height, Config::default())
             .ok_or(AltseedError::InitializationFailed)
     }
@@ -203,6 +222,7 @@ impl Engine {
 
     fn do_events(&mut self) -> AltseedResult<bool> {
         if self.closed {
+            self.closed = false;
             return Ok(false);
         }
 
@@ -287,25 +307,25 @@ impl Engine {
     }
 
     /// メインループを実行します
-    pub fn run(mut self) -> AltseedResult<()> {
+    pub fn run(mut self) -> AltseedResult<Engine> {
         while self.do_events()? {
             self.update()?;
         }
 
-        Ok(())
+        Ok(self)
     }
 
     /// 毎フレーム実行する関数を指定してメインループを実行します。
     pub fn run_with<F: FnMut(&mut Engine) -> AltseedResult<()>>(
         mut self,
-        mut f: F,
-    ) -> AltseedResult<()> {
+        mut on_updating: F,
+    ) -> AltseedResult<Engine> {
         while self.do_events()? {
-            f(&mut self)?;
+            on_updating(&mut self)?;
             self.update()?;
         }
 
-        Ok(())
+        Ok(self)
     }
 
     /// DrawnNodeのon_addedの中から呼び出される。
@@ -329,7 +349,7 @@ impl Engine {
     }
 
     /// ルートノードを取得します。
-    pub fn root_node(&self) -> &Rc<RefCell<BaseNode>> {
+    pub fn root_node(&self) -> &Rc<RefCell<RootNode>> {
         &self.root_node
     }
 

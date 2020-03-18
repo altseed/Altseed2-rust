@@ -87,5 +87,7 @@ fn load_async() -> AltseedResult<()> {
         }
 
         Ok(())
-    })
+    })?;
+
+    Ok(())
 }
