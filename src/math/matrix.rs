@@ -7,6 +7,7 @@ pub trait Matrix {}
 // define `Matrix` structs
 macro_rules! define_matrix {
     ($name:ident, $nx:expr, $ny:expr) => {
+        #[repr(C)]
         #[derive(Clone, PartialEq, Default, Debug)]
         pub struct $name<T> {
             pub values: [[T; $nx]; $ny],

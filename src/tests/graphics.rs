@@ -1,6 +1,6 @@
 use crate::auto_generated_core_binding::*;
 use crate::math::Matrix44;
-use crate::structs::rect::Rect;
+use crate::structs::Rect;
 use crate::structs::*;
 
 #[test]

@@ -40,6 +40,7 @@ macro_rules! vector_to_array {
 
 // define `Vector` structs
 macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
+    #[repr(C)]
     #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Debug)]
     pub struct $name<T> {
         $(

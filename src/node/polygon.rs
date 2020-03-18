@@ -4,7 +4,7 @@ use crate::auto_generated_core_binding::{
     AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
 };
 use crate::prelude::{Drawn, Rect, Vector2};
-use crate::structs::vertex::Vertex;
+use crate::structs::Vertex;
 
 define_drawn! {
     pub struct Polygon {
