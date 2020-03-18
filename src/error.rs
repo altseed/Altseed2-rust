@@ -34,6 +34,9 @@ pub enum AltseedError {
     )]
     RemovedInvalidNode(String, String, String),
 
+    #[fail(display = "Failed to play sound of '{}'", 0)]
+    FailedToPlaySound(String),
+
     #[fail(display = "{}", 0)]
     Error(Box<dyn std::error::Error + Send + Sync + 'static>),
 }

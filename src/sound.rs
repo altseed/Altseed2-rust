@@ -1,5 +1,6 @@
 use crate::auto_generated_core_binding::SoundMixer as CoreMixer;
 use crate::auto_generated_core_binding::{FFTWindow, FloatArray, Sound};
+use crate::error::*;
 
 /// 再生する音のIDを表す
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -30,8 +31,8 @@ impl SoundMixer {
     }
 
     /// 音を再生します。
-    pub fn play(&mut self, sound: &mut Sound) -> Option<SoundID> {
-        SoundID::new(self.instance.play(sound))
+    pub fn play(&mut self, sound: &mut Sound) -> AltseedResult<SoundID> {
+        SoundID::new(self.instance.play(sound)).ok_or(AltseedError::FailedToPlaySound(sound.get_path()))
     }
 
     /// 指定した音が再生中であるかを取得します。
