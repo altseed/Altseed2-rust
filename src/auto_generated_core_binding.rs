@@ -975,6 +975,10 @@ extern "C" {
 
     fn cbg_Renderer_Render(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
 
+    fn cbg_Renderer_SetCamera(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
+
+    fn cbg_Renderer_ResetCamera(self_ptr: *mut RawPtr) -> ();
+
     fn cbg_Renderer_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_CommandList_SetRenderTargetWithScreen(self_ptr: *mut RawPtr) -> ();
@@ -3151,7 +3155,7 @@ impl Renderer {
     /// # Arguments
     /// * `sprite` - 描画するRenderedSpriteのインスタンス
 
-    pub fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
+    pub(crate) fn draw_sprite(&mut self, sprite: &mut RenderedSprite) -> () {
         unsafe { cbg_Renderer_DrawSprite(self.self_ptr, sprite.self_ptr()) }
     }
 
@@ -3159,7 +3163,7 @@ impl Renderer {
     /// # Arguments
     /// * `text` - 描画するRenderedTextのインスタンス
 
-    pub fn draw_text(&mut self, text: &mut RenderedText) -> () {
+    pub(crate) fn draw_text(&mut self, text: &mut RenderedText) -> () {
         unsafe { cbg_Renderer_DrawText(self.self_ptr, text.self_ptr()) }
     }
 
@@ -3167,7 +3171,7 @@ impl Renderer {
     /// # Arguments
     /// * `polygon` - 描画するRenderedPolygonのインスタンス
 
-    pub fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
+    pub(crate) fn draw_polygon(&mut self, polygon: &mut RenderedPolygon) -> () {
         unsafe { cbg_Renderer_DrawPolygon(self.self_ptr, polygon.self_ptr()) }
     }
 
@@ -3175,8 +3179,22 @@ impl Renderer {
     /// # Arguments
     /// * `command_list` - 描画するコマンドリスト
 
-    pub fn render(&mut self, command_list: &mut CommandList) -> () {
+    pub(crate) fn render(&mut self, command_list: &mut CommandList) -> () {
         unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr()) }
+    }
+
+    /// 使用するカメラを設定します。
+    /// # Arguments
+    /// * `command_list` - 描画するカメラ
+
+    pub(crate) fn set_camera(&mut self, command_list: &mut RenderedCamera) -> () {
+        unsafe { cbg_Renderer_SetCamera(self.self_ptr, command_list.self_ptr()) }
+    }
+
+    /// 使用するカメラの設定をリセットします。
+
+    pub fn reset_camera(&mut self) -> () {
+        unsafe { cbg_Renderer_ResetCamera(self.self_ptr) }
     }
 }
 
@@ -3223,10 +3241,10 @@ impl CommandList {
     pub fn set_render_target(
         &mut self,
         target: &mut RenderTexture,
-        mut viewport: &crate::structs::Rect<i32>,
+        mut viewport: crate::structs::Rect<i32>,
     ) -> () {
         unsafe {
-            cbg_CommandList_SetRenderTarget(self.self_ptr, target.self_ptr(), viewport as *const _)
+            cbg_CommandList_SetRenderTarget(self.self_ptr, target.self_ptr(), &viewport as *const _)
         }
     }
 
