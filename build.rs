@@ -5,12 +5,15 @@ use std::{
 };
 
 fn generate_examples() -> Result<(), Box<dyn error::Error>> {
+    let timer_frame = 10;
+
     let examples = vec![
         "hello_world",
         "sprite",
         "text",
         "sound",
         "log",
+        "load_async",
         "custom_node",
     ];
 
@@ -22,11 +25,10 @@ fn generate_examples() -> Result<(), Box<dyn error::Error>> {
 
     writeln!(
         module,
-        r"
-//! Examples
+        r#"//! Examples
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-"
+"#
     )?;
 
     let mut count = 0;
@@ -35,43 +37,64 @@ fn generate_examples() -> Result<(), Box<dyn error::Error>> {
         let mod_name = format!("_{0:02}_{1}", count, name);
         count += 1;
         writeln!(module, "pub mod {};", mod_name)?;
+        writeln!(module, "mod test{};", mod_name)?;
         let content = fs::read_to_string(format!("./examples/{}.rs", name))?;
         let mut file = BufWriter::new(fs::File::create(format!("./src/examples/{}.rs", mod_name))?);
+        let mut test_file = BufWriter::new(fs::File::create(format!(
+            "./src/examples/test{}.rs",
+            mod_name
+        ))?);
 
-        writeln!(
-            file,
-            r"
-// Auto-generated. Do not modify.
-// このファイルは自動生成されたものです。変更しないでください。
-"
-        )?;
+        {
+            let s = r#"// Auto-generated. Do not modify.
+// このファイルは自動生成されたものです。変更しないでください。"#;
+            writeln!(file, "{}", s)?;
+            writeln!(test_file, "{}", s)?;
+        }
+
         let lines: Vec<_> = content
             .split('\n')
             .map(|s| (s, s.starts_with("//!")))
             .collect();
-        for (line, c) in lines.iter() {
-            if *c {
-                writeln!(file, "{}", line)?;
-            }
+        for (line, _) in lines.iter().filter(|(_, c)| *c) {
+            writeln!(file, "{}", line)?;
         }
 
-        writeln!(file, "//!\n//! ```\n")?;
-        for (line, c) in lines.iter() {
-            if !c {
-                writeln!(file, "//! {}", line)?;
+        writeln!(file, r#"//! ```no_run"#)?;
+        writeln!(test_file, r#"//! ```"#)?;
+
+        let mut enabled_timer = false;
+        let mut added_timer = false;
+        for (line, _) in lines.iter().filter(|(_, c)| !c) {
+            if !enabled_timer && line.contains("add timer") {
+                writeln!(test_file, r#"//! include!("../tests/timer.rs");"#)?;
+                enabled_timer = true;
+                continue;
+            }
+
+            writeln!(file, "//! {}", line)?;
+            writeln!(test_file, "//! {}", line)?;
+
+            if enabled_timer && !added_timer && line.contains("Engine::initialize") {
+                writeln!(
+                    test_file,
+                    r#"//! 
+//!     engine.add_node(timer::TimerNode::new({0}))?;"#,
+                    timer_frame
+                )?;
+                added_timer = true;
             }
         }
 
         writeln!(
             file,
-            r"
-//! ```
-//!
+            r#"//! ```
+//! 
 //! ## Run this example
 //! ```shell
 //! cargo run --example {}
 //! ```
-",
+"#,
             name
         )?;
     }

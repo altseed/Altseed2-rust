@@ -339,12 +339,12 @@ impl Engine {
     }
 
     /// エンジンに新しいノードを追加するフラグを立てます。実際の更新はフレームの終わりに実行されます。
-    pub fn add_node<T: Node + 'static>(&mut self, child: Rc<RefCell<T>>) -> AltseedResult<()> {
+    pub fn add_node<T: Node + 'static>(&self, child: Rc<RefCell<T>>) -> AltseedResult<()> {
         self.root_node.borrow_mut().add_child(child)
     }
 
     /// エンジンに追加されているノードを削除するフラグを立てます。実際の更新はフレームの終わりに実行されます。
-    pub fn remove_node<T: Node + 'static>(&mut self, child: &mut T) -> AltseedResult<()> {
+    pub fn remove_node<T: Node + 'static>(&self, child: &mut T) -> AltseedResult<()> {
         self.root_node.borrow_mut().remove_child(child)
     }
 

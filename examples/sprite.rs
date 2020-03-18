@@ -1,10 +1,10 @@
 //! # 画像を表示するサンプル
-
 use altseed2::prelude::*;
 
+// add timer
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。
-    let mut engine = Engine::initialize("engine", 800, 600)?;
+    let engine = Engine::initialize("sprite", 800, 600)?;
 
     let tex = engine
         .loader()
@@ -24,5 +24,5 @@ fn main() -> AltseedResult<()> {
     // 正常終了
     Ok(())
 
-    // engine が dropする際に自動的にAltseedの終了処理が呼ばれます。
+    // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 }

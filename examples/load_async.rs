@@ -1,3 +1,4 @@
+//! マルチスレッドでファイルを読み込むサンプル
 #[macro_use]
 extern crate lazy_static;
 extern crate futures;
@@ -8,13 +9,13 @@ use futures::{executor::ThreadPool, task::SpawnExt};
 
 use altseed2::prelude::*;
 
-lazy_static! {
-    static ref POOL: ThreadPool = ThreadPool::new().unwrap();
-}
+fn main() -> AltseedResult<()> {
+    lazy_static! {
+        static ref POOL: ThreadPool = ThreadPool::new().unwrap();
+    }
 
-#[test]
-fn load_async() -> AltseedResult<()> {
     let mut engine = Engine::initialize("load async", 800, 600)?;
+
     let tex = engine
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
@@ -88,6 +89,7 @@ fn load_async() -> AltseedResult<()> {
 
         Ok(())
     })?;
+    // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 
     Ok(())
 }

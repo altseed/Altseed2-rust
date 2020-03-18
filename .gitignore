@@ -9,3 +9,5 @@ scripts/cbg/*
 /Altseed_Core.dll
 /libAltseed_Core.dylib
 /libAltseed_Core.so
+
+/src/examples/test_**.rs

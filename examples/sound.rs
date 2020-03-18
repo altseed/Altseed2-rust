@@ -1,10 +1,9 @@
 //! # 音を鳴らすサンプル
-
 use altseed2::prelude::*;
 
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。 ?演算子を利用してError時に早期終了します。
-    let engine = Engine::initialize("engine", 800, 600)?;
+    let engine = Engine::initialize("sound", 800, 600)?;
 
     // 音ファイルを読み込みます。
     // 効果音の場合は第2引数を true に設定して事前にファイルを解凍することが推奨されている。
@@ -26,7 +25,7 @@ fn main() -> AltseedResult<()> {
         // 正常終了
         Ok(())
     })?;
-    // engine が dropする際に自動的にAltseedの終了処理が呼ばれます。
+    // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 
     // 正常終了
     Ok(())

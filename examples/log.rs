@@ -1,10 +1,9 @@
 //! # ログを出力するサンプル
-
 use altseed2::prelude::*;
 
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。 ?演算子を利用してError時に早期終了します。
-    let engine = Engine::initialize("engine", 800, 600)?;
+    let engine = Engine::initialize("log", 800, 600)?;
 
     engine.log().borrow_mut().info(
         LogCategory::User,
@@ -31,4 +30,5 @@ fn main() -> AltseedResult<()> {
 
     // 正常終了
     Ok(())
+    // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 }
