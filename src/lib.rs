@@ -29,6 +29,8 @@ mod array;
 #[cfg(test)]
 mod tests;
 
+pub mod examples;
+
 pub mod prelude {
     pub use crate::math::{Vector2, Vector3, Vector4};
 

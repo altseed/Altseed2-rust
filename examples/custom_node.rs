@@ -1,7 +1,9 @@
-use altseed2::*;
-use altseed2::prelude::*;
+//! # カスタムノードを利用するサンプル
 
-use std::{rc::Rc, cell::RefCell};
+use altseed2::prelude::*;
+use altseed2::*;
+
+use std::{cell::RefCell, rc::Rc};
 
 // マクロでNodeを宣言(フィールドが自動で追加されます。)
 // std::fmt::Debugトレイと、altseedのHasBaseNodeトレイトが自動で実装されます。
@@ -16,11 +18,7 @@ define_node! {
 impl CustomNode {
     fn new() -> Rc<RefCell<Self>> {
         // マクロで作成(フィールドが自動で初期化されます。)
-        create_node!(
-            CustomNode {
-                count: 0
-            }
-        )
+        Rc::new(RefCell::new(create_node!(CustomNode { count: 0 })))
     }
 }
 
@@ -38,7 +36,7 @@ impl Node for CustomNode {
 
     //     Ok(())
     // }
-    
+
     // 引数でEngineへの参照を受け取る
     fn on_updated(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         if self.count == 60 {
@@ -68,7 +66,7 @@ fn main() -> AltseedResult<()> {
 
     // on_addedは実際にはここで呼び出されず、メインループまで遅延される
     engine.add_node(node)?;
-    
+
     // 所有権を渡してメインループを実行します。
     engine.run()?;
     // engine が dropする際に自動的にAltseedの終了処理が呼ばれます。
