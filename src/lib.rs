@@ -21,12 +21,12 @@ pub mod engine;
 /// エラー
 pub mod error;
 
+mod array;
 /// 数学系の機能
 pub mod math;
 pub mod node;
-pub mod structs;
 mod sound;
-mod array;
+pub mod structs;
 
 #[cfg(test)]
 mod tests;
