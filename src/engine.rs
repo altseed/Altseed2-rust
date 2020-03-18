@@ -102,7 +102,7 @@ pub struct Engine {
     keyboard: Rc<RefCell<Keyboard>>,
     mouse: Rc<RefCell<Mouse>>,
     joystick: Rc<RefCell<Joystick>>,
-    sound: Rc<RefCell<SoundMixer>>,
+    sound: Rc<RefCell<crate::sound::SoundMixer>>,
     log: Rc<RefCell<Log>>,
     tool: Option<Rc<RefCell<Tool>>>,
     root_node: Rc<RefCell<RootNode>>,
@@ -153,13 +153,13 @@ impl Engine {
                 })),
                 graphics: Graphics::get_instance()?,
                 renderer: Renderer::get_instance()?,
-                file: File::get_instance()?,
-                keyboard: Keyboard::get_instance()?,
-                mouse: Mouse::get_instance()?,
-                joystick: Joystick::get_instance()?,
-                sound: SoundMixer::get_instance()?,
-                log: Log::get_instance()?,
-                tool: Tool::get_instance(),
+                file: Rc::new(RefCell::new(File::get_instance()?)),
+                keyboard: Rc::new(RefCell::new(Keyboard::get_instance()?)),
+                mouse: Rc::new(RefCell::new(Mouse::get_instance()?)),
+                joystick: Rc::new(RefCell::new(Joystick::get_instance()?)),
+                sound: Rc::new(RefCell::new(crate::sound::SoundMixer::new()?)),
+                log: Rc::new(RefCell::new(Log::get_instance()?)),
+                tool: Tool::get_instance().map(|x| Rc::new(RefCell::new(x))),
                 loader: Loader {
                     phantom: PhantomData,
                 },
@@ -392,7 +392,7 @@ impl Engine {
     }
 
     /// 音を管理するクラスを取得します。
-    pub fn sound(&self) -> &Rc<RefCell<SoundMixer>> {
+    pub fn sound(&self) -> &Rc<RefCell<crate::sound::SoundMixer>> {
         &self.sound
     }
 

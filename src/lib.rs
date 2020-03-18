@@ -18,6 +18,7 @@ mod runner;
 pub mod engine;
 pub mod error;
 pub mod math;
+mod sound;
 
 pub mod node;
 
@@ -42,11 +43,13 @@ pub mod prelude {
 }
 
 pub mod core {
+    pub use crate::sound::{SoundID, SoundMixer};
+
     pub use crate::auto_generated_core_binding::{
         AsTexture2D, BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode,
         Joystick, JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log,
         LogCategory, LogLevel, Material, Mouse, MouseButtons, RenderTexture, ResourceType, Shader,
-        Sound, SoundMixer, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
+        Sound, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
     };
 
     pub mod tool {
