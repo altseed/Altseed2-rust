@@ -95,6 +95,23 @@ impl CoreContainer {
     pub fn get_delta_second(&mut self) -> f32 {
         self.core.get_delta_second()
     }
+
+    /// 指定した種類のリソースの個数を取得します。
+    /// # Arguments
+    /// * `type_` - 個数を検索するリソースの種類
+    pub fn count_resources(&mut self, type_: ResourceType) -> i32 {
+        self.resources.get_resources_count(type_)
+    }
+
+    /// 登録されたリソースをすべて削除します。
+    pub fn clear_resources(&mut self) {
+        self.resources.clear()
+    }
+
+    /// リソースの再読み込みを行います。
+    pub fn reload_resources(&mut self) {
+        self.resources.reload()
+    }
 }
 
 /// AltseedのCoreとの橋渡しやオブジェクトの管理を行います。

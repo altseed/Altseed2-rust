@@ -1,7 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::auto_generated_core_binding::{RenderTexture, RenderedCamera, Renderer};
-use crate::math::Vector2;
+use crate::auto_generated_core_binding::{RenderTexture, RenderedCamera};
 use crate::node::*;
 
 use crate as altseed2;
