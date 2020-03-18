@@ -1,4 +1,4 @@
-// Inner product
+/// 内積を表します。
 pub trait Dot<T> {
     type Output;
 

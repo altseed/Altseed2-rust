@@ -1,16 +1,17 @@
 use crate::auto_generated_core_binding::*;
 
-/// Engine初期化時の設定
+/// Engine初期化時の設定を表します。
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Config {
-    /// 全画面モードかどうか
+    /// 全画面モードかどうか。
     fullscreen: bool,
-    /// 画面サイズ可変かどうか
+    /// 画面サイズ可変かどうか。
     resizable: bool,
-    /// ログをコンソールに出力するかどうか
+    /// ログをコンソールに出力するかどうか。
     console_logging: bool,
-    /// ログファイル名
+    /// ログファイル名。
     log_filename: Option<String>,
+    /// ツール機能を有効化するかどうか
     tool: bool,
 }
 
@@ -38,11 +39,13 @@ use std::{
 
 use crate::runner::{SpinWaker, TaskRunner};
 
+/// ファイルを読み込む機能を提供します。
 #[derive(Clone)]
 pub struct Loader {
     pub(crate) phantom: PhantomData<()>,
 }
 
+/// Core機能を提供します。
 pub struct CoreContainer {
     pub(crate) core: Core,
     pub(crate) resources: Resources,
@@ -94,6 +97,7 @@ impl CoreContainer {
     }
 }
 
+/// AltseedのCoreとの橋渡しやオブジェクトの管理を行います。
 pub struct Engine {
     container: Rc<RefCell<CoreContainer>>,
     graphics: Graphics,
@@ -116,6 +120,7 @@ pub struct Engine {
 }
 
 lazy_static! {
+    /// Engineが初期化済みかどうか
     static ref INITIALIZED: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 }
 
@@ -127,6 +132,7 @@ impl Drop for Engine {
 }
 
 impl Engine {
+    /// Coreを初期化します。
     fn initialize_core(title: &str, width: i32, height: i32, config: Config) -> Option<Engine> {
         let mut configuration = Configuration::new().unwrap();
         match config.log_filename {
@@ -401,7 +407,7 @@ impl Engine {
         &self.tool
     }
 
-    /// ファイル読み込みを管理する
+    /// ファイル読み込みを管理するクラスを取得します。
     pub fn loader(&self) -> &Loader {
         &self.loader
     }

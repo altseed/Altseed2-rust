@@ -119,6 +119,7 @@ pub trait HasBaseNode: std::fmt::Debug {
             state => Err(AltseedError::InvalidNodeState(
                 std::any::type_name_of_val(&child).to_owned(),
                 state,
+                NodeState::Registered,
             )),
         }
     }

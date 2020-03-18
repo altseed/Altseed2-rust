@@ -4,6 +4,7 @@ use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite, Renderer};
 use crate::prelude::{Drawn, Rect, Vector2};
 
 define_drawn! {
+    /// 画像を描画するためのAltseedのクラスを表します。
     pub struct Sprite {
         instance: RenderedSprite,
     }
@@ -23,6 +24,7 @@ impl super::DrawnInternal for Sprite {
 }
 
 impl Sprite {
+    /// 新しい`Sprite`を作成します。
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Sprite {
             instance: RenderedSprite::create().unwrap(),
@@ -49,6 +51,7 @@ impl Sprite {
         self
     }
 
+    /// 描画範囲を取得します
     pub fn get_src(&mut self) -> Rect<f32> {
         self.instance.get_src()
     }

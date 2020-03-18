@@ -15,20 +15,23 @@ mod auto_generated_core_binding;
 
 mod runner;
 
+/// エンジン
 pub mod engine;
+
+/// エラー
 pub mod error;
+
+/// 数学系の機能
 pub mod math;
-mod sound;
-
 pub mod node;
-
 pub mod structs;
-
+mod sound;
 mod array;
 
 #[cfg(test)]
 mod tests;
 
+/// ドキュメント用のサンプル集です。
 pub mod examples;
 
 pub mod prelude {
@@ -44,6 +47,7 @@ pub mod prelude {
     pub use crate::structs::{Color, Rect, Vertex};
 }
 
+/// AltseedのCoreとのバインディングです。
 pub mod core {
     pub use crate::sound::{SoundID, SoundMixer};
 
@@ -54,6 +58,7 @@ pub mod core {
         Sound, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
     };
 
+    /// ツール機能で使用するフラグです。
     pub mod tool {
         pub use crate::auto_generated_core_binding::ToolColorEdit as ColorEdit;
         pub use crate::auto_generated_core_binding::ToolCond as Cond;

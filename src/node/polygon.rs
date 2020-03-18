@@ -7,6 +7,7 @@ use crate::prelude::{Drawn, Rect, Vector2};
 use crate::structs::Vertex;
 
 define_drawn! {
+    /// ポリゴンを描画するためのAltseedのクラスを表します。
     pub struct Polygon {
         instance: RenderedPolygon,
     }
@@ -26,6 +27,7 @@ impl super::DrawnInternal for Polygon {
 }
 
 impl Polygon {
+    /// 新しい`Polygon`を作成します。
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Polygon {
             instance: RenderedPolygon::create().unwrap(),
@@ -52,6 +54,7 @@ impl Polygon {
         self
     }
 
+    /// 描画範囲を取得します
     pub fn get_src(&mut self) -> Rect<f32> {
         self.instance.get_src()
     }
@@ -69,14 +72,17 @@ impl Polygon {
         v
     }
 
-    pub fn set_vertexes(&mut self, vertexes: &Vec<Vertex>) {
+    /// 頂点情報を設定します。
+    pub fn set_vertexes(&mut self, vertexes: &Vec<Vertex>) -> &mut Self {
         let v = VertexArray::from_vec(vertexes);
         self.instance.set_vertexes(v);
+        self
     }
 
     /// 頂点情報を設定します。
-    pub fn set_vertexes_with_position(&mut self, vertexes: &Vec<Vector2<f32>>) {
+    pub fn set_vertexes_with_position(&mut self, vertexes: &Vec<Vector2<f32>>) -> &mut Self {
         let v = Vector2FArray::from_vec(vertexes);
         self.instance.set_vertexes_by_vector2f(&mut v.borrow_mut());
+        self
     }
 }

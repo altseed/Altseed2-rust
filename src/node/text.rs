@@ -8,6 +8,7 @@ use crate::auto_generated_core_binding::{Font, RenderedText, Renderer};
 use crate::prelude::{Drawn, Vector2};
 
 define_drawn! {
+    /// 文字列を描画するためのAltseedのクラスを表します。
     pub struct Text {
         instance: RenderedText,
     }
@@ -27,6 +28,7 @@ impl super::DrawnInternal for Text {
 }
 
 impl Text {
+    /// 新しい`Text`を作成します。
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Text {
             instance: RenderedText::create().unwrap(),

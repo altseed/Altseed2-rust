@@ -1,4 +1,5 @@
 #[macro_export]
+/// Node構造体を定義する際に使用するマクロ
 macro_rules! define_node {
     // フィールドが空の場合
     ($(#[$meta_s:meta])*
@@ -105,6 +106,7 @@ macro_rules! define_node {
     };
 }
 
+/// `define_node`を使って定義した`Node`を作成するためのマクロ
 #[macro_export]
 macro_rules! create_node {
     ($name: ident { }) => {

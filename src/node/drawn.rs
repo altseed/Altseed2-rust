@@ -8,8 +8,10 @@ use crate as altseed2;
 use crate::{create_node, define_node};
 
 pub trait Drawn {
+    /// トランスフォームへの参照
     fn transform(&self) -> &Transform;
 
+    /// トランスフォームへの可変参照
     fn transform_mut(&mut self) -> &mut Transform;
 
     /// 描画順
@@ -81,6 +83,7 @@ impl From<Rc<RefCell<Polygon>>> for DrawnKind {
 }
 
 define_node! {
+    /// 描画対象を保持するノード
     pub struct DrawnNode {
         kind: DrawnKind,
         weak: Option<Weak<RefCell<Self>>>,
@@ -95,6 +98,7 @@ impl Node for DrawnNode {
 }
 
 impl DrawnNode {
+    /// 新しい描画ノードを作成します。
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
         let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
             kind: kind.into(),
@@ -106,10 +110,12 @@ impl DrawnNode {
         rc
     }
 
+    /// 描画される種類
     pub fn kind(&self) -> &DrawnKind {
         &self.kind
     }
 
+    /// 描画される種類
     pub fn kind_mut(&mut self) -> &mut DrawnKind {
         &mut self.kind
     }
@@ -143,46 +149,56 @@ impl DrawnNode {
             .update_transform(ancestors)
     }
 
+    /// 描画順を取得します。
     pub fn get_z_order(&self) -> i32 {
         self.kind.get_drawn().borrow().z_order()
     }
 
+    /// 描画順を設定します。
     pub fn set_z_order(&mut self, z_order: i32) -> &mut Self {
         *self.kind.get_drawn().borrow_mut().z_order_mut() = z_order;
         self
     }
 
+    /// 描画されるかどうかを取得します。
     pub fn get_is_drawn(&self) -> bool {
         self.kind.get_drawn().borrow().is_drawn()
     }
 
+    /// 描画されるかどうかを設定します。
     pub fn set_is_drawn(&mut self, is_drawn: bool) -> &mut Self {
         *self.kind.get_drawn().borrow_mut().is_drawn_mut() = is_drawn;
         self
     }
 
+    /// マテリアルを取得します。
     pub fn get_material(&mut self) -> Rc<RefCell<Material>> {
         self.kind.get_drawn().borrow_mut().get_material()
     }
 
+    /// マテリアルを設定します。
     pub fn set_material(&mut self, mat: Rc<RefCell<Material>>) -> &mut Self {
         self.kind.get_drawn().borrow_mut().set_material(mat);
         self
     }
 
+    /// 位置を取得します。
     pub fn get_pos(&self) -> Vector2<f32> {
         self.kind.get_drawn().borrow().transform().pos()
     }
 
+    /// 位置を設定します。
     pub fn set_pos(&mut self, pos: Vector2<f32>) -> &mut Self {
         *self.kind.get_drawn().borrow_mut().transform_mut().pos_mut() = pos;
         self
     }
 
+    /// 中心位置を取得します。
     pub fn get_center(&self) -> Vector2<f32> {
         self.kind.get_drawn().borrow().transform().center()
     }
 
+    /// 中心位置を設定します。
     pub fn set_center(&mut self, center: Vector2<f32>) -> &mut Self {
         *self
             .kind
@@ -193,10 +209,12 @@ impl DrawnNode {
         self
     }
 
+    /// 拡大率を取得します。
     pub fn get_scale(&self) -> Vector2<f32> {
         self.kind.get_drawn().borrow().transform().scale()
     }
 
+    /// 中心位置を設定します。
     pub fn set_scale(&mut self, scale: Vector2<f32>) -> &mut Self {
         *self
             .kind
@@ -207,10 +225,12 @@ impl DrawnNode {
         self
     }
 
+    /// 角度を取得します。
     pub fn get_angle(&self) -> f32 {
         self.kind.get_drawn().borrow().transform().angle()
     }
 
+    /// 角度を設定します。
     pub fn set_angle(&mut self, angle: f32) -> &mut Self {
         *self
             .kind
@@ -291,47 +311,57 @@ macro_rules! define_drawn {
         }
 
         impl $name {
+            /// 描画順を設定します。
             pub fn set_z_order(&mut self, z_order: i32) -> &mut Self {
                 self.z_order = z_order;
                 self
             }
 
+            /// 描画されるかどうかを取得します。
             pub fn set_is_drawn(&mut self, is_drawn: bool) -> &mut Self {
                 self.is_drawn = is_drawn;
                 self
             }
 
+            /// 位置を取得します。
             pub fn get_pos(&self) -> Vector2<f32> {
                 self.transform().pos().clone()
             }
 
+            /// 位置を設定します。
             pub fn set_pos(&mut self, pos: Vector2<f32>) -> &mut Self {
                 *self.transform_mut().pos_mut() = pos;
                 self
             }
 
+            /// 中心位置を取得します。
             pub fn get_center(&self) -> Vector2<f32> {
                 self.transform().center().clone()
             }
 
+            /// 中心位置を設定します。
             pub fn set_center(&mut self, center: Vector2<f32>) -> &mut Self {
                 *self.transform_mut().center_mut() = center;
                 self
             }
 
+            /// 拡大率を取得します。
             pub fn get_scale(&self) -> Vector2<f32> {
                 self.transform().scale().clone()
             }
 
+            /// 拡大率を設定します。
             pub fn set_scale(&mut self, scale: Vector2<f32>) -> &mut Self {
                 *self.transform_mut().scale_mut() = scale;
                 self
             }
 
+            /// 角度を取得します。
             pub fn get_angle(&self) -> f32 {
                 self.transform().angle().clone()
             }
 
+            /// 角度を設定します。
             pub fn set_angle(&mut self, angle: f32) -> &mut Self {
                 *self.transform_mut().angle_mut() = angle;
                 self

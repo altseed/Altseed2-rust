@@ -25,8 +25,7 @@ fn generate_examples() -> Result<(), Box<dyn error::Error>> {
 
     writeln!(
         module,
-        r#"//! Examples
-// Auto-generated. Do not modify.
+        r#"// Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
 "#
     )?;

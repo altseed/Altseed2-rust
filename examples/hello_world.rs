@@ -2,7 +2,7 @@
 use altseed2::prelude::*;
 
 // add timer
-// 返り値に`AltseedResult<()>`を指定して?演算子を使用可能にする。
+// 返り値に`AltseedResult<()>`を指定して?演算子を使用可能にします。
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。 ?演算子を利用してError時に早期終了します。
     let engine = Engine::initialize("test", 800, 600)?;

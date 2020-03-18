@@ -1,6 +1,7 @@
 use crate::math::*;
 use std::os::raw::c_uchar;
 
+/// 矩形を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Rect<T> {
@@ -30,6 +31,7 @@ impl<T> Rect<T> {
     }
 }
 
+/// 頂点情報を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vertex {
@@ -39,6 +41,7 @@ pub struct Vertex {
     pub u_v2: Vector2<f32>,
 }
 
+/// 色を表します。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Color {

@@ -3,14 +3,17 @@ use num::{Float, One, Zero};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 pub trait Vector<T: Float>: Dot<Self, Output = T> + Copy + Div<T, Output = Self> {
+    /// ベクトルの長さの二乗の値を取得します。
     fn squared_len(&self) -> T {
         self.dot(self.clone())
     }
 
+    /// ベクトルの長さを取得します。
     fn len(&self) -> T {
         self.squared_len().sqrt()
     }
 
+    /// ベクトルを正規化した値を取得します。
     fn norm(&self) -> Self {
         *self / self.len()
     }
@@ -22,6 +25,7 @@ pub trait Vector<T: Float>: Dot<Self, Output = T> + Copy + Div<T, Output = Self>
 macro_rules! vector_to_array {
     (@step $idx:expr, [$($x:ident,)*],) => {
         #[inline(always)]
+        /// 固定長配列へ変換します。
         pub fn to_array(&self) -> [T; $idx] {
             [$(self.$x,)+]
         }
@@ -39,7 +43,11 @@ macro_rules! vector_to_array {
 }
 
 // define `Vector` structs
-macro_rules! define_vector {($name:ident[$( $x:ident ),+]) => {
+macro_rules! define_vector {
+    ($(#[$meta_s:meta])*
+    $name:ident[$( $x:ident ),+]
+    ) => {
+    $(#[$meta_s])*
     #[repr(C)]
     #[derive(Clone, Copy, Eq, PartialEq, PartialOrd, Hash, Debug)]
     pub struct $name<T> {
@@ -199,9 +207,20 @@ macro_rules! impl_convert {
     };
 }
 
-define_vector!(Vector2[x, y]);
-define_vector!(Vector3[x, y, z]);
-define_vector!(Vector4[x, y, z, w]);
+define_vector! {
+    /// 2次元ベクトルを表します。
+    Vector2[x, y]
+}
+
+define_vector! {
+    /// 3次元ベクトルを表します。
+    Vector3[x, y, z]
+}
+
+define_vector! {
+    /// 4次元ベクトルを表します。
+    Vector4[x, y, z, w]
+}
 
 impl_convert!(Vector2[x, y], i32, f32);
 impl_convert!(Vector3[x, y, z], i32, f32);

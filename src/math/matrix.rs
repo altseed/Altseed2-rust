@@ -6,7 +6,11 @@ pub trait Matrix {}
 
 // define `Matrix` structs
 macro_rules! define_matrix {
-    ($name:ident, $nx:expr, $ny:expr) => {
+    (
+        $(#[$meta_s:meta])*
+        $name:ident[$nx:expr, $ny:expr]
+    ) => {
+        $(#[$meta_s])*
         #[repr(C)]
         #[derive(Clone, PartialEq, Default, Debug)]
         pub struct $name<T> {
@@ -202,8 +206,14 @@ macro_rules! define_matrix {
 // define `Square Matrix` structs
 // calling define_matrix inside
 macro_rules! define_square_matrix {
-    ($name:ident, $n:expr) => {
-        define_matrix!($name, $n, $n);
+    (
+        $(#[$meta_s:meta])*
+        $name:ident[$n:expr]
+    ) => {
+        define_matrix!{
+            $(#[$meta_s])*
+            $name[$n, $n]
+        }
 
         impl<T> One for $name<T>
         where
@@ -307,8 +317,15 @@ macro_rules! define_square_matrix {
 
 use crate::math::vector::{Vector3, Vector4};
 
-define_square_matrix!(Matrix33, 3);
-define_square_matrix!(Matrix44, 4);
+define_square_matrix! {
+    /// 3x3行列を表します。
+    Matrix33[3]
+}
+
+define_square_matrix! {
+    /// 4x4行列を表します。
+    Matrix44[4]
+}
 
 impl Matrix44<f32> {
     pub fn identity() -> &'static Self {
@@ -320,7 +337,7 @@ impl Matrix44<f32> {
 }
 
 impl Matrix44<f32> {
-    /// 平行移動行列を取得する。
+    /// 平行移動行列を取得します。
     pub fn translation(x: f32, y: f32, z: f32) -> Self {
         let mut m = Self::identity().clone();
         m.values[0][3] = x;
@@ -329,7 +346,7 @@ impl Matrix44<f32> {
         m
     }
 
-    // 拡大行列を取得する。
+    // 拡大行列を取得します。
     pub fn scale(x: f32, y: f32, z: f32) -> Self {
         let mut m = Self::identity().clone();
         m.values[0][0] = x;
@@ -339,7 +356,7 @@ impl Matrix44<f32> {
         m
     }
 
-    /// Z軸回転行列(右手)を取得する。
+    /// Z軸回転行列(右手)を取得します。
     /// # Arguments
     /// * angle - Z軸回転量(ラジアン)
     pub fn rotation_z(angle: f32) -> Self {

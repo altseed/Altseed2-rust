@@ -6,6 +6,7 @@ use crate as altseed2;
 use crate::{create_node, define_node};
 
 define_node! {
+    /// Engineのルートに登録されているノードを表します。
     pub struct RootNode {
         phantom: PhantomData<()>,
     }

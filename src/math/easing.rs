@@ -23,6 +23,7 @@
 
 use std::f32::consts::PI;
 
+/// ???????????
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Easing {
     Linear,
@@ -59,6 +60,9 @@ pub enum Easing {
 }
 
 impl Easing {
+    /// ????????????????
+    /// # Arguments
+    /// * `t` - 0.0 ~ 1.0
     pub fn calculate(&self, mut t: f32) -> f32 {
         if t <= 0.0 {
             return 0.0;

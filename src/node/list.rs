@@ -40,6 +40,7 @@ impl NodeVec {
             state => Err(AltseedError::InvalidNodeState(
                 std::any::type_name_of_val(&item.borrow()).to_owned(),
                 state,
+                NodeState::Free,
             )),
         }
     }
