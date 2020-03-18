@@ -108,27 +108,19 @@ macro_rules! define_node {
 #[macro_export]
 macro_rules! create_node {
     ($name: ident { }) => {
-        std::rc::Rc::new(
-            std::cell::RefCell::new(
-                $name {
-                    __node_base: altseed2::node::BaseNode::default(),
-                }
-            )
-        )
+        $name {
+            __node_base: altseed2::node::BaseNode::default(),
+        }
     };
     ($name: ident {
         $(
             $variant: ident : $e: expr,
         )*
     }) => {
-        std::rc::Rc::new(
-            std::cell::RefCell::new(
-                $name {
-                    __node_base: altseed2::node::BaseNode::default(),
-                    $($variant : $e,)*
-                }
-            )
-        )
+        $name {
+            __node_base: altseed2::node::BaseNode::default(),
+            $($variant : $e,)*
+        }
     };
     ($name: ident {
         $(

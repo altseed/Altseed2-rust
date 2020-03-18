@@ -24,11 +24,11 @@ impl Node for CameraNode {
 
 impl CameraNode {
     pub fn new() -> Rc<RefCell<Self>> {
-        let rc = create_node!(CameraNode {
+        let rc = Rc::new(RefCell::new(create_node!(CameraNode {
             instance: RenderedCamera::create().unwrap(),
             weak: None,
             group: 0u32,
-        });
+        })));
 
         rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
 

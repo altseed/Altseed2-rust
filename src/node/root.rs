@@ -15,8 +15,8 @@ impl Node for RootNode {}
 
 impl RootNode {
     pub(crate) fn new() -> Rc<RefCell<Self>> {
-        create_node! {
+        Rc::new(RefCell::new(create_node! {
             RootNode { phantom: PhantomData }
-        }
+        }))
     }
 }

@@ -96,10 +96,10 @@ impl Node for DrawnNode {
 
 impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
-        let rc = create_node!(DrawnNode {
+        let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
             kind: kind.into(),
             weak: None,
-        });
+        })));
 
         rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
 
