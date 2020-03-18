@@ -1,5 +1,5 @@
 use std::{
-    cell::{Ref, RefCell},
+    cell::RefCell,
     rc::{Rc, Weak},
 };
 
@@ -73,10 +73,12 @@ pub trait HasBaseNode: std::fmt::Debug {
     fn node_base(&self) -> &BaseNode;
     fn node_base_mut(&mut self) -> &mut BaseNode;
 
+    /// 現在のノードの状態を取得します。
     fn state(&self) -> NodeState {
         self.node_base().state
     }
 
+    /// 親ノードを取得します。
     fn owner(&self) -> Option<Rc<RefCell<dyn Node>>> {
         match &self.node_base().owner {
             Some(x) => x.upgrade(),
@@ -84,19 +86,21 @@ pub trait HasBaseNode: std::fmt::Debug {
         }
     }
 
-    fn children(&self) -> Ref<'_, VecDeque<Rc<RefCell<dyn Node>>>> {
+    /// 子ノードの一覧を取得します。
+    fn children(&self) -> &VecDeque<Rc<RefCell<dyn Node>>> {
         self.node_base().children.items()
     }
 
-    /// mutability concealed
-    fn add_child(&self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
-        self.node_base().children.add(child)
+    /// 子ノードを追加するフラグを立てます。EngineのUpdate時に更新されます。
+    fn add_child(&mut self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
+        self.node_base_mut().children.add(child)
     }
 
-    /// mutability concealed
-    fn remove_child(&self, child: &mut dyn Node) -> AltseedResult<()> {
+    /// 子ノードを削除するフラグを立てます。EngineのUpdate時に更新されます。
+    fn remove_child(&mut self, child: &mut dyn Node) -> AltseedResult<()> {
         if let Some(owner) = child.owner() {
-            if self.node_base() as *const BaseNode != owner.borrow().node_base() as *const BaseNode
+            if self.node_base_mut() as *const BaseNode
+                != owner.borrow().node_base() as *const BaseNode
             {
                 return Err(AltseedError::RemovedInvalidNode(
                     std::any::type_name_of_val(self).to_owned(),
@@ -117,6 +121,11 @@ pub trait HasBaseNode: std::fmt::Debug {
             )),
         }
     }
+
+    /// 全ての子ノードを削除するフラグを立てます。実際の更新はフレームの終わりに実行されます。
+    fn clear_children(&mut self) {
+        self.node_base().children.clear()
+    }
 }
 
 pub(crate) fn update_node_recursive(
@@ -124,28 +133,59 @@ pub(crate) fn update_node_recursive(
     engine: &mut Engine,
     ancestors: Option<&crate::math::Matrix44<f32>>,
 ) -> AltseedResult<()> {
-    node.borrow_mut().on_updating(engine)?;
-
-    node.borrow()
-        .node_base()
-        .children
-        .update(Rc::downgrade(node), engine)?;
-
+    // 伝播させるTransformの用意
     let t = node
         .borrow_mut()
         .downcast_mut::<DrawnNode>()
         .map(|d| d.relative_transform(ancestors));
 
-    match t {
-        Some(t) => {
-            for child in node.borrow().children().iter() {
-                update_node_recursive(&child, engine, t.as_ref())?;
+    let m = match &t {
+        None => ancestors,
+        Some(m) => m.as_ref(),
+    };
+
+    node.borrow_mut().on_updating(engine)?;
+
+    let mut items = VecDeque::new();
+    {
+        let mut x = node.borrow_mut();
+        x.node_base_mut()
+            .children
+            .add_waiting_nodes(Rc::downgrade(&node));
+        std::mem::swap(&mut items, &mut x.node_base_mut().children.items_mut());
+    }
+
+    // 子ノードの`on_hoge`呼び出し時に親ノードがborrowされてると都合が悪いのでこうなった
+    while let Some(item) = items.pop_front() {
+        let s = &item.borrow().state();
+        match s {
+            NodeState::WaitingAdded => {
+                {
+                    let mut x = item.borrow_mut();
+                    x.on_added(engine)?;
+                    x.node_base_mut().state = NodeState::Registered;
+                }
+                node.borrow_mut()
+                    .node_base_mut()
+                    .children
+                    .items_mut()
+                    .push_back(item);
             }
-        }
-        None => {
-            for child in node.borrow().children().iter() {
-                update_node_recursive(&child, engine, ancestors)?;
+            NodeState::Registered => {
+                // 再帰的に更新
+                update_node_recursive(&item, engine, m)?;
+                node.borrow_mut()
+                    .node_base_mut()
+                    .children
+                    .items_mut()
+                    .push_back(item);
             }
+            NodeState::WaitingRemoved => {
+                let mut x = item.borrow_mut();
+                x.on_removed(engine)?;
+                x.node_base_mut().state = NodeState::Free;
+            }
+            _ => (),
         }
     }
 

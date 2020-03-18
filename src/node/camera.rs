@@ -10,31 +10,27 @@ use crate::{create_node, define_node};
 define_node! {
     pub struct CameraNode {
         instance: RenderedCamera,
+        weak: Option<Weak<RefCell<Self>>>,
         group: u32,
-        self_weak: Option<Weak<RefCell<CameraNode>>>,
     }
 }
 
 impl Node for CameraNode {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
-        let mut weak = None;
-        std::mem::swap(&mut weak, &mut self.self_weak);
-        engine.add_camera_node(weak.unwrap());
+        engine.add_camera_node(self.weak.clone().unwrap());
         Ok(())
     }
 }
 
 impl CameraNode {
     pub fn new() -> Rc<RefCell<Self>> {
-        let rc = Rc::new(RefCell::new(create_node! {
-            CameraNode {
-                instance: RenderedCamera::create().unwrap(),
-                group: 0u32,
-                self_weak: None,
-            }
-        }));
+        let rc = create_node!(CameraNode {
+            instance: RenderedCamera::create().unwrap(),
+            weak: None,
+            group: 0u32,
+        });
 
-        rc.borrow_mut().self_weak = Some(Rc::downgrade(&rc));
+        rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
 
         rc
     }

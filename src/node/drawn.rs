@@ -5,7 +5,7 @@ use crate::math::{Matrix44, Vector2};
 use crate::node::*;
 
 use crate as altseed2;
-use crate::define_node;
+use crate::{create_node, define_node};
 
 pub trait Drawn {
     fn transform(&self) -> &Transform;
@@ -83,28 +83,25 @@ impl From<Rc<RefCell<Polygon>>> for DrawnKind {
 define_node! {
     pub struct DrawnNode {
         kind: DrawnKind,
-        self_weak: Option<Weak<RefCell<DrawnNode>>>,
+        weak: Option<Weak<RefCell<Self>>>,
     }
 }
 
 impl Node for DrawnNode {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
-        let mut weak = None;
-        std::mem::swap(&mut weak, &mut self.self_weak);
-        engine.add_drawn_node(weak.unwrap());
+        engine.add_drawn_node(self.weak.clone().unwrap());
         Ok(())
     }
 }
 
 impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
-        let rc = Rc::new(RefCell::new(DrawnNode {
-            node_base: BaseNode::default(),
+        let rc = create_node!(DrawnNode {
             kind: kind.into(),
-            self_weak: None,
-        }));
+            weak: None,
+        });
 
-        rc.borrow_mut().self_weak = Some(Rc::downgrade(&rc));
+        rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
 
         rc
     }
