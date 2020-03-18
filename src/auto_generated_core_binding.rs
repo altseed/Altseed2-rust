@@ -777,7 +777,7 @@ extern "C" {
     fn cbg_VertexArray_SetAt(
         self_ptr: *mut RawPtr,
         index: c_int,
-        value: *const crate::structs::Vertex,
+        value: crate::structs::Vertex,
     ) -> ();
 
     fn cbg_VertexArray_Create(size: c_int) -> *mut RawPtr;
@@ -821,7 +821,7 @@ extern "C" {
     fn cbg_Vector2FArray_SetAt(
         self_ptr: *mut RawPtr,
         index: c_int,
-        value: *const crate::math::Vector2<f32>,
+        value: crate::math::Vector2<f32>,
     ) -> ();
 
     fn cbg_Vector2FArray_Create(size: c_int) -> *mut RawPtr;
@@ -851,7 +851,7 @@ extern "C" {
     fn cbg_Mouse_GetMouseButtonState(self_ptr: *mut RawPtr, button: c_int) -> c_int;
 
     fn cbg_Mouse_GetPosition(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
-    fn cbg_Mouse_SetPosition(self_ptr: *mut RawPtr, value: *const crate::math::Vector2<f32>) -> ();
+    fn cbg_Mouse_SetPosition(self_ptr: *mut RawPtr, value: crate::math::Vector2<f32>) -> ();
 
     fn cbg_Mouse_GetCursorMode(self_ptr: *mut RawPtr) -> c_int;
     fn cbg_Mouse_SetCursorMode(self_ptr: *mut RawPtr, value: c_int) -> ();
@@ -927,7 +927,7 @@ extern "C" {
 
     fn cbg_Texture2D_Release(self_ptr: *mut RawPtr) -> ();
 
-    fn cbg_RenderTexture_Create(size: *const crate::math::Vector2<i32>) -> *mut RawPtr;
+    fn cbg_RenderTexture_Create(size: crate::math::Vector2<i32>) -> *mut RawPtr;
 
     fn cbg_RenderTexture_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -941,7 +941,7 @@ extern "C" {
     fn cbg_Material_SetVector4F(
         self_ptr: *mut RawPtr,
         key: *const u16,
-        value: *const crate::math::Vector4<f32>,
+        value: crate::math::Vector4<f32>,
     ) -> ();
 
     fn cbg_Material_GetMatrix44F(
@@ -952,7 +952,7 @@ extern "C" {
     fn cbg_Material_SetMatrix44F(
         self_ptr: *mut RawPtr,
         key: *const u16,
-        value: *const crate::math::Matrix44<f32>,
+        value: crate::math::Matrix44<f32>,
     ) -> ();
 
     fn cbg_Material_GetTexture(self_ptr: *mut RawPtr, key: *const u16) -> *mut RawPtr;
@@ -988,7 +988,7 @@ extern "C" {
     fn cbg_CommandList_SetRenderTarget(
         self_ptr: *mut RawPtr,
         target: *mut RawPtr,
-        viewport: *const crate::structs::Rect<i32>,
+        viewport: crate::structs::Rect<i32>,
     ) -> ();
 
     fn cbg_CommandList_RenderToRenderTarget(self_ptr: *mut RawPtr, material: *mut RawPtr) -> ();
@@ -996,10 +996,7 @@ extern "C" {
     fn cbg_CommandList_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Rendered_GetTransform(self_ptr: *mut RawPtr) -> crate::math::Matrix44<f32>;
-    fn cbg_Rendered_SetTransform(
-        self_ptr: *mut RawPtr,
-        value: *const crate::math::Matrix44<f32>,
-    ) -> ();
+    fn cbg_Rendered_SetTransform(self_ptr: *mut RawPtr, value: crate::math::Matrix44<f32>) -> ();
 
     fn cbg_Rendered_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1009,10 +1006,7 @@ extern "C" {
     fn cbg_RenderedSprite_SetTexture(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
 
     fn cbg_RenderedSprite_GetSrc(self_ptr: *mut RawPtr) -> crate::structs::Rect<f32>;
-    fn cbg_RenderedSprite_SetSrc(
-        self_ptr: *mut RawPtr,
-        value: *const crate::structs::Rect<f32>,
-    ) -> ();
+    fn cbg_RenderedSprite_SetSrc(self_ptr: *mut RawPtr, value: crate::structs::Rect<f32>) -> ();
 
     fn cbg_RenderedSprite_GetMaterial(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedSprite_SetMaterial(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
@@ -1034,7 +1028,7 @@ extern "C" {
     fn cbg_RenderedText_SetWeight(self_ptr: *mut RawPtr, value: c_float) -> ();
 
     fn cbg_RenderedText_GetColor(self_ptr: *mut RawPtr) -> crate::structs::Color;
-    fn cbg_RenderedText_SetColor(self_ptr: *mut RawPtr, value: *const crate::structs::Color) -> ();
+    fn cbg_RenderedText_SetColor(self_ptr: *mut RawPtr, value: crate::structs::Color) -> ();
 
     fn cbg_RenderedText_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1052,10 +1046,7 @@ extern "C" {
     fn cbg_RenderedPolygon_SetTexture(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
 
     fn cbg_RenderedPolygon_GetSrc(self_ptr: *mut RawPtr) -> crate::structs::Rect<f32>;
-    fn cbg_RenderedPolygon_SetSrc(
-        self_ptr: *mut RawPtr,
-        value: *const crate::structs::Rect<f32>,
-    ) -> ();
+    fn cbg_RenderedPolygon_SetSrc(self_ptr: *mut RawPtr, value: crate::structs::Rect<f32>) -> ();
 
     fn cbg_RenderedPolygon_GetMaterial(self_ptr: *mut RawPtr) -> *mut RawPtr;
     fn cbg_RenderedPolygon_SetMaterial(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
@@ -1067,7 +1058,7 @@ extern "C" {
     fn cbg_RenderedCamera_GetCenterOffset(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
     fn cbg_RenderedCamera_SetCenterOffset(
         self_ptr: *mut RawPtr,
-        value: *const crate::math::Vector2<f32>,
+        value: crate::math::Vector2<f32>,
     ) -> ();
 
     fn cbg_RenderedCamera_GetTargetTexture(self_ptr: *mut RawPtr) -> *mut RawPtr;
@@ -1148,7 +1139,7 @@ extern "C" {
 
     fn cbg_Tool_Render(self_ptr: *mut RawPtr) -> ();
 
-    fn cbg_Tool_Dummy(self_ptr: *mut RawPtr, size: *const crate::math::Vector2<f32>) -> ();
+    fn cbg_Tool_Dummy(self_ptr: *mut RawPtr, size: crate::math::Vector2<f32>) -> ();
 
     fn cbg_Tool_Text(self_ptr: *mut RawPtr, text: *const u16) -> ();
 
@@ -1158,7 +1149,7 @@ extern "C" {
 
     fn cbg_Tool_TextColored(
         self_ptr: *mut RawPtr,
-        color: *const crate::math::Vector4<f32>,
+        color: crate::math::Vector4<f32>,
         text: *const u16,
     ) -> ();
 
@@ -1181,7 +1172,7 @@ extern "C" {
     fn cbg_Tool_Button(
         self_ptr: *mut RawPtr,
         label: *const u16,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
     ) -> bool;
 
     fn cbg_Tool_CheckBox(self_ptr: *mut RawPtr, label: *const u16, isOpen: *mut bool) -> bool;
@@ -1193,7 +1184,7 @@ extern "C" {
     fn cbg_Tool_InvisibleButton(
         self_ptr: *mut RawPtr,
         label: *const u16,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
     ) -> bool;
 
     fn cbg_Tool_Selectable(
@@ -1235,7 +1226,7 @@ extern "C" {
     fn cbg_Tool_VSliderInt(
         self_ptr: *mut RawPtr,
         label: *const u16,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
         value: *const c_int,
         valueMin: c_int,
         valueMax: c_int,
@@ -1244,7 +1235,7 @@ extern "C" {
     fn cbg_Tool_VSliderFloat(
         self_ptr: *mut RawPtr,
         label: *const u16,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
         value: *const c_float,
         valueMin: c_float,
         valueMax: c_float,
@@ -1279,7 +1270,7 @@ extern "C" {
     fn cbg_Tool_BeginChild(
         self_ptr: *mut RawPtr,
         label: *const u16,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
         border: bool,
         flags: c_int,
     ) -> bool;
@@ -1364,7 +1355,7 @@ extern "C" {
 
     fn cbg_Tool_GetWindowSize(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
 
-    fn cbg_Tool_SetWindowSize(self_ptr: *mut RawPtr, size: *const crate::math::Vector2<f32>) -> ();
+    fn cbg_Tool_SetWindowSize(self_ptr: *mut RawPtr, size: crate::math::Vector2<f32>) -> ();
 
     fn cbg_Tool_IsMousePosValid(self_ptr: *mut RawPtr) -> bool;
 
@@ -1381,18 +1372,12 @@ extern "C" {
 
     fn cbg_Tool_SetNextWindowContentSize(
         self_ptr: *mut RawPtr,
-        size: *const crate::math::Vector2<f32>,
+        size: crate::math::Vector2<f32>,
     ) -> ();
 
-    fn cbg_Tool_SetNextWindowSize(
-        self_ptr: *mut RawPtr,
-        size: *const crate::math::Vector2<f32>,
-    ) -> ();
+    fn cbg_Tool_SetNextWindowSize(self_ptr: *mut RawPtr, size: crate::math::Vector2<f32>) -> ();
 
-    fn cbg_Tool_SetNextWindowPos(
-        self_ptr: *mut RawPtr,
-        pos: *const crate::math::Vector2<f32>,
-    ) -> ();
+    fn cbg_Tool_SetNextWindowPos(self_ptr: *mut RawPtr, pos: crate::math::Vector2<f32>) -> ();
 
     fn cbg_Tool_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -2162,7 +2147,7 @@ impl VertexArray {
     /// * `value` - 値
 
     pub fn set_at(&mut self, index: i32, mut value: crate::structs::Vertex) -> () {
-        unsafe { cbg_VertexArray_SetAt(self.self_ptr, index, &value as *const _) }
+        unsafe { cbg_VertexArray_SetAt(self.self_ptr, index, value) }
     }
 
     /// インスタンスを作成します。
@@ -2396,7 +2381,7 @@ impl Vector2FArray {
     /// * `value` - 値
 
     pub fn set_at(&mut self, index: i32, mut value: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Vector2FArray_SetAt(self.self_ptr, index, &value as *const _) }
+        unsafe { cbg_Vector2FArray_SetAt(self.self_ptr, index, value) }
     }
 
     /// インスタンスを作成します。
@@ -2591,7 +2576,7 @@ impl Mouse {
     /// マウスカーソルの座標を取得または設定します。
     pub fn set_position(&mut self, mut value: crate::math::Vector2<f32>) -> &mut Self {
         self.position = Some(value.clone());
-        unsafe { cbg_Mouse_SetPosition(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Mouse_SetPosition(self.self_ptr, value) }
         self
     }
 
@@ -2967,7 +2952,7 @@ impl RenderTexture {
     }
 
     pub fn create(mut size: crate::math::Vector2<i32>) -> Option<Rc<RefCell<RenderTexture>>> {
-        let ret = unsafe { cbg_RenderTexture_Create(&size as *const _) };
+        let ret = unsafe { cbg_RenderTexture_Create(size) };
         {
             let ret = RenderTexture::try_get_from_cache(ret)?;
             Some(ret)
@@ -3045,13 +3030,7 @@ impl Material {
     /// * `value` - 設定するVector4<f32>のインスタンスの値
 
     pub fn set_vector4f(&mut self, key: &str, mut value: crate::math::Vector4<f32>) -> () {
-        unsafe {
-            cbg_Material_SetVector4F(
-                self.self_ptr,
-                encode_string(&key).as_ptr(),
-                &value as *const _,
-            )
-        }
+        unsafe { cbg_Material_SetVector4F(self.self_ptr, encode_string(&key).as_ptr(), value) }
     }
 
     /// 指定した名前を持つMatrix44<f32>のインスタンスを取得する
@@ -3069,13 +3048,7 @@ impl Material {
     /// * `value` - 設定するMatrix44<f32>のインスタンスの値
 
     pub fn set_matrix44f(&mut self, key: &str, mut value: crate::math::Matrix44<f32>) -> () {
-        unsafe {
-            cbg_Material_SetMatrix44F(
-                self.self_ptr,
-                encode_string(&key).as_ptr(),
-                &value as *const _,
-            )
-        }
+        unsafe { cbg_Material_SetMatrix44F(self.self_ptr, encode_string(&key).as_ptr(), value) }
     }
 
     /// 指定した名前を持つTexture2Dのインスタンスを取得する
@@ -3243,9 +3216,7 @@ impl CommandList {
         target: &mut RenderTexture,
         mut viewport: crate::structs::Rect<i32>,
     ) -> () {
-        unsafe {
-            cbg_CommandList_SetRenderTarget(self.self_ptr, target.self_ptr(), &viewport as *const _)
-        }
+        unsafe { cbg_CommandList_SetRenderTarget(self.self_ptr, target.self_ptr(), viewport) }
     }
 
     pub fn render_to_render_target(&mut self, material: &mut Material) -> () {
@@ -3291,7 +3262,7 @@ impl AsRendered for Rendered {
     /// 変換行列を取得または設定します。
     fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
     }
 }
 impl Rendered {
@@ -3308,7 +3279,7 @@ impl Rendered {
     /// 変換行列を取得または設定します。
     pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
         self
     }
 }
@@ -3348,7 +3319,7 @@ impl AsRendered for RenderedSprite {
     /// 変換行列を取得または設定します。
     fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
     }
 }
 impl RenderedSprite {
@@ -3415,7 +3386,7 @@ impl RenderedSprite {
     /// 描画範囲を取得または設定します。
     pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) -> &mut Self {
         self.src = Some(value.clone());
-        unsafe { cbg_RenderedSprite_SetSrc(self.self_ptr, &value as *const _) }
+        unsafe { cbg_RenderedSprite_SetSrc(self.self_ptr, value) }
         self
     }
 
@@ -3429,7 +3400,7 @@ impl RenderedSprite {
     /// 変換行列を取得または設定します。
     pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
         self
     }
 }
@@ -3471,7 +3442,7 @@ impl AsRendered for RenderedText {
     /// 変換行列を取得または設定します。
     fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
     }
 }
 impl RenderedText {
@@ -3584,14 +3555,14 @@ impl RenderedText {
     /// 色を取得または設定します。
     pub fn set_color(&mut self, mut value: crate::structs::Color) -> &mut Self {
         self.color = Some(value.clone());
-        unsafe { cbg_RenderedText_SetColor(self.self_ptr, &value as *const _) }
+        unsafe { cbg_RenderedText_SetColor(self.self_ptr, value) }
         self
     }
 
     /// 変換行列を取得または設定します。
     pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
         self
     }
 }
@@ -3632,7 +3603,7 @@ impl AsRendered for RenderedPolygon {
     /// 変換行列を取得または設定します。
     fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
     }
 }
 impl RenderedPolygon {
@@ -3725,7 +3696,7 @@ impl RenderedPolygon {
     /// 描画範囲を取得または設定します。
     pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) -> &mut Self {
         self.src = Some(value.clone());
-        unsafe { cbg_RenderedPolygon_SetSrc(self.self_ptr, &value as *const _) }
+        unsafe { cbg_RenderedPolygon_SetSrc(self.self_ptr, value) }
         self
     }
 
@@ -3739,7 +3710,7 @@ impl RenderedPolygon {
     /// 変換行列を取得または設定します。
     pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
         self
     }
 }
@@ -3778,7 +3749,7 @@ impl AsRendered for RenderedCamera {
     /// 変換行列を取得または設定します。
     fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
     }
 }
 impl RenderedCamera {
@@ -3825,7 +3796,7 @@ impl RenderedCamera {
     /// CenterOffsetを取得または設定します。
     pub fn set_center_offset(&mut self, mut value: crate::math::Vector2<f32>) -> &mut Self {
         self.center_offset = Some(value.clone());
-        unsafe { cbg_RenderedCamera_SetCenterOffset(self.self_ptr, &value as *const _) }
+        unsafe { cbg_RenderedCamera_SetCenterOffset(self.self_ptr, value) }
         self
     }
 
@@ -3839,7 +3810,7 @@ impl RenderedCamera {
     /// 変換行列を取得または設定します。
     pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
         self.transform = Some(value.clone());
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, &value as *const _) }
+        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value) }
         self
     }
 }
@@ -4351,7 +4322,7 @@ impl Tool {
     ///
 
     pub fn dummy(&mut self, mut size: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Tool_Dummy(self.self_ptr, &size as *const _) }
+        unsafe { cbg_Tool_Dummy(self.self_ptr, size) }
     }
 
     ///
@@ -4375,13 +4346,7 @@ impl Tool {
     ///
 
     pub fn text_colored(&mut self, mut color: crate::math::Vector4<f32>, text: &str) -> () {
-        unsafe {
-            cbg_Tool_TextColored(
-                self.self_ptr,
-                &color as *const _,
-                encode_string(&text).as_ptr(),
-            )
-        }
+        unsafe { cbg_Tool_TextColored(self.self_ptr, color, encode_string(&text).as_ptr()) }
     }
 
     ///
@@ -4456,13 +4421,7 @@ impl Tool {
     ///
 
     pub fn button(&mut self, label: &str, mut size: crate::math::Vector2<f32>) -> bool {
-        let ret = unsafe {
-            cbg_Tool_Button(
-                self.self_ptr,
-                encode_string(&label).as_ptr(),
-                &size as *const _,
-            )
-        };
+        let ret = unsafe { cbg_Tool_Button(self.self_ptr, encode_string(&label).as_ptr(), size) };
         ret
     }
 
@@ -4500,11 +4459,7 @@ impl Tool {
 
     pub fn invisible_button(&mut self, label: &str, mut size: crate::math::Vector2<f32>) -> bool {
         let ret = unsafe {
-            cbg_Tool_InvisibleButton(
-                self.self_ptr,
-                encode_string(&label).as_ptr(),
-                &size as *const _,
-            )
+            cbg_Tool_InvisibleButton(self.self_ptr, encode_string(&label).as_ptr(), size)
         };
         ret
     }
@@ -4622,7 +4577,7 @@ impl Tool {
             cbg_Tool_VSliderInt(
                 self.self_ptr,
                 encode_string(&label).as_ptr(),
-                &size as *const _,
+                size,
                 value as *const c_int,
                 value_min,
                 value_max,
@@ -4645,7 +4600,7 @@ impl Tool {
             cbg_Tool_VSliderFloat(
                 self.self_ptr,
                 encode_string(&label).as_ptr(),
-                &size as *const _,
+                size,
                 value as *const c_float,
                 value_min,
                 value_max,
@@ -4740,7 +4695,7 @@ impl Tool {
             cbg_Tool_BeginChild(
                 self.self_ptr,
                 encode_string(&label).as_ptr(),
-                &size as *const _,
+                size,
                 border,
                 flags.bits as i32,
             )
@@ -5004,7 +4959,7 @@ impl Tool {
     ///
 
     pub fn set_window_size(&mut self, mut size: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Tool_SetWindowSize(self.self_ptr, &size as *const _) }
+        unsafe { cbg_Tool_SetWindowSize(self.self_ptr, size) }
     }
 
     ///
@@ -5044,19 +4999,19 @@ impl Tool {
     ///
 
     pub fn set_next_window_content_size(&mut self, mut size: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Tool_SetNextWindowContentSize(self.self_ptr, &size as *const _) }
+        unsafe { cbg_Tool_SetNextWindowContentSize(self.self_ptr, size) }
     }
 
     ///
 
     pub fn set_next_window_size(&mut self, mut size: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Tool_SetNextWindowSize(self.self_ptr, &size as *const _) }
+        unsafe { cbg_Tool_SetNextWindowSize(self.self_ptr, size) }
     }
 
     ///
 
     pub fn set_next_window_pos(&mut self, mut pos: crate::math::Vector2<f32>) -> () {
-        unsafe { cbg_Tool_SetNextWindowPos(self.self_ptr, &pos as *const _) }
+        unsafe { cbg_Tool_SetNextWindowPos(self.self_ptr, pos) }
     }
 }
 
