@@ -35,10 +35,6 @@ impl Polygon {
         }))
     }
 
-    pub(crate) fn instance(&mut self) -> &mut RenderedPolygon {
-        &mut self.instance
-    }
-
     /// テクスチャを取得します。
     pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
         self.instance.get_texture()
