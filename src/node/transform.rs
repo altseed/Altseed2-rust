@@ -71,7 +71,11 @@ impl Transform {
 
     pub(crate) fn update(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> bool {
         match (self.updated, ancestors) {
-            (false, None) => false,
+            (_, Some(p)) => {
+                self.transform = p * &self.calculate();
+                self.updated = false;
+                true
+            }
             (true, None) => {
                 if self.updated {
                     self.transform = self.calculate();
@@ -79,11 +83,7 @@ impl Transform {
                 }
                 true
             }
-            (_, Some(p)) => {
-                self.transform = p * &self.calculate();
-                self.updated = false;
-                true
-            }
+            (false, None) => false,
         }
     }
 

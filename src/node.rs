@@ -31,6 +31,7 @@ pub enum NodeState {
     Registered,
     WaitingAdded,
     WaitingRemoved,
+    AncestorRemoved,
 }
 
 #[derive(Debug)]
@@ -112,8 +113,29 @@ pub trait HasBaseNode: std::fmt::Debug {
         }
 
         match child.node_base().state {
-            NodeState::Registered => {
+            NodeState::Registered | NodeState::AncestorRemoved => {
                 child.node_base_mut().state = NodeState::WaitingRemoved;
+
+                let mut descendants = VecDeque::new();
+
+                for gc in child.children().iter() {
+                    if gc.borrow().node_base().state == NodeState::Registered {
+                        descendants.push_back(gc);
+                    }
+                }
+
+                while let Some(c) = descendants.pop_front() {
+                    let mut n = c.borrow_mut();
+                    let mut base = n.node_base_mut();
+                    base.state = NodeState::AncestorRemoved;
+
+                    for gc in n.children().iter() {
+                        if gc.borrow().node_base().state == NodeState::Registered {
+                            descendants.push_back(c);
+                        }
+                    }
+                }
+
                 Ok(())
             }
             state => Err(AltseedError::InvalidNodeState(
@@ -141,14 +163,13 @@ pub(crate) fn update_node_recursive(
         .downcast_mut::<DrawnNode>()
         .map(|d| d.relative_transform(ancestors));
 
-    let m = match &t {
+    let ancestors = match &t {
         None => ancestors,
         Some(m) => m.as_ref(),
     };
 
-    node.borrow_mut().on_updating(engine)?;
-
     let mut items = VecDeque::new();
+    let mut tmp = VecDeque::new();
     {
         let mut x = node.borrow_mut();
         x.node_base_mut()
@@ -159,39 +180,59 @@ pub(crate) fn update_node_recursive(
 
     // 子ノードの`on_hoge`呼び出し時に親ノードがborrowされてると都合が悪いのでこうなった
     while let Some(item) = items.pop_front() {
-        let s = &item.borrow().state();
+        let s = item.borrow().state().clone();
         match s {
             NodeState::WaitingAdded => {
                 {
                     let mut x = item.borrow_mut();
+                    // 追加後
                     x.on_added(engine)?;
                     x.node_base_mut().state = NodeState::Registered;
                 }
-                node.borrow_mut()
-                    .node_base_mut()
-                    .children
-                    .items_mut()
-                    .push_back(item);
+                // 再帰
+                update_node_recursive(&item, engine, ancestors)?;
+
+                tmp.push_back(item);
             }
             NodeState::Registered => {
-                // 再帰的に更新
-                update_node_recursive(&item, engine, m)?;
-                node.borrow_mut()
-                    .node_base_mut()
-                    .children
-                    .items_mut()
-                    .push_back(item);
+                // 更新前
+                item.borrow_mut().on_updating(engine)?;
+                // 再帰
+                update_node_recursive(&item, engine, ancestors)?;
+                // 更新後
+                item.borrow_mut().on_updated(engine)?;
+
+                tmp.push_back(item);
+            }
+            NodeState::AncestorRemoved => {
+                item.borrow_mut().node_base_mut().state = NodeState::Registered;
+                // 更新前
+                item.borrow_mut().on_updating(engine)?;
+                // 再帰
+                update_node_recursive(&item, engine, ancestors)?;
+                // 更新後
+                item.borrow_mut().on_updated(engine)?;
+                tmp.push_back(item);
             }
             NodeState::WaitingRemoved => {
-                let mut x = item.borrow_mut();
-                x.on_removed(engine)?;
-                x.node_base_mut().state = NodeState::Free;
+                {
+                    let mut x = item.borrow_mut();
+                    // 削除後
+                    x.on_removed(engine)?;
+                    x.node_base_mut().state = NodeState::Free;
+                }
+
+                // 再帰
+                update_node_recursive(&item, engine, ancestors)?;
             }
             _ => (),
         }
     }
 
-    node.borrow_mut().on_updated(engine)?;
+    std::mem::swap(
+        &mut tmp,
+        &mut node.borrow_mut().node_base_mut().children.items_mut(),
+    );
 
     Ok(())
 }
