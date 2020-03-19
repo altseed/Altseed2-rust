@@ -145,10 +145,6 @@ lazy_static! {
 impl Drop for Engine {
     fn drop(&mut self) {
         if self.called_begin {
-            if let Some(tool) = &self.tool {
-                tool.borrow_mut().render();
-            }
-
             self.graphics.end_frame();
         }
         Core::terminate();
