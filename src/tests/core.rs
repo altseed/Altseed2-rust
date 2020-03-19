@@ -9,7 +9,7 @@ fn core() {
     let mut renderer = Renderer::get_instance().unwrap();
 
     let mut count = 0;
-    while count < 20 && core.do_event() && graphics.do_events() {
+    while count < 5 && core.do_event() && graphics.do_events() {
         count += 1;
 
         assert!(graphics.begin_frame());

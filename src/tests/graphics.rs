@@ -30,7 +30,7 @@ fn rendered_sprite() {
     let mut renderer = Renderer::get_instance().unwrap();
 
     let mut count = 0;
-    while core.do_event() && graphics.do_events() && count < 10 {
+    while core.do_event() && graphics.do_events() && count < 5 {
         count += 1;
 
         assert!(graphics.begin_frame());
