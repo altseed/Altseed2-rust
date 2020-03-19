@@ -102,7 +102,7 @@ pub trait HasBaseNode: std::fmt::Debug {
 
         let child_ref = child.borrow();
 
-        for gc in child_ref.children().iter() {
+        for gc in child_ref.node_base().children.items().iter() {
             if gc.borrow().node_base().state == NodeState::AncestorRemoved {
                 descendants.push_back(gc);
             }
@@ -113,7 +113,7 @@ pub trait HasBaseNode: std::fmt::Debug {
             let mut base = n.node_base_mut();
             base.state = NodeState::Registered;
 
-            for gc in n.children().iter() {
+            for gc in n.node_base().children.items().iter() {
                 if gc.borrow().node_base().state == NodeState::AncestorRemoved {
                     descendants.push_back(c);
                 }
@@ -132,7 +132,7 @@ pub trait HasBaseNode: std::fmt::Debug {
                 // Registeredの子孫をAncestorRemovedにする
                 let mut descendants = VecDeque::new();
 
-                for gc in self.children().iter() {
+                for gc in self.node_base().children.items().iter() {
                     if gc.borrow().node_base().state == NodeState::Registered {
                         descendants.push_back(gc);
                     }
@@ -143,7 +143,7 @@ pub trait HasBaseNode: std::fmt::Debug {
                     let mut base = n.node_base_mut();
                     base.state = NodeState::AncestorRemoved;
 
-                    for gc in n.children().iter() {
+                    for gc in n.node_base().children.items().iter() {
                         if gc.borrow().node_base().state == NodeState::Registered {
                             descendants.push_back(c);
                         }
@@ -194,7 +194,7 @@ pub(crate) fn update_node_recursive(
 
     // 子ノードの`on_hoge`呼び出し時に親ノードがborrowされてると都合が悪いのでこうなった
     while let Some(item) = items.pop_front() {
-        let s = item.borrow().state().clone();
+        let s = item.borrow().node_base().state.clone();
         match s {
             NodeState::WaitingAdded => {
                 {
@@ -220,7 +220,7 @@ pub(crate) fn update_node_recursive(
             }
             NodeState::AncestorRemoved => {
                 // ツリーが削除後
-                item.borrow_mut().on_removed(engine)?;
+                item.borrow_mut().on_tree_removed(engine)?;
                 // 再帰
                 update_node_recursive(&item, engine, ancestors)?;
                 tmp.push_back(item);

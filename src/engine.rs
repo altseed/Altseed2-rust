@@ -300,8 +300,10 @@ impl Engine {
 
         // DrawnNodeの呼び出し
         for node in self.drawn_nodes.iter().map(|x| Weak::upgrade(x).unwrap()) {
-            node.borrow_mut()
-                .on_drawn(&mut self.graphics, &mut self.renderer);
+            if node.borrow().node_base().state == NodeState::Registered {
+                node.borrow_mut()
+                    .on_drawn(&mut self.graphics, &mut self.renderer);
+            }
         }
 
         {

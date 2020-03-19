@@ -99,7 +99,10 @@ impl<K: Ord, T: Node + SortedItem<K>> SortVec<K, T> {
         // 生存していないNodeは取り除く
         self.vec.retain(|x| match x.upgrade() {
             None => false,
-            Some(x) => x.borrow().node_base().state == NodeState::Registered,
+            Some(x) => {
+                let state = x.borrow().node_base().state;
+                state == NodeState::Registered || state == NodeState::AncestorRemoved
+            },
         });
 
         // 更新があったらソート
