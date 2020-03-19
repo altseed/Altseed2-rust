@@ -13,11 +13,10 @@
 //!         .load_dynamic_font("./Core/TestData/Font/mplus-1m-regular.ttf", 50)?;
 //!
 //!     let node = {
-//!         let text = Text::new();
-//!         text.borrow_mut()
-//!             .set_font(&font)
-//!             .set_text("Hello, world! こんにちは");
-//!         DrawnNode::new(text)
+//!         Text::new()
+//!             .with_font(&font)
+//!             .with_text("Hello, world! こんにちは")
+//!             .build()
 //!     };
 //!
 //!     engine.add_node(node)?;

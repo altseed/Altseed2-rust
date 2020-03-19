@@ -4,38 +4,32 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::auto_generated_core_binding::{Font, RenderedText, Renderer};
-use crate::prelude::{Drawn, Vector2};
+use crate::auto_generated_core_binding::{AsRendered, Font, RenderedText, Renderer};
 
-define_drawn! {
-    /// 文字列を描画するためのAltseedのクラスを表します。
-    pub struct Text {
-        instance: RenderedText,
-    }
+/// 文字列を描画するためのAltseedのクラスを表します。
+#[derive(Debug)]
+pub struct Text {
+    instance: RenderedText,
 }
+
+impl_material!(Text);
 
 impl super::DrawnInternal for Text {
     fn on_drawn(&mut self, renderer: &mut Renderer) {
         renderer.draw_text(&mut self.instance);
     }
 
-    fn update_transform(
-        &mut self,
-        ancestors: Option<&crate::math::Matrix44<f32>>,
-    ) -> Option<crate::math::Matrix44<f32>> {
-        self.update_transform(ancestors)
+    fn rendered_mut(&mut self) -> &mut dyn AsRendered {
+        &mut self.instance
     }
 }
 
 impl Text {
     /// 新しい`Text`を作成します。
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Text {
+    pub fn new() -> Self {
+        Text {
             instance: RenderedText::create().unwrap(),
-            trans: super::Transform::default(),
-            z_order: 0,
-            is_drawn: true,
-        }))
+        }
     }
 
     /// テキストを取得します。
@@ -46,6 +40,12 @@ impl Text {
     /// テキストを設定します。
     pub fn set_text(&mut self, text: &str) -> &mut Self {
         self.instance.set_text(text.to_owned());
+        self
+    }
+
+    /// テキストを設定します。
+    pub fn with_text(mut self, text: &str) -> Self {
+        self.set_text(text);
         self
     }
 
@@ -60,6 +60,12 @@ impl Text {
         self
     }
 
+    /// フォントを設定します。
+    pub fn with_font(mut self, font: &Arc<Mutex<Font>>) -> Self {
+        self.set_font(font);
+        self
+    }
+
     /// 文字の太さを取得します。(0 ~ 255)
     pub fn get_weight(&mut self) -> f32 {
         self.instance.get_weight()
@@ -68,6 +74,12 @@ impl Text {
     /// 文字の太さを設定します。(0 ~ 255)
     pub fn set_weight(&mut self, weight: f32) -> &mut Self {
         self.instance.set_weight(weight);
+        self
+    }
+
+    /// 文字の太さを設定します。(0 ~ 255)
+    pub fn with_weight(mut self, weight: f32) -> Self {
+        self.set_weight(weight);
         self
     }
 }

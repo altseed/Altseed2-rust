@@ -14,23 +14,21 @@ fn tree_add() -> AltseedResult<()> {
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
     let s1 = {
-        let sprite = Sprite::new();
-        sprite
-            .borrow_mut()
-            .set_texture(&t1)
-            .set_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .set_pos(Vector2::new(100.0, 100.0));
-        DrawnNode::new(sprite)
+        let node = Sprite::new()
+            .with_tex(&t1)
+            .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
+            .build();
+        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+        node
     };
 
     let s2 = {
-        let sprite = Sprite::new();
-        sprite
-            .borrow_mut()
-            .set_texture(&t1)
-            .set_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .set_pos(Vector2::new(200.0, 200.0));
-        DrawnNode::new(sprite)
+        let node = Sprite::new()
+            .with_tex(&t1)
+            .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
+            .build();
+        node.borrow_mut().set_pos(Vector2::new(200.0, 200.0));
+        node
     };
 
     s1.borrow_mut().add_child(s2)?;
@@ -50,23 +48,21 @@ fn node_remove() -> AltseedResult<()> {
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
     let s1 = {
-        let sprite = Sprite::new();
-        sprite
-            .borrow_mut()
-            .set_texture(&t1)
-            .set_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .set_pos(Vector2::new(100.0, 100.0));
-        DrawnNode::new(sprite)
+        let node = Sprite::new()
+            .with_tex(&t1)
+            .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
+            .build();
+        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+        node
     };
 
     let s2 = {
-        let sprite = Sprite::new();
-        sprite
-            .borrow_mut()
-            .set_texture(&t1)
-            .set_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .set_pos(Vector2::new(100.0, 100.0));
-        DrawnNode::new(sprite)
+        let node = Sprite::new()
+            .with_tex(&t1)
+            .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
+            .build();
+        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+        node
     };
 
     s1.borrow_mut().add_child(s2.clone())?;

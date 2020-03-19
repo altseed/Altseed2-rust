@@ -40,7 +40,8 @@ pub mod prelude {
     pub use crate::engine::{Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        BaseNode, CameraNode, Drawn, DrawnNode, HasBaseNode, Node, NodeState, Polygon, Sprite, Text,
+        BaseNode, CameraNode, Drawn, DrawnKind, DrawnNode, HasBaseNode, Node, NodeState, Polygon,
+        Sprite, Text,
     };
 
     pub use crate::core::*;

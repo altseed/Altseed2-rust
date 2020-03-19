@@ -1,49 +1,44 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::auto_generated_core_binding::{
-    AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
+    AsRendered, AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
 };
-use crate::prelude::{Drawn, Rect, Vector2};
+use crate::prelude::{Rect, Vector2};
 use crate::structs::Vertex;
 
-define_drawn! {
-    /// ポリゴンを描画するためのAltseedのクラスを表します。
-    pub struct Polygon {
-        instance: RenderedPolygon,
-    }
+/// ポリゴンを描画するためのAltseedのクラスを表します。
+#[derive(Debug)]
+pub struct Polygon {
+    instance: RenderedPolygon,
 }
+
+impl_material!(Polygon);
 
 impl super::DrawnInternal for Polygon {
     fn on_drawn(&mut self, renderer: &mut Renderer) {
         renderer.draw_polygon(&mut self.instance);
     }
 
-    fn update_transform(
-        &mut self,
-        ancestors: Option<&crate::math::Matrix44<f32>>,
-    ) -> Option<crate::math::Matrix44<f32>> {
-        self.update_transform(ancestors)
+    fn rendered_mut(&mut self) -> &mut dyn AsRendered {
+        &mut self.instance
     }
 }
 
 impl Polygon {
     /// 新しい`Polygon`を作成します。
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Polygon {
+    pub fn new() -> Self {
+        Polygon {
             instance: RenderedPolygon::create().unwrap(),
-            trans: super::Transform::default(),
-            z_order: 0,
-            is_drawn: true,
-        }))
+        }
     }
 
     /// テクスチャを取得します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
+    pub fn get_tex(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
         self.instance.get_texture()
     }
 
     /// テクスチャを設定します。
-    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, texture: &Rc<RefCell<T>>) -> &mut Self {
+    pub fn set_tex<T: AsTexture2D + 'static>(&mut self, texture: &Rc<RefCell<T>>) -> &mut Self {
         let size = texture.borrow_mut().get_size();
         self.instance.set_texture(texture).set_src(Rect::new(
             0.0,
@@ -51,6 +46,11 @@ impl Polygon {
             size.x as f32,
             size.y as f32,
         ));
+        self
+    }
+
+    pub fn with_tex<T: AsTexture2D + 'static>(mut self, texture: &Rc<RefCell<T>>) -> Self {
+        self.set_tex(texture);
         self
     }
 
@@ -65,6 +65,11 @@ impl Polygon {
         self
     }
 
+    pub fn with_src(mut self, src: Rect<f32>) -> Self {
+        self.set_src(src);
+        self
+    }
+
     /// 頂点情報を取得します。
     pub fn get_vertexes(&mut self) -> Vec<Vertex> {
         let v = self.instance.get_vertexes().unwrap();
@@ -73,16 +78,27 @@ impl Polygon {
     }
 
     /// 頂点情報を設定します。
-    pub fn set_vertexes(&mut self, vertexes: &Vec<Vertex>) -> &mut Self {
+    pub fn set_verts(&mut self, vertexes: &Vec<Vertex>) -> &mut Self {
         let v = VertexArray::from_vec(vertexes);
         self.instance.set_vertexes(v);
         self
     }
 
+    pub fn with_verts(mut self, vertexes: &Vec<Vertex>) -> Self {
+        self.set_verts(vertexes);
+        self
+    }
+
     /// 頂点情報を設定します。
-    pub fn set_vertexes_with_position(&mut self, vertexes: &Vec<Vector2<f32>>) -> &mut Self {
+    pub fn set_verts_positions(&mut self, vertexes: &Vec<Vector2<f32>>) -> &mut Self {
         let v = Vector2FArray::from_vec(vertexes);
         self.instance.set_vertexes_by_vector2f(&mut v.borrow_mut());
+        self
+    }
+
+    /// 頂点情報を設定します。
+    pub fn with_verts_positions(mut self, vertexes: &Vec<Vector2<f32>>) -> Self {
+        self.set_verts_positions(vertexes);
         self
     }
 }
