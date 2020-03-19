@@ -366,11 +366,6 @@ impl Engine {
         self.root_node.borrow_mut().add_child(child)
     }
 
-    /// エンジンに追加されているノードを削除するフラグを立てます。実際の更新はフレームの終わりに実行されます。
-    pub fn remove_node<T: Node + 'static>(&self, child: &mut T) -> AltseedResult<()> {
-        self.root_node.borrow_mut().remove_child(child)
-    }
-
     /// ルートノードを取得します。
     pub fn root_node(&self) -> &Rc<RefCell<RootNode>> {
         &self.root_node

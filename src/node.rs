@@ -95,30 +95,44 @@ pub trait HasBaseNode: std::fmt::Debug {
 
     /// 子ノードを追加するフラグを立てます。EngineのUpdate時に更新されます。
     fn add_child(&mut self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
-        self.node_base_mut().children.add(child)
-    }
+        self.node_base_mut().children.add(child.clone())?;
 
-    /// 子ノードを削除するフラグを立てます。EngineのUpdate時に更新されます。
-    fn remove_child(&mut self, child: &mut dyn Node) -> AltseedResult<()> {
-        if let Some(owner) = child.owner() {
-            if self.node_base_mut() as *const BaseNode
-                != owner.borrow().node_base() as *const BaseNode
-            {
-                return Err(AltseedError::RemovedInvalidNode(
-                    std::any::type_name_of_val(self).to_owned(),
-                    std::any::type_name_of_val(&child).to_owned(),
-                    std::any::type_name_of_val(&owner).to_owned(),
-                ));
+        // AncestorRemovedの子孫をRegisteredにする
+        let mut descendants = VecDeque::new();
+
+        let child_ref = child.borrow();
+
+        for gc in child_ref.children().iter() {
+            if gc.borrow().node_base().state == NodeState::AncestorRemoved {
+                descendants.push_back(gc);
             }
         }
 
-        match child.node_base().state {
-            NodeState::Registered | NodeState::AncestorRemoved => {
-                child.node_base_mut().state = NodeState::WaitingRemoved;
+        while let Some(c) = descendants.pop_front() {
+            let mut n = c.borrow_mut();
+            let mut base = n.node_base_mut();
+            base.state = NodeState::Registered;
 
+            for gc in n.children().iter() {
+                if gc.borrow().node_base().state == NodeState::AncestorRemoved {
+                    descendants.push_back(c);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    /// 自身を親ノードから削除するフラグを立てます。EngineのUpdate時に更新されます。
+    fn remove(&mut self) -> AltseedResult<()> {
+        match self.node_base().state {
+            NodeState::Registered | NodeState::AncestorRemoved => {
+                self.node_base_mut().state = NodeState::WaitingRemoved;
+
+                // Registeredの子孫をAncestorRemovedにする
                 let mut descendants = VecDeque::new();
 
-                for gc in child.children().iter() {
+                for gc in self.children().iter() {
                     if gc.borrow().node_base().state == NodeState::Registered {
                         descendants.push_back(gc);
                     }
@@ -139,9 +153,9 @@ pub trait HasBaseNode: std::fmt::Debug {
                 Ok(())
             }
             state => Err(AltseedError::InvalidNodeState(
-                std::any::type_name_of_val(&child).to_owned(),
+                "On removeing node".to_owned(),
+                std::any::type_name_of_val(&self).to_owned(),
                 state,
-                NodeState::Registered,
             )),
         }
     }
@@ -185,9 +199,9 @@ pub(crate) fn update_node_recursive(
             NodeState::WaitingAdded => {
                 {
                     let mut x = item.borrow_mut();
+                    x.node_base_mut().state = NodeState::Registered;
                     // 追加後
                     x.on_added(engine)?;
-                    x.node_base_mut().state = NodeState::Registered;
                 }
                 // 再帰
                 update_node_recursive(&item, engine, ancestors)?;
@@ -205,21 +219,18 @@ pub(crate) fn update_node_recursive(
                 tmp.push_back(item);
             }
             NodeState::AncestorRemoved => {
-                item.borrow_mut().node_base_mut().state = NodeState::Registered;
-                // 更新前
-                item.borrow_mut().on_updating(engine)?;
+                // ツリーが削除後
+                item.borrow_mut().on_removed(engine)?;
                 // 再帰
                 update_node_recursive(&item, engine, ancestors)?;
-                // 更新後
-                item.borrow_mut().on_updated(engine)?;
                 tmp.push_back(item);
             }
             NodeState::WaitingRemoved => {
                 {
                     let mut x = item.borrow_mut();
+                    x.node_base_mut().state = NodeState::Free;
                     // 削除後
                     x.on_removed(engine)?;
-                    x.node_base_mut().state = NodeState::Free;
                 }
 
                 // 再帰
@@ -239,19 +250,28 @@ pub(crate) fn update_node_recursive(
 
 #[allow(unused_variables)]
 pub trait Node: HasBaseNode + Downcast {
+    /// 親ノードに追加された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
+    /// 毎フレーム、子ノードを更新する前に実行されます。
     fn on_updating(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
+    /// 毎フレーム、子ノードを更新した後に実行されます。
     fn on_updated(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
+    /// 親ノードから削除された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
     fn on_removed(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+        Ok(())
+    }
+
+    /// 所属するノードツリーが削除された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
+    fn on_tree_removed(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 }

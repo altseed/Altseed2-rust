@@ -38,9 +38,9 @@ impl NodeVec {
                 Ok(())
             }
             state => Err(AltseedError::InvalidNodeState(
+                "On adding child".to_owned(),
                 std::any::type_name_of_val(&item.borrow()).to_owned(),
                 state,
-                NodeState::Free,
             )),
         }
     }
