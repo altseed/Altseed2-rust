@@ -134,6 +134,7 @@ pub struct Engine {
     runner: TaskRunner<'static, AltseedError>,
 
     closed: bool,
+    called_begin: bool,
 }
 
 lazy_static! {
@@ -143,6 +144,13 @@ lazy_static! {
 
 impl Drop for Engine {
     fn drop(&mut self) {
+        if self.called_begin {
+            if let Some(tool) = &self.tool {
+                tool.borrow_mut().render();
+            }
+
+            self.graphics.end_frame();
+        }
         Core::terminate();
         *INITIALIZED.lock().unwrap() = false;
     }
@@ -192,6 +200,7 @@ impl Engine {
                 runner: TaskRunner::new(&WAKER),
 
                 closed: false,
+                called_begin: false,
             };
 
             Some(e)
@@ -260,6 +269,7 @@ impl Engine {
                 tool.borrow_mut().new_frame();
             }
 
+            self.called_begin = true;
             return Ok(true);
         }
 
@@ -327,6 +337,7 @@ impl Engine {
                 "Graphics::end_frame failed".to_owned(),
             ));
         }
+        self.called_begin = false;
 
         Ok(())
     }
