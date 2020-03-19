@@ -90,4 +90,8 @@ impl Transform {
     pub(crate) fn get(&self) -> &Matrix44<f32> {
         &self.transform
     }
+
+    pub(crate) fn updated(&mut self) {
+        self.updated = true;
+    }
 }

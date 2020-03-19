@@ -37,10 +37,10 @@ impl NodeVec {
                 item.borrow_mut().node_base_mut().state = NodeState::WaitingAdded;
                 Ok(())
             }
-            state => Err(AltseedError::InvalidNodeState(
+            _ => Err(AltseedError::InvalidNodeState(
                 "On adding child".to_owned(),
-                std::any::type_name_of_val(&item.borrow()).to_owned(),
                 state,
+                format!("{:?}", &item.borrow()),
             )),
         }
     }
@@ -102,7 +102,7 @@ impl<K: Ord, T: Node + SortedItem<K>> SortVec<K, T> {
             Some(x) => {
                 let state = x.borrow().node_base().state;
                 state == NodeState::Registered || state == NodeState::AncestorRemoved
-            },
+            }
         });
 
         // 更新があったらソート

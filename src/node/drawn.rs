@@ -93,6 +93,12 @@ define_node! {
 impl Node for DrawnNode {
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         engine.add_drawn_node(self.weak.clone().unwrap());
+        self.kind.get_drawn().borrow_mut().transform_mut().updated();
+        Ok(())
+    }
+
+    fn on_removed(&mut self, _: &mut Engine) -> AltseedResult<()> {
+        self.kind.get_drawn().borrow_mut().transform_mut().updated();
         Ok(())
     }
 }

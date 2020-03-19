@@ -101,19 +101,17 @@ pub trait HasBaseNode: std::fmt::Debug {
         let mut descendants = VecDeque::new();
 
         let child_ref = child.borrow();
-
-        for gc in child_ref.node_base().children.items().iter() {
+        let base = child_ref.node_base();
+        for gc in base.children.items().iter() {
             if gc.borrow().node_base().state == NodeState::AncestorRemoved {
                 descendants.push_back(gc);
             }
         }
 
         while let Some(c) = descendants.pop_front() {
-            let mut n = c.borrow_mut();
-            let mut base = n.node_base_mut();
-            base.state = NodeState::Registered;
+            c.borrow_mut().node_base_mut().state = NodeState::Registered;
 
-            for gc in n.node_base().children.items().iter() {
+            for gc in c.borrow().node_base().children.items().iter() {
                 if gc.borrow().node_base().state == NodeState::AncestorRemoved {
                     descendants.push_back(c);
                 }
@@ -154,8 +152,8 @@ pub trait HasBaseNode: std::fmt::Debug {
             }
             state => Err(AltseedError::InvalidNodeState(
                 "On removeing node".to_owned(),
-                std::any::type_name_of_val(&self).to_owned(),
                 state,
+                format!("{:?}", self),
             )),
         }
     }

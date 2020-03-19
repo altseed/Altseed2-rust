@@ -31,8 +31,8 @@ pub enum AltseedError {
     FailedToCreateResource(ResourceType, String),
 
     /// ノードの状態が無効です。
-    #[fail(display = "{}, target node({}) has invalid NodeState '{:?}'", 0, 1, 2)]
-    InvalidNodeState(String, String, NodeState),
+    #[fail(display = "{}, target nodehas invalid NodeState '{:?}' ({})", 0, 1, 2)]
+    InvalidNodeState(String, NodeState, String),
 
     /// 音源の再生に失敗しました。
     #[fail(display = "Failed to play sound of '{}'", 0)]
@@ -40,6 +40,15 @@ pub enum AltseedError {
 
     #[fail(display = "{}", 0)]
     Error(Box<dyn std::error::Error + Send + Sync + 'static>),
+
+    #[fail(display = "{}", 0)]
+    Msg(String),
+}
+
+impl AltseedError {
+    pub fn msg(message: &str) -> Self {
+        Self::Msg(message.to_owned())
+    }
 }
 
 impl<T: std::error::Error + Send + Sync + 'static> From<T> for AltseedError {
