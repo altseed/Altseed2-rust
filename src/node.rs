@@ -27,11 +27,16 @@ use list::*;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum NodeState {
+    /// ノードに追加されていません。
     Free,
+    /// ノードに追加されています。
     Registered,
+    /// ノードへの追加待ちです。
     WaitingAdded,
+    /// ノードからの削除待ちです。
     WaitingRemoved,
-    AncestorRemoved,
+    /// ノードに追加されてますが、ルートノードに接続されていません。
+    Disconnected,
 }
 
 #[derive(Debug)]
@@ -96,58 +101,14 @@ pub trait HasBaseNode: std::fmt::Debug {
     /// 子ノードを追加するフラグを立てます。EngineのUpdate時に更新されます。
     fn add_child(&mut self, child: Rc<RefCell<dyn Node>>) -> AltseedResult<()> {
         self.node_base_mut().children.add(child.clone())?;
-
-        // AncestorRemovedの子孫をRegisteredにする
-        let mut descendants = VecDeque::new();
-
-        let child_ref = child.borrow();
-        let base = child_ref.node_base();
-        for gc in base.children.items().iter() {
-            if gc.borrow().node_base().state == NodeState::AncestorRemoved {
-                descendants.push_back(gc);
-            }
-        }
-
-        while let Some(c) = descendants.pop_front() {
-            c.borrow_mut().node_base_mut().state = NodeState::Registered;
-
-            for gc in c.borrow().node_base().children.items().iter() {
-                if gc.borrow().node_base().state == NodeState::AncestorRemoved {
-                    descendants.push_back(c);
-                }
-            }
-        }
-
         Ok(())
     }
 
     /// 自身を親ノードから削除するフラグを立てます。EngineのUpdate時に更新されます。
     fn remove(&mut self) -> AltseedResult<()> {
         match self.node_base().state {
-            NodeState::Registered | NodeState::AncestorRemoved => {
+            NodeState::Registered | NodeState::Disconnected => {
                 self.node_base_mut().state = NodeState::WaitingRemoved;
-
-                // Registeredの子孫をAncestorRemovedにする
-                let mut descendants = VecDeque::new();
-
-                for gc in self.node_base().children.items().iter() {
-                    if gc.borrow().node_base().state == NodeState::Registered {
-                        descendants.push_back(gc);
-                    }
-                }
-
-                while let Some(c) = descendants.pop_front() {
-                    let mut n = c.borrow_mut();
-                    let mut base = n.node_base_mut();
-                    base.state = NodeState::AncestorRemoved;
-
-                    for gc in n.node_base().children.items().iter() {
-                        if gc.borrow().node_base().state == NodeState::Registered {
-                            descendants.push_back(c);
-                        }
-                    }
-                }
-
                 Ok(())
             }
             state => Err(AltseedError::InvalidNodeState(
@@ -158,16 +119,18 @@ pub trait HasBaseNode: std::fmt::Debug {
         }
     }
 
-    /// 全ての子ノードを削除するフラグを立てます。実際の更新はフレームの終わりに実行されます。
+    /// 全ての子ノードを削除するフラグを立てます。EngineのUpdate時に実行されます。
     fn clear_children(&mut self) {
         self.node_base().children.clear()
     }
 }
 
+// あるノードを更新中に他のノードの参照をとらないようにするため、Rcで渡す
 pub(crate) fn update_node_recursive(
     node: &Rc<RefCell<dyn Node>>,
     engine: &mut Engine,
     ancestors: Option<&crate::math::Matrix44<f32>>,
+    is_connected_root: bool,
 ) -> AltseedResult<()> {
     // 伝播させるTransformの用意
     let t = node
@@ -180,19 +143,24 @@ pub(crate) fn update_node_recursive(
         Some(m) => m.as_ref(),
     };
 
-    let mut items = VecDeque::new();
-    let mut tmp = VecDeque::new();
-    {
-        let mut x = node.borrow_mut();
-        x.node_base_mut()
-            .children
-            .add_waiting_nodes(Rc::downgrade(&node));
-        std::mem::swap(&mut items, &mut x.node_base_mut().children.items_mut());
-    }
+    // 追加の反映
+    node.borrow_mut()
+        .node_base_mut()
+        .children
+        .add_waiting_nodes(Rc::downgrade(&node));
 
-    // 子ノードの`on_hoge`呼び出し時に親ノードがborrowされてると都合が悪いのでこうなった
-    while let Some(item) = items.pop_front() {
+    // 一時格納キュー
+    let mut items = VecDeque::new();
+    // 可変参照の関係でswap
+    std::mem::swap(
+        &mut items,
+        &mut node.borrow_mut().node_base_mut().children.items_mut(),
+    );
+
+    for _ in 0..items.len() {
+        let item = items.pop_front().unwrap();
         let s = item.borrow().node_base().state.clone();
+
         match s {
             NodeState::WaitingAdded => {
                 {
@@ -200,28 +168,45 @@ pub(crate) fn update_node_recursive(
                     x.node_base_mut().state = NodeState::Registered;
                     // 追加後
                     x.on_added(engine)?;
+
+                    if is_connected_root {
+                        x.on_connected_root(engine)?;
+                    } else {
+                        x.node_base_mut().state = NodeState::Disconnected;
+                        x.on_disconnected_root(engine)?;
+                    }
                 }
                 // 再帰
-                update_node_recursive(&item, engine, ancestors)?;
+                update_node_recursive(&item, engine, ancestors, is_connected_root)?;
 
-                tmp.push_back(item);
+                items.push_back(item);
             }
             NodeState::Registered => {
-                // 更新前
-                item.borrow_mut().on_updating(engine)?;
-                // 再帰
-                update_node_recursive(&item, engine, ancestors)?;
-                // 更新後
-                item.borrow_mut().on_updated(engine)?;
+                if is_connected_root {
+                    // 更新
+                    item.borrow_mut().on_updated(engine)?;
+                } else {
+                    let mut x = item.borrow_mut();
+                    x.node_base_mut().state = NodeState::Disconnected;
+                    x.on_disconnected_root(engine)?;
+                }
 
-                tmp.push_back(item);
-            }
-            NodeState::AncestorRemoved => {
-                // ツリーが削除後
-                item.borrow_mut().on_tree_removed(engine)?;
                 // 再帰
-                update_node_recursive(&item, engine, ancestors)?;
-                tmp.push_back(item);
+                update_node_recursive(&item, engine, ancestors, is_connected_root)?;
+                items.push_back(item);
+            }
+            NodeState::Disconnected => {
+                // rootに再接続されたら
+                if is_connected_root {
+                    let mut x = item.borrow_mut();
+                    // stateを戻す
+                    x.node_base_mut().state = NodeState::Registered;
+                    x.on_connected_root(engine)?;
+                }
+
+                // 再帰
+                update_node_recursive(&item, engine, ancestors, is_connected_root)?;
+                items.push_back(item);
             }
             NodeState::WaitingRemoved => {
                 {
@@ -229,17 +214,19 @@ pub(crate) fn update_node_recursive(
                     x.node_base_mut().state = NodeState::Free;
                     // 削除後
                     x.on_removed(engine)?;
+                    x.on_disconnected_root(engine)?;
                 }
 
                 // 再帰
-                update_node_recursive(&item, engine, ancestors)?;
+                update_node_recursive(&item, engine, ancestors, false)?;
             }
             _ => (),
         }
     }
 
+    // swapで一時格納キューから戻す
     std::mem::swap(
-        &mut tmp,
+        &mut items,
         &mut node.borrow_mut().node_base_mut().children.items_mut(),
     );
 
@@ -248,28 +235,28 @@ pub(crate) fn update_node_recursive(
 
 #[allow(unused_variables)]
 pub trait Node: HasBaseNode + Downcast {
-    /// 親ノードに追加された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
+    /// 親ノードに追加された時に実行されます。
     fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
-    /// 毎フレーム、子ノードを更新する前に実行されます。
-    fn on_updating(&mut self, engine: &mut Engine) -> AltseedResult<()> {
-        Ok(())
-    }
-
-    /// 毎フレーム、子ノードを更新した後に実行されます。
+    /// 毎フレーム実行されます。
     fn on_updated(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
-    /// 親ノードから削除された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
+    /// 親ノードから削除された時に実行されます。
     fn on_removed(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 
-    /// 所属するノードツリーが削除された時に実行されます。この関数が呼び出された後、子ノードが更新されます。
-    fn on_tree_removed(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+    /// ルートノードに接続された時に実行されます。
+    fn on_connected_root(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+        Ok(())
+    }
+
+    /// ルートノードへの接続が切れた時に実行されます。
+    fn on_disconnected_root(&mut self, engine: &mut Engine) -> AltseedResult<()> {
         Ok(())
     }
 }

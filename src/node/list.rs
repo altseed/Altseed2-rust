@@ -64,52 +64,99 @@ impl NodeVec {
     }
 }
 
-use std::{cmp::Ord, marker::PhantomData, slice::Iter};
+use std::{cmp::Ord, slice::Iter};
 
-pub(crate) trait SortedItem<T: Ord> {
+pub(crate) trait SortedItem<T: Ord + Copy> {
     fn sorted_key(&self) -> T;
+    fn is_key_updated(&self) -> bool;
 }
 
 #[derive(Debug)]
-pub(crate) struct SortVec<K: Ord, T: Node + SortedItem<K>> {
+pub(crate) struct SortVec<K: Ord + Copy, T: Node + SortedItem<K>> {
     vec: Vec<Weak<RefCell<T>>>,
-    updated: bool,
-    phantom: PhantomData<K>,
+    do_sort: bool,
+    last_key: Option<K>,
 }
 
-impl<K: Ord, T: Node + SortedItem<K>> SortVec<K, T> {
+impl<K: Ord + Copy, T: Node + SortedItem<K>> SortVec<K, T> {
     pub fn new() -> Self {
         SortVec {
             vec: Vec::new(),
-            updated: false,
-            phantom: PhantomData,
+            do_sort: false,
+            last_key: None,
         }
     }
 
-    pub fn iter(&mut self) -> Iter<'_, Weak<RefCell<T>>> {
+    pub fn clear(&mut self) {
+        self.vec.clear();
+        self.do_sort = false;
+        self.last_key = None;
+    }
+
+    pub fn iter(&self) -> Iter<'_, Weak<RefCell<T>>> {
         self.vec.iter()
     }
 
-    pub fn add(&mut self, item: Weak<RefCell<T>>) {
+    pub fn add(&mut self, item: Weak<RefCell<T>>, key: K) {
         self.vec.push(item);
-        self.updated = true;
+
+        // 順序が乱れたらソートするフラグを立てる
+        match self.last_key {
+            Some(x) if x > key => {
+                self.do_sort = true;
+            }
+            _ => (),
+        }
+
+        self.last_key = Some(key);
     }
 
-    pub fn update(&mut self) {
-        // 生存していないNodeは取り除く
+    // pub fn set_do_sort(&mut self) {
+    //     self.do_sort = true;
+    // }
+
+    pub fn update_with<F: Fn(&T) -> bool>(&mut self, f: F) {
+        // Rootに接続されていないNodeは取り除く
         self.vec.retain(|x| match x.upgrade() {
             None => false,
-            Some(x) => {
-                let state = x.borrow().node_base().state;
-                state == NodeState::Registered || state == NodeState::AncestorRemoved
-            }
+            Some(x) => f(&x.borrow()),
         });
 
         // 更新があったらソート
-        if self.updated {
+        if self.do_sort {
             self.vec
                 .sort_by_key(|x| x.upgrade().unwrap().borrow().sorted_key());
-            self.updated = false;
+            self.do_sort = false;
+        }
+    }
+
+    pub fn update(&mut self) {
+        let mut tmp = Vec::new();
+        std::mem::swap(&mut tmp, &mut self.vec);
+
+        let mut key_updated = false;
+
+        // Rootに接続されていないNodeは取り除く
+        for x in tmp.into_iter() {
+            match x.upgrade() {
+                None => (),
+                Some(rc) => {
+                    if !key_updated && rc.borrow().is_key_updated() {
+                        key_updated = true;
+                    }
+
+                    if rc.borrow().node_base().state == NodeState::Registered {
+                        self.vec.push(x);
+                    }
+                }
+            }
+        }
+
+        // 更新があったらソート
+        if self.do_sort || key_updated {
+            self.vec
+                .sort_by_key(|x| x.upgrade().unwrap().borrow().sorted_key());
+            self.do_sort = false;
         }
     }
 }

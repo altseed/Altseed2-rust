@@ -103,12 +103,6 @@ impl Node for CustomNode {
         Ok(())
     }
 
-    fn on_updating(&mut self, _: &mut Engine) -> AltseedResult<()> {
-        self.count += 1;
-        println!("On Updating");
-        Ok(())
-    }
-
     fn on_updated(&mut self, _: &mut Engine) -> AltseedResult<()> {
         self.count += 1;
         println!("On Updated");
@@ -153,7 +147,7 @@ fn node_custom() -> AltseedResult<()> {
         Ok(())
     })?;
 
-    assert_eq!(node.borrow().count(), 4);
+    assert_eq!(node.borrow().count(), 3);
 
     Ok(())
 }
