@@ -145,9 +145,13 @@ pub enum Keys {
     Backspace,
     Insert,
     Delete,
+    /// 矢印キー右
     Right,
+    /// 矢印キー左
     Left,
+    /// 矢印キー下
     Down,
+    /// 矢印キー上
     Up,
     PageUp,
     PageDown,
@@ -200,13 +204,21 @@ pub enum Keys {
     KeypadAdd,
     KeypadEnter,
     KeypadEqual,
+    /// 左側のShiftキー
     LeftShift,
+    /// 左側のCtrlキー
     LeftControl,
+    /// 左側のAltキー
     LeftAlt,
+    /// 左側のWinキー
     LeftWin,
+    /// 右側のShiftキー
     RightShift,
+    /// 右側のCtrlキー
     RightControl,
+    /// 右側のAltキー
     RightAlt,
+    /// 右側のWinキー
     RightWin,
     Menu,
     Last,
@@ -351,6 +363,7 @@ pub enum ShaderStageType {
     Pixel,
 }
 
+/// ビルド済みシェーダの種類を表します
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BuiltinShaderType {
@@ -435,6 +448,7 @@ bitflags! {
 }
 
 bitflags! {
+    /// Toolにおいてインプットされるテキストの設定を表します
     pub struct ToolInputText: i32 {
         const NONE = 0;
         /// 0123456789.+-*/ を許可します。
@@ -479,6 +493,7 @@ bitflags! {
 }
 
 bitflags! {
+    /// Toolにおける色の設定を表します
     pub struct ToolColorEdit: i32 {
         const NONE = 0;
         /// `ColorEdit, ColorPicker, ColorButton`: Alphaコンポーネントを無視します（入力ポインターから3つのコンポーネントのみを読み取ります）。
@@ -548,6 +563,7 @@ bitflags! {
 }
 
 bitflags! {
+    /// Toolのウィンドウにおける設定を表します
     pub struct ToolWindow: i32 {
         const NONE = 0;
         /// タイトルバーを無効にする
@@ -597,6 +613,7 @@ bitflags! {
 }
 
 bitflags! {
+    /// Toolのタブバーにおける設定を表します
     pub struct ToolTabBar: i32 {
         const NONE = 0;
         /// タブを手動でドラッグして並べ替えることができます+リストの最後に新しいタブが追加されます
@@ -2888,6 +2905,7 @@ impl Drop for Texture2D {
     }
 }
 
+/// ポストエフェクトやカメラにおける描画先のクラス
 #[derive(Debug)]
 pub struct RenderTexture {
     self_ptr: *mut RawPtr,
@@ -3078,6 +3096,10 @@ impl Material {
         }
     }
 
+    /// 指定した種類のシェーダを取得する
+    /// # Arguments
+    /// * `shader_stage` - 検索するシェーダのタイプ
+
     pub fn get_shader(&mut self, shader_stage: ShaderStageType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_Material_GetShader(self.self_ptr, shader_stage as i32) };
         {
@@ -3085,6 +3107,10 @@ impl Material {
             Some(ret)
         }
     }
+
+    /// シェーダを設定する
+    /// # Arguments
+    /// * `shader` - 設定するシェーダ
 
     pub fn set_shader(&mut self, shader: &mut Shader) -> () {
         unsafe { cbg_Material_SetShader(self.self_ptr, shader.self_ptr()) }
@@ -5368,6 +5394,9 @@ pub struct Sound {
     is_looping_mode: Option<bool>,
 }
 
+unsafe impl Send for Sound {}
+unsafe impl Sync for Sound {}
+
 impl HasRawPtr for Sound {
     fn self_ptr(&mut self) -> *mut RawPtr {
         self.self_ptr.clone()
@@ -5375,11 +5404,11 @@ impl HasRawPtr for Sound {
 }
 
 impl Sound {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(Sound {
+        Some(Arc::new(Mutex::new(Sound {
             self_ptr,
             loop_starting_point: None,
             loop_end_point: None,
@@ -5387,27 +5416,26 @@ impl Sound {
         })))
     }
 
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static SOUND_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Sound>>>> = RefCell::new(HashMap::new());
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
+        lazy_static! {
+            static ref SOUND_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Sound>>>> =
+                RwLock::new(HashMap::new());
         }
-        SOUND_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
+        let mut hash_map = SOUND_CACHE.write().unwrap();
+        let storage = RawPtrStorage(self_ptr);
+        if let Some(x) = hash_map.get(&storage) {
+            match x.upgrade() {
+                Some(o) => {
+                    return Some(o);
+                }
+                None => {
+                    hash_map.remove(&storage);
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
-        })
+        }
+        let o = Self::cbg_create_raw(self_ptr)?;
+        hash_map.insert(storage, Arc::downgrade(&o));
+        Some(o)
     }
 
     /// 音声ファイルを読み込みます。
@@ -5415,7 +5443,7 @@ impl Sound {
     /// * `path` - 読み込む音声ファイルのパス
     /// * `is_decompressed` - 音を再生する前にデータを全て解凍するか?
 
-    pub(crate) fn load(path: &str, is_decompressed: bool) -> Option<Rc<RefCell<Sound>>> {
+    pub(crate) fn load(path: &str, is_decompressed: bool) -> Option<Arc<Mutex<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
         {
             let ret = Sound::try_get_from_cache(ret)?;

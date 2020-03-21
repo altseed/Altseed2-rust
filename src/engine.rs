@@ -466,7 +466,7 @@ impl Loader {
         &self,
         path: &str,
         is_decompressed: bool,
-    ) -> AltseedResult<Rc<RefCell<Sound>>> {
+    ) -> AltseedResult<Arc<Mutex<Sound>>> {
         Sound::load(path, is_decompressed).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Sound,
             path.to_owned(),
