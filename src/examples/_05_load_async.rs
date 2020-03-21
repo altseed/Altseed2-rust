@@ -53,7 +53,7 @@
 //!
 //!             let node = {
 //!                 Text::new()
-//!                     .with_font(&font)
+//!                     .with_font(font)
 //!                     .with_text("読み込み完了")
 //!                     .build()
 //!             };

@@ -13,5 +13,4 @@ cmake --build . --config Debug
 
 cmake --build . --config Release
 
-cd ../../scripts
-./copy_dylib.sh
+cd ../..

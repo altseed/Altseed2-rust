@@ -55,13 +55,13 @@ impl Text {
     }
 
     /// フォントを設定します。
-    pub fn set_font(&mut self, font: &Arc<Mutex<Font>>) -> &mut Self {
-        self.instance.set_font(font.clone());
+    pub fn set_font(&mut self, font: Arc<Mutex<Font>>) -> &mut Self {
+        self.instance.set_font(font);
         self
     }
 
     /// フォントを設定します。
-    pub fn with_font(mut self, font: &Arc<Mutex<Font>>) -> Self {
+    pub fn with_font(mut self, font: Arc<Mutex<Font>>) -> Self {
         self.set_font(font);
         self
     }

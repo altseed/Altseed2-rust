@@ -1,6 +1,9 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::auto_generated_core_binding::{Graphics, RenderTexture, RenderedCamera, Renderer};
+use crate::auto_generated_core_binding::{
+    AsRendered, Graphics, RenderTexture, RenderedCamera, Renderer,
+};
+use crate::math::Matrix44;
 use crate::node::*;
 
 use crate as altseed2;
@@ -33,7 +36,6 @@ impl CameraNode {
             instance: RenderedCamera::create().unwrap(),
             weak: None,
             group: 0u32,
-            // group_updated: true,
             last_group: None,
             drawn_nodes: list::SortVec::new(),
         })));
@@ -48,7 +50,7 @@ impl CameraNode {
         drawn_nodes: &SortVec<i32, DrawnNode>,
         graphics: &mut Graphics,
         renderer: &mut Renderer,
-    ) {
+    ) -> AltseedResult<()> {
         if self.is_key_updated() {
             self.drawn_nodes.clear();
             // EngineからDrawnNodeを引っ張ってくる
@@ -69,11 +71,16 @@ impl CameraNode {
 
         self.last_group = Some(self.group);
 
+        // カメラの指定
+        renderer.set_camera(&mut self.instance);
+
         for node in self.drawn_nodes.iter() {
             let rc = node.upgrade().expect("Already filtered");
             let mut node_ref = rc.borrow_mut();
-            node_ref.on_drawn(graphics, renderer)
+            node_ref.on_drawn(graphics, renderer);
         }
+
+        Ok(())
     }
 
     pub(crate) fn add_drawn_node(&mut self, node: Weak<RefCell<DrawnNode>>, z_order: i32) {
@@ -99,6 +106,15 @@ impl CameraNode {
     /// 出力先のRenderTextureを設定します。
     pub fn set_target_texture(&mut self, value: Rc<RefCell<RenderTexture>>) -> &mut Self {
         self.instance.set_target_texture(value);
+        self
+    }
+
+    pub fn get_transform(&mut self) -> Matrix44<f32> {
+        self.instance.get_transform()
+    }
+
+    pub fn set_transform(&mut self, transform: Matrix44<f32>) -> &mut Self {
+        self.instance.set_transform(transform);
         self
     }
 }

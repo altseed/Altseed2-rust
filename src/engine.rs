@@ -272,6 +272,20 @@ impl Engine {
         Ok(false)
     }
 
+    pub(crate) fn render_to_cmdlist(
+        renderer: &mut Renderer,
+        graphics: &mut Graphics,
+    ) -> AltseedResult<()> {
+        let mut cmdlist = graphics.get_command_list().ok_or(AltseedError::CoreError(
+            "Graphics::get_command_list failed".to_owned(),
+        ))?;
+
+        // コマンドリストに描画
+        renderer.render(&mut cmdlist);
+
+        Ok(())
+    }
+
     fn update(&mut self) -> AltseedResult<()> {
         // 非同期処理の継続を取り出す
         self.runner.update()?;
@@ -288,51 +302,41 @@ impl Engine {
         self.drawn_nodes.update();
         self.camera_nodes.update();
 
-        // レンダーターゲットの指定
-        self.graphics
-            .get_command_list()
-            .ok_or(AltseedError::CoreError(
-                "Graphics::get_command_list failed".to_owned(),
-            ))?
-            .set_render_target_with_screen();
+        // カメラをリセット
+        self.renderer.reset_camera();
+        // self.graphics
+        //     .get_command_list()
+        //     .ok_or(AltseedError::CoreError(
+        //         "Graphics::get_command_list failed".to_owned(),
+        //     ))?
+        //     .set_render_target_with_screen();
 
+        // スクリーンへ描画
         for node in self.drawn_nodes.iter() {
             let rc = node.upgrade().expect("Already filtered");
             let mut node_ref = rc.borrow_mut();
 
-            // before_drawnの処理。変更があった時にカメラへ追加。
             node_ref.before_drawn(&mut self.camera_nodes);
 
-            if node_ref.node_base().state == NodeState::Registered
-                && node_ref.get_camera_group() == 0
-            {
+            if node_ref.get_camera_group() == 0 {
                 node_ref.on_drawn(&mut self.graphics, &mut self.renderer);
             }
         }
 
+        Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
+
+        // カメラへ描画
         for camera in self.camera_nodes.iter() {
             let rc = camera.upgrade().expect("Already filtered");
             let mut node_ref = rc.borrow_mut();
-            if node_ref.node_base().state == NodeState::Registered {
-                node_ref.on_drawn(&self.drawn_nodes, &mut self.graphics, &mut self.renderer);
-            }
+            node_ref.on_drawn(&self.drawn_nodes, &mut self.graphics, &mut self.renderer)?;
+            // コマンドリストへ
+            Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
         }
 
         for node in self.drawn_nodes.iter() {
             let rc = node.upgrade().expect("Already filtered");
             rc.borrow_mut().after_drawn();
-        }
-
-        {
-            let mut cmdlist = self
-                .graphics
-                .get_command_list()
-                .ok_or(AltseedError::CoreError(
-                    "Graphics::get_command_list failed".to_owned(),
-                ))?;
-
-            // コマンドリストに描画
-            self.renderer.render(&mut cmdlist);
         }
 
         if let Some(tool) = &self.tool {

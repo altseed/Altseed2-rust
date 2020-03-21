@@ -141,7 +141,7 @@ impl DrawnNode {
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
         let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
             kind: kind.into(),
-            trans: Transform::default(),
+            trans: Transform::new(),
             z_order: 0,
             last_z_order: None,
             is_drawn: true,

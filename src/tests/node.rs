@@ -5,14 +5,14 @@ use crate::{
 
 #[test]
 fn transform() {
-    let t = Transform::default();
+    let t = Transform::new();
 
     assert_eq!(t.get(), Matrix44::identity());
 }
 
 #[test]
 fn transform_pos() {
-    let mut t = Transform::default();
+    let mut t = Transform::new();
     let pos = Vector2::new(1.0, 2.0);
     *t.pos_mut() = pos;
     t.update(None);
