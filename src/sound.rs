@@ -2,7 +2,7 @@ use crate::auto_generated_core_binding::SoundMixer as CoreMixer;
 use crate::auto_generated_core_binding::{FFTWindow, FloatArray, Sound};
 use crate::error::*;
 
-/// 再生する音のIDを表します。
+/// 再生する[Sound](struct.Sound.html)のIDを表します。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SoundID {
     value: i32,
@@ -18,7 +18,7 @@ impl SoundID {
     }
 }
 
-/// 音源の操作を行います。
+/// [Sound](struct.Sound.html)の操作を行います。
 pub struct SoundMixer {
     instance: CoreMixer,
 }

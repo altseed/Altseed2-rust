@@ -1,5 +1,17 @@
 #[macro_export]
-/// Node構造体を定義する際に使用するマクロ
+/// [Node](node/trait.Node.html)トレイトを実装した構造体定義するために使用するマクロです。Debugトレイトが自動実装されます。
+/// # Examples
+/// ```no_run
+/// use altseed2::*;
+/// use altseed2::prelude::*;
+///
+/// define_node! {
+///     pub struct SampleNode {
+///         // ここで構造体のフィールドを書きます。
+///     }
+/// }
+/// impl Node for SampleNode { }
+/// ```
 macro_rules! define_node {
     // フィールドが空の場合
     ($(#[$meta_s:meta])*
@@ -106,7 +118,30 @@ macro_rules! define_node {
     };
 }
 
-/// `define_node`を使って定義した`Node`を作成するためのマクロ
+/// [define_node](macro.define_node!.html)マクロを使って定義した`Node`を作成するためのマクロです。
+/// # Examples
+/// ```no_run
+/// use altseed2::*;
+/// use altseed2::prelude::*;
+/// use std::{rc::Rc, cell::RefCell};
+///
+/// define_node! {
+///     pub struct SampleNode {
+///         foo: i32,
+///     }
+/// }
+/// impl Node for SampleNode { }
+///
+/// impl SampleNode {
+///     pub fn new() -> Rc<RefCell<Self>> {
+///         Rc::new(RefCell::new(create_node!(
+///             SampleNode {
+///                 foo: 128,
+///             }
+///         )))
+///     }
+/// }
+/// ```
 #[macro_export]
 macro_rules! create_node {
     ($name: ident { }) => {

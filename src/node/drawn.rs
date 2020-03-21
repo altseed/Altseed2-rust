@@ -48,7 +48,7 @@ impl From<Polygon> for DrawnKind {
 }
 
 define_node! {
-    /// 描画対象を保持するノード
+    /// 描画対象を保持する[Node](../node/trait.Node.html)を表します。
     pub struct DrawnNode {
         kind: DrawnKind,
         trans: Transform,
@@ -137,7 +137,7 @@ impl DrawnNode {
         self.last_camera_group = Some(self.camera_group);
     }
 
-    /// 新しい描画ノードを作成します。
+    /// 新しい[DrawnNode](struct.DrawnNode.html)を作成します。
     pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
         let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
             kind: kind.into(),

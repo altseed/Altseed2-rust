@@ -25,7 +25,7 @@ impl super::DrawnInternal for Text {
 }
 
 impl Text {
-    /// 新しい`Text`を作成します。
+    /// 新しい[Text](struct.Text.html)を作成します。
     pub fn new() -> Self {
         Text {
             instance: RenderedText::create().unwrap(),

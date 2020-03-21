@@ -25,7 +25,7 @@ impl super::DrawnInternal for Polygon {
 }
 
 impl Polygon {
-    /// 新しい`Polygon`を作成します。
+    /// 新しい[Polygon](struct.Polygon.html)を作成します。
     pub fn new() -> Self {
         Polygon {
             instance: RenderedPolygon::create().unwrap(),

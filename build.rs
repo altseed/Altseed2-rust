@@ -1,7 +1,4 @@
-use std::{
-    env, error, fs,
-    path::Path,
-};
+use std::{env, error, fs, path::Path};
 
 fn copy(path: &str, output: &str) -> Result<(), Box<dyn error::Error>> {
     if Path::new(path).exists() {

@@ -22,7 +22,7 @@ impl super::DrawnInternal for Sprite {
 }
 
 impl Sprite {
-    /// 新しい`Sprite`を作成します。
+    /// 新しい[Sprite](struct.Sprite.html)を作成します。
     pub fn new() -> Self {
         Sprite {
             instance: RenderedSprite::create().unwrap(),

@@ -1,5 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
+
 //! # 画像を表示するサンプル
 //! ```no_run
 //! use altseed2::prelude::*;

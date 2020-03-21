@@ -1,5 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
+
 //! # 文字列を表示するサンプル
 //! ```no_run
 //! use altseed2::prelude::*;

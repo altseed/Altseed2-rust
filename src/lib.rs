@@ -1,3 +1,15 @@
+//! # Altseed2
+//! [Altseed](https://github.com/altseed/Altseed) の後継となるべく開発しているゲームエンジンのRust版エンジンです。  
+//!
+//! - [Documents](documents/index.html)
+//! - [Example](examples/index.html)
+//!
+//! ## Related Repogitories
+//! - [Core](https://github.com/altseed/Altseed2): 各種機能
+//! - [CppBindingGenerator](https://github.com/altseed/CppBindingGenerator): FFIコード生成
+//! - [Engine(C#)](https://github.com/altseed/Altseed2-csharp): C#版Engine
+//!
+
 #![feature(link_args)]
 #![feature(type_name_of_val)]
 
@@ -26,22 +38,32 @@ mod array;
 pub mod math;
 pub mod node;
 mod sound;
+
+/// Coreとの受け渡しに利用する構造体
 pub mod structs;
 
 #[cfg(test)]
 mod tests;
 
-/// ドキュメント用のサンプル集です。
+/// ドキュメント
+pub mod documents;
+/// サンプルコード集
 pub mod examples;
 
 pub mod prelude {
-    pub use crate::math::{Vector2, Vector3, Vector4};
+    //! re-export
+    //! ```no_run
+    //! use altseed2::*;
+    //! use altseed2::prelude::*;
+    //! ```
 
-    pub use crate::engine::{Engine, Loader};
+    pub use crate::math::{Easing, Vector2, Vector3, Vector4};
+
+    pub use crate::engine::{Config, CoreContainer, Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        BaseNode, CameraNode, Drawn, DrawnKind, DrawnNode, HasBaseNode, Node, NodeState, Polygon,
-        Sprite, Text,
+        camera::CameraNode, drawn::Drawn, drawn::DrawnKind, drawn::DrawnNode, polygon::Polygon,
+        sprite::Sprite, text::Text, BaseNode, HasBaseNode, Node, NodeState,
     };
 
     pub use crate::core::*;
