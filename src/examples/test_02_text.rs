@@ -1,12 +1,13 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! # 文字列を表示するサンプル
-//! ```no_run
+//! ```
 //! use altseed2::prelude::*;
 //!
+//! include!("../tests/timer.rs");
 //! fn main() -> AltseedResult<()> {
 //!     // Altseedを初期化します。
 //!     let engine = Engine::initialize("test", 800, 600)?;
+//!     engine.add_node(timer::TimerNode::new(10))?;
 //!
 //!     let font = engine
 //!         .loader()
@@ -29,9 +30,3 @@
 //!
 //!     // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example text
-//! ```

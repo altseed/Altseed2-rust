@@ -1,7 +1,7 @@
 //! # 文字列を表示するサンプル
 use altseed2::prelude::*;
 
-// add timer
+// add-timer
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。
     let engine = Engine::initialize("test", 800, 600)?;

@@ -1,23 +1,19 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! # 文字列を表示するサンプル
-//! ```no_run
+//! ```
 //! use altseed2::prelude::*;
 //!
+//! include!("../tests/timer.rs");
 //! fn main() -> AltseedResult<()> {
 //!     // Altseedを初期化します。
-//!     let engine = Engine::initialize("test", 800, 600)?;
+//!     let engine = Engine::initialize("sprite", 800, 600)?;
+//!     engine.add_node(timer::TimerNode::new(10))?;
 //!
-//!     let font = engine
+//!     let tex = engine
 //!         .loader()
-//!         .load_dynamic_font("./Core/TestData/Font/mplus-1m-regular.ttf", 50)?;
+//!         .load_texture2d("./Core/TestData/IO/AltseedPink256.png")?;
 //!
-//!     let node = {
-//!         Text::new()
-//!             .with_font(font)
-//!             .with_text("Hello, world! こんにちは")
-//!             .build()
-//!     };
+//!     let node = Sprite::new().with_tex(tex).build();
 //!
 //!     engine.add_node(node)?;
 //!
@@ -29,9 +25,3 @@
 //!
 //!     // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example text
-//! ```

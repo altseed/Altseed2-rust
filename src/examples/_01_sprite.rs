@@ -24,7 +24,6 @@
 //!
 //!     // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 //! }
-//!
 //! ```
 //!
 //! ## Run this example

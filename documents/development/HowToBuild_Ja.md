@@ -21,6 +21,12 @@ $ cargo build --release # Release
 $ cargo fmt
 ```
 
+## Generate Example for Docs
+```shell
+$ python scripts/generate_example.py
+$ cargo fmt
+```
+
 (`rustup component add rustfmt` to install)
 
 ## Binding生成 (commitするのでmaintainerが行う)

@@ -1,7 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! マルチスレッドでファイルを読み込むサンプル
-//! ```no_run
+//! ```
 //! #[macro_use]
 //! extern crate lazy_static;
 //! extern crate futures;
@@ -94,9 +93,3 @@
 //!
 //!     Ok(())
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example load_async
-//! ```

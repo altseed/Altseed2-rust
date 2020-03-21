@@ -1,7 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! カスタムノードを作成して使用するサンプル
-//! ```no_run
+//! ```
 //! use altseed2::prelude::*;
 //! use altseed2::*;
 //! use std::{cell::RefCell, rc::Rc};
@@ -62,9 +61,3 @@
 //!
 //!     Ok(())
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example custom_node
-//! ```

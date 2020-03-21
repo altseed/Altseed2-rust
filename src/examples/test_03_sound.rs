@@ -1,7 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! # 音を鳴らすサンプル
-//! ```no_run
+//! ```
 //! use altseed2::prelude::*;
 //!
 //! fn main() -> AltseedResult<()> {
@@ -33,9 +32,3 @@
 //!     // 正常終了
 //!     Ok(())
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example sound
-//! ```

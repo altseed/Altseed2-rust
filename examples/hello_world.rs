@@ -1,7 +1,7 @@
 //! # ウィンドウを表示するサンプル
 use altseed2::prelude::*;
 
-// add timer
+// add-timer
 // 返り値に`AltseedResult<()>`を指定して?演算子を使用可能にします。
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。 ?演算子を利用してError時に早期終了します。

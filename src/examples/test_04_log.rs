@@ -1,7 +1,6 @@
 // Auto-generated. Do not modify.
 // このファイルは自動生成されたものです。変更しないでください。
-//! # ログを出力するサンプル
-//! ```no_run
+//! ```
 //! use altseed2::prelude::*;
 //!
 //! fn main() -> AltseedResult<()> {
@@ -35,9 +34,3 @@
 //!     Ok(())
 //!     // engineがdropする際に自動的にAltseedの終了処理が呼ばれます。
 //! }
-//! ```
-//!
-//! ## Run this example
-//! ```shell
-//! cargo run --example log
-//! ```
