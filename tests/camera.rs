@@ -11,9 +11,9 @@ fn camera_no_rt() -> AltseedResult<()> {
     let tex = engine
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
-    let tex_size: Vector2<f32> = tex.borrow_mut().get_size().into();
+    // let tex_size: Vector2<f32> = tex.borrow_mut().get_size().into();
     {
-        let node = Sprite::new().with_tex(&tex).build();
+        let node = Sprite::new().with_tex(tex).build();
         node.borrow_mut().set_camera_group(1);
         // node.borrow_mut().set_center(tex_size / 2.0);
         engine.add_node(node)?;

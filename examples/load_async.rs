@@ -22,7 +22,7 @@ fn main() -> AltseedResult<()> {
     let tex_size: Vector2<f32> = tex.borrow_mut().get_size().into();
 
     let node = {
-        let node = Sprite::new().with_tex(&tex).build();
+        let node = Sprite::new().with_tex(tex).build();
         node.borrow_mut().set_center(tex_size * 0.5);
         node
     };

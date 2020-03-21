@@ -15,7 +15,7 @@ fn set_texture() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.jpg")?;
 
-    let node = Sprite::new().with_tex(&tex1).build();
+    let node = Sprite::new().with_tex(tex1.clone()).build();
 
     engine.add_node(node.clone())?;
 
@@ -23,7 +23,7 @@ fn set_texture() -> AltseedResult<()> {
     engine.run_with(|_| {
         if count == 10 {
             if let DrawnKind::Sprite(x) = node.borrow_mut().kind_mut() {
-                x.set_tex(&tex2);
+                x.set_tex(tex2.clone());
             }
         }
         count += 1;

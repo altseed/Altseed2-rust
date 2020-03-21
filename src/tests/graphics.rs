@@ -18,10 +18,10 @@ fn rendered_sprite() {
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
 
-    x1.set_texture(&t1)
+    x1.set_texture(t1.clone())
         .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
 
-    x2.set_texture(&t2)
+    x2.set_texture(t2)
         .set_transform(Matrix44::translation(200.0, 200.0, 0.0))
         .set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
 
@@ -114,10 +114,10 @@ fn rendered_camera() {
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
 
-    x1.set_texture(&t1)
+    x1.set_texture(t1.clone())
         .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
 
-    x2.set_texture(&t2)
+    x2.set_texture(t2)
         .set_transform(Matrix44::translation(200.0, 200.0, 0.0))
         .set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
 

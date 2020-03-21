@@ -35,9 +35,9 @@ impl Sprite {
     }
 
     /// テクスチャを設定します。
-    pub fn set_tex<T: AsTexture2D + 'static>(&mut self, texture: &Rc<RefCell<T>>) -> &mut Self {
+    pub fn set_tex<T: AsTexture2D + 'static>(&mut self, texture: Rc<RefCell<T>>) -> &mut Self {
         let size = texture.borrow_mut().get_size();
-        self.instance.set_texture(&texture).set_src(Rect::new(
+        self.instance.set_texture(texture).set_src(Rect::new(
             0.0,
             0.0,
             size.x as f32,
@@ -47,7 +47,7 @@ impl Sprite {
     }
 
     /// テクスチャを設定します。
-    pub fn with_tex<T: AsTexture2D + 'static>(mut self, texture: &Rc<RefCell<T>>) -> Self {
+    pub fn with_tex<T: AsTexture2D + 'static>(mut self, texture: Rc<RefCell<T>>) -> Self {
         self.set_tex(texture);
         self
     }
