@@ -53,8 +53,21 @@ define_node! {
         kind: DrawnKind,
         trans: Transform,
         z_order: i32,
+        last_z_order: Option<i32>,
         is_drawn: bool,
+        camera_group: u32,
+        last_camera_group: Option<u32>,
         weak: Option<Weak<RefCell<Self>>>,
+    }
+}
+
+impl list::SortedItem<i32> for DrawnNode {
+    fn sorted_key(&self) -> i32 {
+        self.get_z_order()
+    }
+
+    fn is_key_updated(&self) -> bool {
+        Some(self.z_order) != self.last_z_order
     }
 }
 
@@ -69,9 +82,9 @@ impl<T: Into<DrawnKind>> Drawn for T {
 }
 
 impl Node for DrawnNode {
-    fn on_added(&mut self, engine: &mut Engine) -> AltseedResult<()> {
-        engine.add_drawn_node(self.weak.clone().unwrap());
-        self.trans.updated();
+    fn on_connected_root(&mut self, engine: &mut Engine) -> AltseedResult<()> {
+        engine.add_drawn_node(self.weak.clone().unwrap(), self.z_order);
+
         Ok(())
     }
 
@@ -79,32 +92,36 @@ impl Node for DrawnNode {
         self.trans.updated();
         Ok(())
     }
+
+    fn on_disconnected_root(&mut self, _: &mut Engine) -> AltseedResult<()> {
+        self.trans.updated();
+        Ok(())
+    }
 }
 
 impl DrawnNode {
-    /// 新しい描画ノードを作成します。
-    pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
-        let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
-            kind: kind.into(),
-            trans: Transform::default(),
-            z_order: 0,
-            is_drawn: true,
-            weak: None,
-        })));
-
-        rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
-
-        rc
+    pub(crate) fn is_camera_group_updated(&self) -> bool {
+        Some(self.camera_group) != self.last_camera_group
     }
 
-    /// 描画される種類
-    pub fn kind(&self) -> &DrawnKind {
-        &self.kind
-    }
+    /// 描画処理の前に行う
+    pub(crate) fn before_drawn(&mut self, camera_nodes: &SortVec<u32, CameraNode>) {
+        if self.is_camera_group_updated() {
+            // EngineからCameraNodeを引っ張って来て追加する
+            for node in camera_nodes.iter() {
+                let rc = node.upgrade().expect("Already filtered");
+                // 更新されていたらCameraNodeの方で処理されるのでskip
+                if rc.borrow().is_key_updated() {
+                    continue;
+                }
 
-    /// 描画される種類
-    pub fn kind_mut(&mut self) -> &mut DrawnKind {
-        &mut self.kind
+                let target_group = rc.borrow().get_group();
+                if self.camera_group & target_group == target_group {
+                    rc.borrow_mut()
+                        .add_drawn_node(self.weak.clone().unwrap(), self.z_order)
+                }
+            }
+        }
     }
 
     pub(crate) fn on_drawn(&mut self, _: &mut Graphics, renderer: &mut Renderer) {
@@ -114,19 +131,34 @@ impl DrawnNode {
 
         self.kind.drawn_internal_mut().on_drawn(renderer);
     }
-}
 
-impl list::SortedItem<i32> for DrawnNode {
-    fn sorted_key(&self) -> i32 {
-        self.get_z_order()
+    pub(crate) fn after_drawn(&mut self) {
+        self.last_z_order = Some(self.z_order);
+        self.last_camera_group = Some(self.camera_group);
     }
-}
 
-impl DrawnNode {
-    fn update_transform(
+    /// 新しい描画ノードを作成します。
+    pub fn new<T: Into<DrawnKind>>(kind: T) -> Rc<RefCell<Self>> {
+        let rc = Rc::new(RefCell::new(create_node!(DrawnNode {
+            kind: kind.into(),
+            trans: Transform::new(),
+            z_order: 0,
+            last_z_order: None,
+            is_drawn: true,
+            camera_group: 0,
+            last_camera_group: None,
+            weak: None,
+        })));
+
+        rc.borrow_mut().weak = Some(Rc::downgrade(&rc));
+
+        rc
+    }
+
+    pub(crate) fn relative_transform(
         &mut self,
-        ancestors: Option<&crate::math::Matrix44<f32>>,
-    ) -> Option<crate::math::Matrix44<f32>> {
+        ancestors: Option<&Matrix44<f32>>,
+    ) -> Option<Matrix44<f32>> {
         if self.trans.update(ancestors) {
             let t = self.trans.get();
             self.kind
@@ -139,11 +171,14 @@ impl DrawnNode {
         }
     }
 
-    pub(crate) fn relative_transform(
-        &mut self,
-        ancestors: Option<&Matrix44<f32>>,
-    ) -> Option<Matrix44<f32>> {
-        self.update_transform(ancestors)
+    /// 描画される種類
+    pub fn kind(&self) -> &DrawnKind {
+        &self.kind
+    }
+
+    /// 描画される種類
+    pub fn kind_mut(&mut self) -> &mut DrawnKind {
+        &mut self.kind
     }
 
     /// 描画順を取得します。
@@ -165,6 +200,20 @@ impl DrawnNode {
     /// 描画されるかどうかを設定します。
     pub fn set_is_drawn(&mut self, is_drawn: bool) -> &mut Self {
         self.is_drawn = is_drawn;
+        self
+    }
+
+    /// カメラグループを取得します。
+    pub fn get_camera_group(&self) -> u32 {
+        self.camera_group
+    }
+
+    /// カメラグループを設定します。
+    pub fn set_camera_group(&mut self, camera_group: u32) -> &mut Self {
+        if self.camera_group != camera_group {
+            // self.last_camera_group = Some(self.camera_group);
+            self.camera_group = camera_group;
+        }
         self
     }
 

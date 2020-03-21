@@ -14,7 +14,7 @@
 //!         .loader()
 //!         .load_sound("./Core/TestData/Sound/se1.wav", true)?;
 //!
-//!     let id = engine.sound().borrow_mut().play(&mut se.borrow_mut())?;
+//!     let id = engine.sound().borrow_mut().play(&mut se.lock().unwrap())?;
 //!
 //!     // 所有権を渡してメインループを実行します。\
 //!     // 毎フレーム実行される関数を指定できます。引数としてエンジンの可変参照を受け取ることができます。

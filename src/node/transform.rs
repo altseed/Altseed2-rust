@@ -11,8 +11,8 @@ pub struct Transform {
     transform: Matrix44<f32>,
 }
 
-impl Default for Transform {
-    fn default() -> Transform {
+impl Transform {
+    pub(crate) fn new() -> Transform {
         Transform {
             pos: Vector2::new(0.0, 0.0),
             scale: Vector2::new(1.0, 1.0),
@@ -22,9 +22,7 @@ impl Default for Transform {
             transform: Matrix44::identity().clone(),
         }
     }
-}
 
-impl Transform {
     pub fn pos(&self) -> Vector2<f32> {
         self.pos
     }

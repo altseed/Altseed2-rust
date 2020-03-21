@@ -272,6 +272,20 @@ impl Engine {
         Ok(false)
     }
 
+    pub(crate) fn render_to_cmdlist(
+        renderer: &mut Renderer,
+        graphics: &mut Graphics,
+    ) -> AltseedResult<()> {
+        let mut cmdlist = graphics.get_command_list().ok_or(AltseedError::CoreError(
+            "Graphics::get_command_list failed".to_owned(),
+        ))?;
+
+        // コマンドリストに描画
+        renderer.render(&mut cmdlist);
+
+        Ok(())
+    }
+
     fn update(&mut self) -> AltseedResult<()> {
         // 非同期処理の継続を取り出す
         self.runner.update()?;
@@ -281,47 +295,48 @@ impl Engine {
             &unsafe { Rc::from_raw(Rc::into_raw(self.root_node.clone()) as *const _) },
             self,
             None,
+            true,
         )?;
 
-        // レンダーターゲットの指定
-        self.graphics
-            .get_command_list()
-            .ok_or(AltseedError::CoreError(
-                "Graphics::get_command_list failed".to_owned(),
-            ))?
-            .set_render_target_with_screen();
-
-        // filterとsortを実行
+        // NodeState::Registeredなものだけ残す。更新があったらソートする。
         self.drawn_nodes.update();
         self.camera_nodes.update();
 
-        // for camera in self.camera_nodes.iter().filter_map(Weak::upgrade) {
-        //     match camera.borrow_mut().get_target_texture() {
-        //         Some(tex) => {
-        //             // self.renderer.set_camera(camera.instance())
-        //         },
-        //         None => self.renderer.reset_camera(),
-        //     }
-        // }
+        // カメラをリセット
+        self.renderer.reset_camera();
+        // self.graphics
+        //     .get_command_list()
+        //     .ok_or(AltseedError::CoreError(
+        //         "Graphics::get_command_list failed".to_owned(),
+        //     ))?
+        //     .set_render_target_with_screen();
 
-        // DrawnNodeの呼び出し
-        for node in self.drawn_nodes.iter().map(|x| Weak::upgrade(x).unwrap()) {
-            if node.borrow().node_base().state == NodeState::Registered {
-                node.borrow_mut()
-                    .on_drawn(&mut self.graphics, &mut self.renderer);
+        // スクリーンへ描画
+        for node in self.drawn_nodes.iter() {
+            let rc = node.upgrade().expect("Already filtered");
+            let mut node_ref = rc.borrow_mut();
+
+            node_ref.before_drawn(&mut self.camera_nodes);
+
+            if node_ref.get_camera_group() == 0 {
+                node_ref.on_drawn(&mut self.graphics, &mut self.renderer);
             }
         }
 
-        {
-            let mut cmdlist = self
-                .graphics
-                .get_command_list()
-                .ok_or(AltseedError::CoreError(
-                    "Graphics::get_command_list failed".to_owned(),
-                ))?;
+        Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
 
-            // コマンドリストに描画
-            self.renderer.render(&mut cmdlist);
+        // カメラへ描画
+        for camera in self.camera_nodes.iter() {
+            let rc = camera.upgrade().expect("Already filtered");
+            let mut node_ref = rc.borrow_mut();
+            node_ref.on_drawn(&self.drawn_nodes, &mut self.graphics, &mut self.renderer)?;
+            // コマンドリストへ
+            Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
+        }
+
+        for node in self.drawn_nodes.iter() {
+            let rc = node.upgrade().expect("Already filtered");
+            rc.borrow_mut().after_drawn();
         }
 
         if let Some(tool) = &self.tool {
@@ -360,14 +375,14 @@ impl Engine {
         Ok(self)
     }
 
-    /// DrawnNodeのon_addedの中から呼び出される。
-    pub(crate) fn add_drawn_node(&mut self, item: Weak<RefCell<DrawnNode>>) {
-        self.drawn_nodes.add(item)
+    /// DrawnNodeが接続された時に呼び出される。
+    pub(crate) fn add_drawn_node(&mut self, item: Weak<RefCell<DrawnNode>>, z_order: i32) {
+        self.drawn_nodes.add(item, z_order)
     }
 
-    /// CameraNodeのon_addedの中から呼び出される。
-    pub(crate) fn add_camera_node(&mut self, item: Weak<RefCell<CameraNode>>) {
-        self.camera_nodes.add(item)
+    /// CameraNodeが接続された時に呼び出される。
+    pub(crate) fn add_camera_node(&mut self, item: Weak<RefCell<CameraNode>>, camera_group: u32) {
+        self.camera_nodes.add(item, camera_group)
     }
 
     /// エンジンに新しいノードを追加するフラグを立てます。実際の更新はフレームの終わりに実行されます。

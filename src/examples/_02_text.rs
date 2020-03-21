@@ -14,7 +14,7 @@
 //!
 //!     let node = {
 //!         Text::new()
-//!             .with_font(&font)
+//!             .with_font(font)
 //!             .with_text("Hello, world! こんにちは")
 //!             .build()
 //!     };

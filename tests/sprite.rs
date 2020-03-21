@@ -1,8 +1,11 @@
 use altseed2::prelude::*;
 
+include!("../src/tests/timer.rs");
+
 #[test]
 fn set_texture() -> AltseedResult<()> {
     let engine = Engine::initialize("set texture", 800, 600)?;
+    engine.add_node(timer::TimerNode::new(20))?;
 
     let tex1 = engine
         .loader()
