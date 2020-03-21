@@ -22,23 +22,20 @@ extern crate failure;
 extern crate downcast_rs;
 extern crate num;
 
+mod array;
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
-
+mod log;
 mod runner;
+mod sound;
 
 /// 各種機能との仲介を行う
 pub mod engine;
-
 /// Altseedのエラー
 pub mod error;
-
-mod array;
 /// 数学系の機能
 pub mod math;
 pub mod node;
-mod sound;
-
 /// Coreとの受け渡しに利用する構造体
 pub mod structs;
 
@@ -72,13 +69,14 @@ pub mod prelude {
 
 /// AltseedのCoreとのバインディングです。
 pub mod core {
+    pub use crate::log::Log;
     pub use crate::sound::{SoundID, SoundMixer};
 
     pub use crate::auto_generated_core_binding::{
         AsTexture2D, BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode,
-        Joystick, JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, Log,
-        LogCategory, LogLevel, Material, Mouse, MouseButtons, RenderTexture, ResourceType, Shader,
-        Sound, StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
+        Joystick, JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, LogCategory,
+        LogLevel, Material, Mouse, MouseButtons, RenderTexture, ResourceType, Shader, Sound,
+        StaticFile, StreamFile, Texture2D, Tool, WritingDirection,
     };
 
     /// ツール機能で使用するフラグです。

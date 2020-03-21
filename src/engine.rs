@@ -124,7 +124,7 @@ pub struct Engine {
     mouse: Rc<RefCell<Mouse>>,
     joystick: Rc<RefCell<Joystick>>,
     sound: Rc<RefCell<crate::sound::SoundMixer>>,
-    log: Rc<RefCell<Log>>,
+    log: Rc<RefCell<crate::log::Log>>,
     tool: Option<Rc<RefCell<Tool>>>,
     root_node: Rc<RefCell<RootNode>>,
     loader: Loader,
@@ -185,7 +185,7 @@ impl Engine {
                 mouse: Rc::new(RefCell::new(Mouse::get_instance()?)),
                 joystick: Rc::new(RefCell::new(Joystick::get_instance()?)),
                 sound: Rc::new(RefCell::new(crate::sound::SoundMixer::new()?)),
-                log: Rc::new(RefCell::new(Log::get_instance()?)),
+                log: Rc::new(RefCell::new(crate::log::Log::new()?)),
                 tool: Tool::get_instance().map(|x| Rc::new(RefCell::new(x))),
                 loader: Loader {
                     phantom: PhantomData,
@@ -429,7 +429,7 @@ impl Engine {
     }
 
     /// ログを管理するクラスを取得します。
-    pub fn log(&self) -> &Rc<RefCell<Log>> {
+    pub fn log(&self) -> &Rc<RefCell<crate::log::Log>> {
         &self.log
     }
 
