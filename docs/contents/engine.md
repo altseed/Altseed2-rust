@@ -26,7 +26,7 @@ fn main() -> AltseedResult<()> {
 
 メインループ内で実行したい処理は[Engine::run_with](../../engine/struct.Engine.html#method.run)の引数に関数を渡して記述できます。
 
-ウィンドウ終了後の処理を書きたい場合は
+また、以下のように再び所有権を受け取ることでウィンドウ終了後の処理を記述可能です。
 
 ```ignore
 let engine = engine.run()?;
@@ -34,7 +34,14 @@ let engine = engine.run()?;
 engine.something();
 ```
 
-のように、再び所有権を受け取って記述できます。
+## 非同期処理
+[Future](https://doc.rust-lang.org/beta/std/future/trait.Future.html)(async/await)に対応しています。
+
+[Engine::run_task](../../engine.struct.Engine.html#method.run_task)を利用して非同期処理を実行することができます。
+([Examples/load_async](../../examples/_06_load_async.rs))
+
+継続処理はメインループ内で取り出されます。
+これは`run_task`が`Send + Sync`を要求しないことからもわかります。
 
 ## C#版との違い
 
@@ -46,7 +53,8 @@ engine.something();
 1と3に関しては、Rustでは[Engine](../../engine/struct.Engine.html)が初期化されて終了されるまでの範囲をライフタイムとして表すことができるため、こういった実装にしました。
 また、`Rc<RefCell<T>>`で扱うのはかなり注意が必要になるといった事情もあります。
 
-2に関しては、`do_events`と`update`の処理は更新順序が関係して`unsafe`なので隠蔽しました。処理を記述したい場合は、代わりに[Engine::run_with](../../engine/struct.Engine.html#method.run)を利用することができます。
+2に関しては、`do_events`と`update`は更新順序が関係して本質的に`unsafe`なので隠蔽しました。
+処理を記述したい場合は、代わりに[Engine::run_with](../../engine/struct.Engine.html#method.run)を利用することができます。
 
 ### FPSやWindowタイトル
 [CoreContainer](../../engine/struct.CoreContainer.html)という構造体に別れています。

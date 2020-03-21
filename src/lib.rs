@@ -27,10 +27,10 @@ mod auto_generated_core_binding;
 
 mod runner;
 
-/// エンジン
+/// 各種機能との仲介を行う
 pub mod engine;
 
-/// エラー
+/// Altseedのエラー
 pub mod error;
 
 mod array;

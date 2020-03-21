@@ -57,4 +57,5 @@ impl<T: std::error::Error + Send + Sync + 'static> From<T> for AltseedError {
     }
 }
 
+/// Result<T, AltseedError>
 pub type AltseedResult<T> = Result<T, AltseedError>;
