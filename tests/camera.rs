@@ -23,7 +23,7 @@ fn camera_no_rt() -> AltseedResult<()> {
         let camera = CameraNode::new();
         camera
             .borrow_mut()
-            .set_transform(Matrix44::translation(-100.0, -100.0, 0.0))
+            .set_transform(Matrix44::translation(-400.0, -100.0, 0.0))
             .set_group(1);
         engine.add_node(camera)?;
     }
