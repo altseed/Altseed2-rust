@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, subprocess
 
 # move to source directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -125,3 +125,6 @@ print('lang: ' + lang)
 print('output_path: ' + os.path.abspath(bindingGenerator.output_path))
 print('dll_name: ' + bindingGenerator.dll_name)
 print('module: ' + bindingGenerator.module)
+
+subprocess.run('cargo fmt', shell=True)
+print('auto formatted')
