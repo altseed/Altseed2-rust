@@ -1,8 +1,8 @@
 //! # Altseed2
 //! [Altseed](https://github.com/altseed/Altseed) の後継となるべく開発しているゲームエンジンのRust版エンジンです。  
 //!
-//! - [Documents](documents/index.html)
-//! - [Example](examples/index.html)
+//! - [Documents](documents/index.html): 各種機能の解説ページ
+//! - [Example](examples/index.html): サンプルコード集
 //!
 //! ## Related Repogitories
 //! - [Core](https://github.com/altseed/Altseed2): 各種機能

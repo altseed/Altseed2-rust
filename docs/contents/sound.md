@@ -12,8 +12,7 @@ let se_id: SoundID = engine.sound().borrow_mut().play(&mut se.lock())?;
 
 [Sound](../../core/struct.Sound.html)はサウンドファイルを読み込んで生成される音源データを表します。
 
-### Soundを読み込む
-[Loader::load_sound](../../engine/struct.Loader.html#method.load_sound)を利用します。
+[Loader::load_sound](../../engine/struct.Loader.html#method.load_sound)を利用して`.ogg`や`.wav`といった音源ファイルを読み込みます。
 
 `is_decompressed`引数で、事前に音のデータを解凍するかどうかを指定できます。
 
@@ -45,7 +44,7 @@ OGG形式などでは音のデータが圧縮されており、再生前に解�
 
 ## SoundMixer
 [SoundMixer](../../core/struct.SoundMixer.html)は音の再生・停止・などの機能を提供します。
-[Engine::sound](../../engine/struct.Engine.html#method.sound)を利用して`Rc<RefCell<SoundMixer>>`にアクセスできます。
+[Engine::sound](../../engine/struct.Engine.html#method.sound)を利用してください。
 
 できること：
 - 音の停止・一時停止・再開
@@ -59,11 +58,11 @@ OGG形式などでは音のデータが圧縮されており、再生前に解�
 
 [SoundMixer](../../core/struct.SoundMixer.html)の各メソッドにこのIDを渡すことで、再生されている音に対して操作をすることができます。  
 
-### TIPS1
+**TIPS**:  
 Altseedでは再生されている音に対する操作をIDを通して行います。
 音のデータそのものとは別に、音の再生情報に関するデータを管理するためです。
 
-### TIPS2
+**TIPS**:  
 BGMなどを除いて、再生中に停止などの操作を行うことは稀です。
 再生の度に再生情報を含むインスタンスを生成するオーバーヘッドを減らすため、都度IDを用いて操作する仕組みになっています。
 

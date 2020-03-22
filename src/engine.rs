@@ -1,18 +1,18 @@
 use crate::auto_generated_core_binding::*;
 
-/// Engine初期化時の設定を表します。
+/// [Engine](struct.Engine.html)初期化時の設定を表します。
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Config {
     /// 全画面モードかどうか。
-    fullscreen: bool,
+    pub fullscreen: bool,
     /// 画面サイズ可変かどうか。
-    resizable: bool,
+    pub resizable: bool,
     /// ログをコンソールに出力するかどうか。
-    console_logging: bool,
+    pub log_console: bool,
     /// ログファイル名。
-    log_filename: Option<String>,
+    pub log_filename: Option<String>,
     /// ツール機能を有効化するかどうか
-    tool: bool,
+    pub tool: bool,
 }
 
 impl Default for Config {
@@ -20,7 +20,7 @@ impl Default for Config {
         Config {
             fullscreen: false,
             resizable: false,
-            console_logging: true,
+            log_console: true,
             log_filename: Some("Log.txt".to_owned()),
             tool: false,
         }
@@ -153,7 +153,7 @@ impl Drop for Engine {
 }
 
 impl Engine {
-    /// Coreを初期化します。
+    /// [Core](../core/index.html)を初期化します。
     fn initialize_core(title: &str, width: i32, height: i32, config: Config) -> Option<Engine> {
         let mut configuration = Configuration::new().unwrap();
         match config.log_filename {
@@ -164,7 +164,7 @@ impl Engine {
         }
         .set_is_fullscreen(config.fullscreen)
         .set_is_resizable(config.resizable)
-        .set_console_logging_enabled(config.console_logging)
+        .set_console_logging_enabled(config.log_console)
         .set_tool_enabled(config.tool);
 
         if Core::initialize(title, width, height, &mut configuration) {
@@ -205,7 +205,7 @@ impl Engine {
         }
     }
 
-    /// Configurationを利用してエンジンを初期化します。
+    /// [Config](struct.Config.html)を利用してAltseedを初期化します。
     /// * `title` - ウィンドウのタイトル
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅
@@ -227,7 +227,7 @@ impl Engine {
             .ok_or(AltseedError::InitializationFailed)
     }
 
-    /// エンジンを初期化します。
+    /// Altseedを初期化します。
     /// * `title` - ウィンドウのタイトル
     /// * `width` - ウィンドウの横幅
     /// * `height` - ウィンドウの縦幅

@@ -6,8 +6,11 @@ def generate_docs():
     docs = [
         'engine',
         'node',
+        'keyboard_mouse',
+        'joystick',
+        'sound',
         'file',
-        'sound'
+        'log',
     ]
 
     target_dir = '../src/documents'
@@ -23,11 +26,6 @@ def generate_docs():
 
     with open('{}/mod.rs'.format(target_dir), 'w') as f:
         f.write(auto_generated_msg)
-
-        f.write('''
-//! # Link
-//! [Example](../examples/index.html)
-''')
 
         index = 0
         for _name in docs:

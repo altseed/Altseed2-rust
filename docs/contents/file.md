@@ -2,7 +2,7 @@
 
 ## File
 [File](../../core/struct.File.html)はファイルを読み込む先のディレクトリ・パッケージの指定やディレクトリのパッケージ化を行います。
-[Engine::file](../../engine/struct.Engine.html#method.file)を利用して`Rc<RefCell<File>>`にアクセスできます。
+[Engine::file](../../engine/struct.Engine.html#method.file)を利用してください。
 
 ### ファイルを読み込む時のルートを指定する
 [File::add_root_directory](../../core/struct.File.html#method.add_root_directory)を利用します。
@@ -35,7 +35,7 @@ engine.file().borrow_mut().pack("./hoge", "./hoge.pack");
 ### パスワード付きのパッケージをルートに指定する
 [add_root_package_with_password](../../core/struct.File.html#method.add_root_package_with_password)を使用します。
 
-### TIPS
+**TIPS**:  
 複数のパッケージを読み込んだ時の優先順位を利用することでアップデートパッチを容易に実装できます。
 
 例えば、
@@ -50,19 +50,19 @@ engine.file().borrow_mut().pack("./hoge", "./hoge.pack");
 ## StaticFile
 [StaticFile](../../core/struct.StaticFile.html)はファイルを一括で全て読み込むクラスです。
 
-### StaticFileを読み込む
-[Loader::load_static_file](../../engine/struct.Loader.html#method.load_static_file)を利用します。
+[Loader::load_static_file](../../engine/struct.Loader.html#method.load_static_file)を利用して読み込むことができます。
+
 <!-- 読み込んだファイルの内容は、[StaticFile::buffer](../../core/struct.StaticFile.html#buffer)で、Byte配列として得られます。 TODO -->
 
-### TIPS
-> 一度読み込まれると内部でキャッシュされます。
-> よって、同じパスでファイルを読み込んだ場合、キャッシュから読み込まれるため、読み込み時間が小さくなります。
+**TIPS**:  
+一度読み込まれると内部でキャッシュされます。
+よって、同じパスでファイルを読み込んだ場合、キャッシュから読み込まれるため、読み込み時間が小さくなります。
 
 ## StreamFile
 
 [StreamFile](../../core/struct.StreamFile.html)はファイルを部分的に読み込むクラスです。
-### StreamFileを読み込む
-[Loader::load_stream_file](../../engine/struct.Loader.html#method.load_stream_file)を利用します。
+
+[Loader::load_stream_file](../../engine/struct.Loader.html#method.load_stream_file)を利用して読み込むことができます。
 
 ### 指定したサイズだけ読み込む
 [StreamFile::read](../../core/struct.StreamFile.html#method.read)を利用します。

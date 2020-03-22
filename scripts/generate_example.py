@@ -27,12 +27,6 @@ def generate_example():
     with open('{}/mod.rs'.format(target_dir), 'w') as f:
         f.write(auto_generated_msg)
 
-        f.write('''
-//! # Link
-//! [Documents](../documents/index.html)
-
-''')
-
         index = 0
         for _name in examples:
             name = '_{:0=2}_{}'.format(index, _name)
