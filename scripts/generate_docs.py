@@ -6,6 +6,7 @@ def generate_docs():
     docs = [
         'engine',
         'node',
+        'graphics',
         'keyboard_mouse',
         'joystick',
         'sound',

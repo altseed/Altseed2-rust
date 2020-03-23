@@ -13,23 +13,17 @@ fn tree_add() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
-    let s1 = {
-        let node = Sprite::new()
-            .with_tex(t1.clone())
-            .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .with_pos(Vector2::new(100.0, 100.0))
-            .into_node();
-        node
-    };
+    let s1 = Sprite::new()
+        .with_tex(t1.clone())
+        .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
+        .with_pos(Vector2::new(100.0, 100.0))
+        .into_node();
 
-    let s2 = {
-        let node = Sprite::new()
-            .with_tex(t1)
-            .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .with_pos(Vector2::new(200.0, 200.0))
-            .into_node();
-        node
-    };
+    let s2 = Sprite::new()
+        .with_tex(t1)
+        .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
+        .with_pos(Vector2::new(200.0, 200.0))
+        .into_node();
 
     s1.borrow_mut().add_child(s2)?;
     engine.add_node(s1)?;
@@ -47,23 +41,17 @@ fn node_remove() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
-    let s1 = {
-        let node = Sprite::new()
-            .with_tex(t1.clone())
-            .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .with_pos(Vector2::new(100.0, 100.0))
-            .into_node();
-        node
-    };
+    let s1 = Sprite::new()
+        .with_tex(t1.clone())
+        .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
+        .with_pos(Vector2::new(100.0, 100.0))
+        .into_node();
 
-    let s2 = {
-        let node = Sprite::new()
-            .with_tex(t1)
-            .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .with_pos(Vector2::new(100.0, 100.0))
-            .into_node();
-        node
-    };
+    let s2 = Sprite::new()
+        .with_tex(t1)
+        .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
+        .with_pos(Vector2::new(100.0, 100.0))
+        .into_node();
 
     s1.borrow_mut().add_child(s2.clone())?;
     engine.add_node(s1.clone())?;

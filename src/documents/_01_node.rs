@@ -9,7 +9,9 @@
 //! [DrawnNode](../../node/drawn/struct.DrawnNode.html)をエンジンに追加します。
 //! ([examles/sprite](../../examples/_01_sprite/index.html))
 //!
-//! Rust版Altseed2では[Node](../../node/trait.Node.html)トレイトを実装してノードの処理が記述されます。
+//! 描画ノードについては[Documents/Graphics](../graphics/index.html)をご覧ください。
+//!
+//! Rust版Altseed2では[Node](../../node/trait.Node.html)トレイトを実装することでノードの処理を記述します。
 //!
 //! [Node](../../node/trait.Node.html)トレイトが継承する[HasBaseNode](../../node/trait.HasBaseNode.html)トレイトが、
 //! 子ノードを追加する関数や自身を親ノードから削除する関数などノードの基本的な機能を持っています。
@@ -32,7 +34,8 @@
 //! ## 親子構造
 //! ノードは親子関係の階層構造を持ちます。親ノードが更新された後、子のノードが再帰的に実行されます。
 //!
-//! また、DrawnNodeのtransformは親から子に伝播されます。
+//! また、DrawnNodeのTransformは親から子に伝播されます。
+//! DrawnNodeでない場合は変更を与えずに伝播します。
 //!
 //! ## 独自のノードを利用する。
 //! [define_node!](../../macro.define_node.html)マクロを利用して独自のノードを作成できます。([examles/custom_node](../../examples/_06_custom_node/index.html))
