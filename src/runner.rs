@@ -86,8 +86,8 @@ impl<'a, E> TaskRunner<'a, E> {
         while let Some(mut p) = self.pins.pop_front() {
             match p.as_mut().poll(&mut self.context) {
                 Poll::Pending => tmp.push_back(p),
+                Poll::Ready(Ok(())) => (),
                 Poll::Ready(error) => {
-                    std::mem::swap(&mut self.pins, &mut tmp);
                     return error;
                 }
             }
