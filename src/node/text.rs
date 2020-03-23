@@ -4,23 +4,26 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use crate::auto_generated_core_binding::{AsRendered, Font, RenderedText, Renderer};
+use super::{DrawnInternal, HasTransform, Transform};
+use crate::auto_generated_core_binding::{Font, RenderedText, Renderer};
+use crate::math::Matrix44;
 
 /// 文字列を描画するためのAltseedのクラスを表します。
 #[derive(Debug)]
 pub struct Text {
     instance: RenderedText,
+    trans: Transform,
 }
 
-impl_material!(Text);
+impl_drawn!(Text);
 
-impl super::DrawnInternal for Text {
+impl DrawnInternal for Text {
     fn on_drawn(&mut self, renderer: &mut Renderer) {
         renderer.draw_text(&mut self.instance);
     }
 
-    fn rendered_mut(&mut self) -> &mut dyn AsRendered {
-        &mut self.instance
+    fn set_transform(&mut self, transform: Matrix44<f32>) {
+        self.instance.set_transform(transform);
     }
 }
 
@@ -29,6 +32,7 @@ impl Text {
     pub fn new() -> Self {
         Text {
             instance: RenderedText::create().unwrap(),
+            trans: Transform::new(),
         }
     }
 

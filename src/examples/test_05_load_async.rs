@@ -24,11 +24,10 @@
 //!         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 //!     let tex_size: Vector2<f32> = tex.borrow_mut().get_size().into();
 //!
-//!     let node = {
-//!         let node = Sprite::new().with_tex(tex).build();
-//!         node.borrow_mut().set_center(tex_size * 0.5);
-//!         node
-//!     };
+//!     let node = Sprite::new()
+//!         .with_tex(tex)
+//!         .with_center(tex_size * 0.5)
+//!         .into_node();
 //!
 //!     engine.add_node(node.clone())?;
 //!
@@ -51,12 +50,10 @@
 //!                 .await?;
 //!             println!("finished load file ({:?})", thread::current().id());
 //!
-//!             let node = {
-//!                 Text::new()
-//!                     .with_font(font)
-//!                     .with_text("読み込み完了")
-//!                     .build()
-//!             };
+//!             let node = Text::new()
+//!                 .with_font(font)
+//!                 .with_text("読み込み完了")
+//!                 .into_node();
 //!
 //!             root.borrow_mut().add_child(node)?;
 //!             println!("Added Text Node ({:?})", thread::current().id());

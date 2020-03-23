@@ -1,26 +1,29 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::auto_generated_core_binding::{
-    AsRendered, AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
+    AsTexture2D, RenderedPolygon, Renderer, Vector2FArray, VertexArray,
 };
-use crate::prelude::{Rect, Vector2};
-use crate::structs::Vertex;
+use crate::math::{Matrix44, Vector2};
+use crate::structs::{Rect, Vertex};
+
+use super::{DrawnInternal, HasTransform, Transform};
 
 /// ポリゴンを描画するためのAltseedのクラスを表します。
 #[derive(Debug)]
 pub struct Polygon {
     instance: RenderedPolygon,
+    trans: Transform,
 }
 
-impl_material!(Polygon);
+impl_drawn!(Polygon);
 
-impl super::DrawnInternal for Polygon {
+impl DrawnInternal for Polygon {
     fn on_drawn(&mut self, renderer: &mut Renderer) {
         renderer.draw_polygon(&mut self.instance);
     }
 
-    fn rendered_mut(&mut self) -> &mut dyn AsRendered {
-        &mut self.instance
+    fn set_transform(&mut self, transform: Matrix44<f32>) {
+        self.instance.set_transform(transform);
     }
 }
 
@@ -29,6 +32,7 @@ impl Polygon {
     pub fn new() -> Self {
         Polygon {
             instance: RenderedPolygon::create().unwrap(),
+            trans: Transform::new(),
         }
     }
 
@@ -49,11 +53,6 @@ impl Polygon {
         self
     }
 
-    pub fn with_tex<T: AsTexture2D + 'static>(mut self, texture: Rc<RefCell<T>>) -> Self {
-        self.set_tex(texture);
-        self
-    }
-
     /// 描画範囲を取得します
     pub fn get_src(&mut self) -> Rect<f32> {
         self.instance.get_src()
@@ -62,11 +61,6 @@ impl Polygon {
     /// 描画範囲を設定します
     pub fn set_src(&mut self, src: Rect<f32>) -> &mut Self {
         self.instance.set_src(src);
-        self
-    }
-
-    pub fn with_src(mut self, src: Rect<f32>) -> Self {
-        self.set_src(src);
         self
     }
 
@@ -84,21 +78,10 @@ impl Polygon {
         self
     }
 
-    pub fn with_verts(mut self, vertexes: &Vec<Vertex>) -> Self {
-        self.set_verts(vertexes);
-        self
-    }
-
     /// 頂点情報を設定します。
     pub fn set_verts_positions(&mut self, vertexes: &Vec<Vector2<f32>>) -> &mut Self {
         let v = Vector2FArray::from_vec(vertexes);
         self.instance.set_vertexes_by_vector2f(&mut v.borrow_mut());
-        self
-    }
-
-    /// 頂点情報を設定します。
-    pub fn with_verts_positions(mut self, vertexes: &Vec<Vector2<f32>>) -> Self {
-        self.set_verts_positions(vertexes);
         self
     }
 }

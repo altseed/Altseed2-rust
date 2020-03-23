@@ -1,4 +1,5 @@
 use crate::{math::Matrix44, prelude::*};
+use std::fmt;
 
 /// 変形行列を保持するための構造体
 #[derive(Debug)]
@@ -12,6 +13,22 @@ pub struct Transform {
     transform: Matrix44<f32>,
 }
 
+impl fmt::Display for Transform {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "[pos: ({}, {}), center: ({}, {}), scale: ({}, {}), angle: {}]",
+            self.pos.x,
+            self.pos.y,
+            self.center.x,
+            self.center.y,
+            self.scale.x,
+            self.scale.y,
+            self.angle
+        )
+    }
+}
+
 impl Transform {
     pub(crate) fn new() -> Transform {
         Transform {
@@ -22,50 +39,6 @@ impl Transform {
             updated: false,
             transform: Matrix44::identity().clone(),
         }
-    }
-
-    /// Position (位置)
-    pub fn pos(&self) -> Vector2<f32> {
-        self.pos
-    }
-
-    /// Position (位置)
-    pub fn pos_mut(&mut self) -> &mut Vector2<f32> {
-        self.updated = true;
-        &mut self.pos
-    }
-
-    /// Scale (拡大率)
-    pub fn scale(&self) -> Vector2<f32> {
-        self.scale
-    }
-
-    /// Scale (拡大率)
-    pub fn scale_mut(&mut self) -> &mut Vector2<f32> {
-        self.updated = true;
-        &mut self.scale
-    }
-
-    /// Angle (角度)
-    pub fn angle(&self) -> f32 {
-        self.angle
-    }
-
-    /// Angle (角度)
-    pub fn angle_mut(&mut self) -> &mut f32 {
-        self.updated = true;
-        &mut self.angle
-    }
-
-    /// Center Position (中央位置)
-    pub fn center(&self) -> Vector2<f32> {
-        self.center
-    }
-
-    /// Center Position (中央位置)
-    pub fn center_mut(&mut self) -> &mut Vector2<f32> {
-        self.updated = true;
-        &mut self.center
     }
 
     pub(crate) fn calculate(&self) -> Matrix44<f32> {
@@ -100,5 +73,64 @@ impl Transform {
 
     pub(crate) fn updated(&mut self) {
         self.updated = true;
+    }
+}
+
+pub trait HasTransform {
+    fn transform(&self) -> &Transform;
+    fn transform_mut(&mut self) -> &mut Transform;
+
+    /// Position (位置)
+    fn pos(&self) -> Vector2<f32> {
+        self.transform().pos
+    }
+
+    /// Position (位置)
+    fn pos_mut(&mut self) -> &mut Vector2<f32> {
+        self.transform_mut().updated = true;
+        &mut self.transform_mut().pos
+    }
+
+    /// Scale (拡大率)
+    fn scale(&self) -> Vector2<f32> {
+        self.transform().scale
+    }
+
+    /// Scale (拡大率)
+    fn scale_mut(&mut self) -> &mut Vector2<f32> {
+        self.transform_mut().updated = true;
+        &mut self.transform_mut().scale
+    }
+
+    /// Angle (角度)
+    fn angle(&self) -> f32 {
+        self.transform().angle
+    }
+
+    /// Angle (角度)
+    fn angle_mut(&mut self) -> &mut f32 {
+        self.transform_mut().updated = true;
+        &mut self.transform_mut().angle
+    }
+
+    /// Center Position (中央位置)
+    fn center(&self) -> Vector2<f32> {
+        self.transform().center
+    }
+
+    /// Center Position (中央位置)
+    fn center_mut(&mut self) -> &mut Vector2<f32> {
+        self.transform_mut().updated = true;
+        &mut self.transform_mut().center
+    }
+}
+
+impl HasTransform for Transform {
+    fn transform(&self) -> &Transform {
+        self
+    }
+
+    fn transform_mut(&mut self) -> &mut Transform {
+        self
     }
 }

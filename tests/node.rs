@@ -17,8 +17,8 @@ fn tree_add() -> AltseedResult<()> {
         let node = Sprite::new()
             .with_tex(t1.clone())
             .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .build();
-        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+            .with_pos(Vector2::new(100.0, 100.0))
+            .into_node();
         node
     };
 
@@ -26,8 +26,8 @@ fn tree_add() -> AltseedResult<()> {
         let node = Sprite::new()
             .with_tex(t1)
             .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .build();
-        node.borrow_mut().set_pos(Vector2::new(200.0, 200.0));
+            .with_pos(Vector2::new(200.0, 200.0))
+            .into_node();
         node
     };
 
@@ -51,8 +51,8 @@ fn node_remove() -> AltseedResult<()> {
         let node = Sprite::new()
             .with_tex(t1.clone())
             .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-            .build();
-        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+            .with_pos(Vector2::new(100.0, 100.0))
+            .into_node();
         node
     };
 
@@ -60,8 +60,8 @@ fn node_remove() -> AltseedResult<()> {
         let node = Sprite::new()
             .with_tex(t1)
             .with_src(Rect::new(200.0, 200.0, 100.0, 100.0))
-            .build();
-        node.borrow_mut().set_pos(Vector2::new(100.0, 100.0));
+            .with_pos(Vector2::new(100.0, 100.0))
+            .into_node();
         node
     };
 

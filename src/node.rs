@@ -142,7 +142,7 @@ pub(crate) fn update_node_recursive(
     let t = node
         .borrow_mut()
         .downcast_mut::<DrawnNode>()
-        .map(|d| d.relative_transform(ancestors));
+        .map(|d| d.kind_mut().relative_transform(ancestors));
 
     let ancestors = match &t {
         None => ancestors,
@@ -275,7 +275,7 @@ pub use drawn::{Drawn, DrawnKind, DrawnNode};
 pub use polygon::Polygon;
 pub use sprite::Sprite;
 pub use text::Text;
-pub use transform::Transform;
+pub use transform::{HasTransform, Transform};
 
 use crate as altseed2;
 use std::marker::PhantomData;

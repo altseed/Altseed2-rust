@@ -59,8 +59,13 @@ pub mod prelude {
     pub use crate::engine::{Config, CoreContainer, Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
     pub use crate::node::{
-        camera::CameraNode, drawn::Drawn, drawn::DrawnKind, drawn::DrawnNode, polygon::Polygon,
-        sprite::Sprite, text::Text, BaseNode, HasBaseNode, Node, NodeState,
+        camera::CameraNode,
+        drawn::{Drawn, DrawnKind, DrawnNode},
+        polygon::Polygon,
+        sprite::Sprite,
+        text::Text,
+        transform::{HasTransform, Transform},
+        BaseNode, HasBaseNode, Node, NodeState,
     };
 
     pub use crate::core::*;

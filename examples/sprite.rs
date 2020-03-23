@@ -10,7 +10,7 @@ fn main() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink256.png")?;
 
-    let node = Sprite::new().with_tex(tex).build();
+    let node = Sprite::new().with_tex(tex).into_node();
 
     engine.add_node(node)?;
 

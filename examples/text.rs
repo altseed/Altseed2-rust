@@ -10,12 +10,10 @@ fn main() -> AltseedResult<()> {
         .loader()
         .load_dynamic_font("./Core/TestData/Font/mplus-1m-regular.ttf", 50)?;
 
-    let node = {
-        Text::new()
-            .with_font(font)
-            .with_text("Hello, world! こんにちは")
-            .build()
-    };
+    let node = Text::new()
+        .with_font(font)
+        .with_text("Hello, world! こんにちは")
+        .into_node();
 
     engine.add_node(node)?;
 

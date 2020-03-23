@@ -1,6 +1,6 @@
 use crate::{
     math::{Matrix44, Vector2},
-    node::Transform,
+    node::{HasTransform, Transform},
 };
 
 #[test]

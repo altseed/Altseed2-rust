@@ -1,23 +1,27 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::auto_generated_core_binding::{AsRendered, AsTexture2D, RenderedSprite, Renderer};
-use crate::prelude::Rect;
+use crate::auto_generated_core_binding::{AsTexture2D, RenderedSprite, Renderer};
+use crate::math::Matrix44;
+use crate::structs::Rect;
+
+use super::{DrawnInternal, HasTransform, Transform};
 
 /// 画像を描画するためのAltseedのクラスを表します。
 #[derive(Debug)]
 pub struct Sprite {
     instance: RenderedSprite,
+    trans: Transform,
 }
 
-impl_material!(Sprite);
+impl_drawn!(Sprite);
 
-impl super::DrawnInternal for Sprite {
+impl DrawnInternal for Sprite {
     fn on_drawn(&mut self, renderer: &mut Renderer) {
         renderer.draw_sprite(&mut self.instance);
     }
 
-    fn rendered_mut(&mut self) -> &mut dyn AsRendered {
-        &mut self.instance
+    fn set_transform(&mut self, transform: Matrix44<f32>) {
+        self.instance.set_transform(transform);
     }
 }
 
@@ -26,6 +30,7 @@ impl Sprite {
     pub fn new() -> Self {
         Sprite {
             instance: RenderedSprite::create().unwrap(),
+            trans: Transform::new(),
         }
     }
 

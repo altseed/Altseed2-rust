@@ -15,7 +15,11 @@ fn set_texture() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.jpg")?;
 
-    let node = Sprite::new().with_tex(tex1.clone()).build();
+    let node = {
+        let mut sprite = Sprite::new();
+        sprite.set_tex(tex1.clone());
+        sprite.into_node()
+    };
 
     engine.add_node(node.clone())?;
 
