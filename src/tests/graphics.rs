@@ -35,6 +35,7 @@ fn rendered_sprite() {
 
         assert!(graphics.begin_frame());
 
+        renderer.reset_camera();
         renderer.draw_sprite(&mut x1);
         renderer.draw_sprite(&mut x2);
 
@@ -86,12 +87,13 @@ fn rendered_text() {
         count += 1;
         assert!(graphics.begin_frame());
 
+        let mut cmdlist = graphics.get_command_list().unwrap();
         // cmdlist.set_render_target_with_screen();
 
+        renderer.reset_camera();
         renderer.draw_text(&mut x1);
         renderer.draw_text(&mut x2);
 
-        let mut cmdlist = graphics.get_command_list().unwrap();
         renderer.render(&mut cmdlist);
         assert!(graphics.end_frame());
     }
