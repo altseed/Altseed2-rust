@@ -83,7 +83,7 @@
 //! 描画対象のDrawnNode群は、`u32`のカメラグループの値をビットANDすることで指定されます。
 //!
 //! 例えば以下の時、
-//! ```
+//! ```ignore
 //! camera1: CameraNode { group: 0x001 }
 //! camera2: CameraNode { group: 0x010 }
 //!
