@@ -26,8 +26,8 @@ mod array;
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
 mod log;
-mod runner;
 mod sound;
+pub mod task;
 
 /// 各種機能との仲介を行う
 pub mod engine;
@@ -54,10 +54,9 @@ pub mod prelude {
     //! use altseed2::prelude::*;
     //! ```
 
-    pub use crate::math::{Easing, Vector2, Vector3, Vector4};
-
-    pub use crate::engine::{Config, CoreContainer, Engine, Loader};
+    pub use crate::engine::{Config, Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
+    pub use crate::math::{Easing, Vector2, Vector3, Vector4};
     pub use crate::node::{
         camera::CameraNode,
         drawn::{Drawn, DrawnKind, DrawnNode},
@@ -67,6 +66,7 @@ pub mod prelude {
         transform::{HasTransform, Transform},
         BaseNode, HasBaseNode, Node, NodeState,
     };
+    pub use crate::task::Cont;
 
     pub use crate::core::*;
     pub use crate::structs::{Color, Rect, Vertex};

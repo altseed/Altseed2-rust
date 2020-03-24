@@ -27,7 +27,7 @@
 //! パッキングするディレクトリと出力先のパスを指定します。
 //!
 //! ```ignore
-//! engine.file().borrow_mut().pack("./hoge", "./hoge.pack");
+//! engine.file().pack("./hoge", "./hoge.pack");
 //! ```
 //!
 //! ### パスワード付きでパッケージを作成する

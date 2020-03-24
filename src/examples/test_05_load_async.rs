@@ -33,12 +33,10 @@
 //!
 //!     let is_loaded = Rc::new(RefCell::new(false));
 //!
-//!     engine.run_task({
-//!         let root = engine.root_node().clone();
+//!     {
 //!         let loader = engine.loader().clone();
 //!         let is_loaded = is_loaded.clone();
-//!
-//!         async move {
+//!         engine.spawn_task(async move {
 //!             println!("Started async block ({:?})", thread::current().id());
 //!
 //!             println!("Started load file");
@@ -50,20 +48,22 @@
 //!                 .await?;
 //!             println!("finished load file ({:?})", thread::current().id());
 //!
-//!             let node = Text::new()
-//!                 .with_font(font)
-//!                 .with_text("読み込み完了")
-//!                 .into_node();
-//!
-//!             root.borrow_mut().add_child(node)?;
-//!             println!("Added Text Node ({:?})", thread::current().id());
-//!
 //!             *is_loaded.borrow_mut() = true;
 //!             println!("Set is_loaded ({:?})", thread::current().id());
 //!
-//!             Ok(())
-//!         }
-//!     });
+//!             Cont::then(|e| {
+//!                 e.add_node(
+//!                     Text::new()
+//!                         .with_font(font)
+//!                         .with_text("読み込み完了")
+//!                         .into_node(),
+//!                 )?;
+//!                 println!("Added Text Node ({:?})", thread::current().id());
+//!
+//!                 Ok(())
+//!             })
+//!         });
+//!     }
 //!
 //!     let mut count = 0;
 //!

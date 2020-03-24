@@ -8,7 +8,7 @@ Altseedの内部で発生したエラーなどはこの機能でコンソール�
 以下のように記述して使用します。
 
 ```ignore
-engine.log().borrow_mut().debug("Nyan");
+engine.log().debug("Nyan");
 ```
 
 [LogLevel](../../core/enum.LogLevel.html)に応じたメソッドが用意されています。
