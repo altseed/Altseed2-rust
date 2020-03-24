@@ -34,12 +34,17 @@
 //!     let is_loaded = Rc::new(RefCell::new(false));
 //!
 //!     {
+//!         // asyncブロックにmoveするためにcloneする
 //!         let loader = engine.loader().clone();
 //!         let is_loaded = is_loaded.clone();
+//!
+//!         // 非同期処理を生成する
 //!         engine.spawn_task(async move {
 //!             println!("Started async block ({:?})", thread::current().id());
 //!
 //!             println!("Started load file");
+//!
+//!             // futuresのThreadPoolを使って別スレッドでフォントファイルの読み込みを行う。
 //!             let font = POOL
 //!                 .spawn_with_handle(async move {
 //!                     println!("Started thread pool({:?})", thread::current().id());
@@ -48,10 +53,12 @@
 //!                 .await?;
 //!             println!("finished load file ({:?})", thread::current().id());
 //!
+//!             // Rc<RefCell<bool>>のフラグを書き換える。
 //!             *is_loaded.borrow_mut() = true;
 //!             println!("Set is_loaded ({:?})", thread::current().id());
 //!
-//!             Cont::then(|e| {
+//!             // 継続でエンジンにアクセスして処理を行う。
+//!             Cont::then(|e: &mut Engine| {
 //!                 e.add_node(
 //!                     Text::new()
 //!                         .with_font(font)
