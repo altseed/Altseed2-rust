@@ -382,7 +382,7 @@ pub enum WritingDirection {
     Horizontal,
 }
 
-/// ImGuiで使用する方向
+/// ツール機能で使用する方向
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolDir {
@@ -448,7 +448,7 @@ bitflags! {
 }
 
 bitflags! {
-    /// Toolにおいてインプットされるテキストの設定を表します
+    /// ツール機能においてインプットされるテキストの設定を表します
     pub struct ToolInputText: i32 {
         const NONE = 0;
         /// 0123456789.+-*/ を許可します。
@@ -493,7 +493,7 @@ bitflags! {
 }
 
 bitflags! {
-    /// Toolにおける色の設定を表します
+    /// ツール機能における色の設定を表します
     pub struct ToolColorEdit: i32 {
         const NONE = 0;
         /// `ColorEdit, ColorPicker, ColorButton`: Alphaコンポーネントを無視します（入力ポインターから3つのコンポーネントのみを読み取ります）。
@@ -563,7 +563,7 @@ bitflags! {
 }
 
 bitflags! {
-    /// Toolのウィンドウにおける設定を表します
+    /// ツール機能のウィンドウにおける設定を表します
     pub struct ToolWindow: i32 {
         const NONE = 0;
         /// タイトルバーを無効にする
@@ -613,7 +613,7 @@ bitflags! {
 }
 
 bitflags! {
-    /// Toolのタブバーにおける設定を表します
+    /// ツール機能のタブバーにおける設定を表します
     pub struct ToolTabBar: i32 {
         const NONE = 0;
         /// タブを手動でドラッグして並べ替えることができます+リストの最後に新しいタブが追加されます
@@ -637,7 +637,7 @@ bitflags! {
     }
 }
 
-/// Tool機能を使ってフォントを読み込む際の範囲を指定します。ビット演算は行わないでください。
+/// ツール機能を使ってフォントを読み込む際の範囲を指定します。ビット演算は行わないでください。
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ToolGlyphRanges {
@@ -686,8 +686,9 @@ pub enum LogLevel {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LogCategory {
     Core = 0,
-    Engine = 1,
-    User = 2,
+    Graphics = 1,
+    Engine = 2,
+    User = 3,
 }
 
 #[link(name = "Altseed_Core")]
@@ -4341,13 +4342,13 @@ impl Tool {
 
     ///
 
-    pub fn new_frame(&mut self) -> () {
+    pub(crate) fn new_frame(&mut self) -> () {
         unsafe { cbg_Tool_NewFrame(self.self_ptr) }
     }
 
     ///
 
-    pub fn render(&mut self) -> () {
+    pub(crate) fn render(&mut self) -> () {
         unsafe { cbg_Tool_Render(self.self_ptr) }
     }
 
