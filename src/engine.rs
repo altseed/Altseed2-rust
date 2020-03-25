@@ -31,13 +31,16 @@ use crate::error::*;
 use crate::node::*;
 use std::{
     cell::RefCell,
+    collections::VecDeque,
     future::Future,
     marker::PhantomData,
+    pin::Pin,
     rc::{Rc, Weak},
     sync::{Arc, Mutex},
+    task::{Context, Poll},
 };
 
-use crate::runner::{SpinWaker, TaskRunner};
+use crate::task::{Cont, SpinWaker};
 
 /// ファイルを読み込む機能を提供します。
 #[derive(Clone)]
@@ -45,93 +48,28 @@ pub struct Loader {
     pub(crate) phantom: PhantomData<()>,
 }
 
-/// Core機能を提供します。
-pub struct CoreContainer {
-    pub(crate) core: Core,
-    pub(crate) resources: Resources,
-    pub(crate) window: Window,
-}
-
-impl CoreContainer {
-    /// ウインドウのタイトルを取得します。
-    pub fn get_window_title(&mut self) -> String {
-        self.window.get_title()
-    }
-
-    /// ウインドウのタイトルを設定します。
-    pub fn set_window_title(&mut self, title: &str) -> &mut Self {
-        self.window.set_title(title.to_owned());
-        self
-    }
-
-    /// フレームレートの制御方法を取得します。
-    pub fn get_framerate_mode(&mut self) -> FramerateMode {
-        self.core.get_framerate_mode()
-    }
-
-    /// フレームレートの制御方法を設定します。
-    pub fn set_framerate_mode(&mut self, mode: FramerateMode) -> &mut Self {
-        self.core.set_framerate_mode(mode);
-        self
-    }
-
-    /// 目標フレームレートを取得します。
-    pub fn get_target_fps(&mut self) -> f32 {
-        self.core.get_target_fps()
-    }
-
-    /// 目標フレームレートを設定します。
-    pub fn set_target_fps(&mut self, fps: f32) -> &mut Self {
-        self.core.set_target_fps(fps);
-        self
-    }
-
-    /// 現在のFPSを取得します。
-    pub fn get_current_fps(&mut self) -> f32 {
-        self.core.get_current_fps()
-    }
-
-    /// 前のフレームからの経過時間(秒)を取得します。
-    pub fn get_delta_second(&mut self) -> f32 {
-        self.core.get_delta_second()
-    }
-
-    /// 指定した種類のリソースの個数を取得します。
-    /// # Arguments
-    /// * `type_` - 個数を検索するリソースの種類
-    pub fn count_resources(&mut self, type_: ResourceType) -> i32 {
-        self.resources.get_resources_count(type_)
-    }
-
-    /// 登録されたリソースをすべて削除します。
-    pub fn clear_resources(&mut self) {
-        self.resources.clear()
-    }
-
-    /// リソースの再読み込みを行います。
-    pub fn reload_resources(&mut self) {
-        self.resources.reload()
-    }
-}
-
 /// AltseedのCoreとの橋渡しやオブジェクトの管理を行います。
 pub struct Engine {
-    container: Rc<RefCell<CoreContainer>>,
+    core: Core,
+    resources: Resources,
+    window: Window,
     graphics: Graphics,
     renderer: Renderer,
-    file: Rc<RefCell<File>>,
-    keyboard: Rc<RefCell<Keyboard>>,
-    mouse: Rc<RefCell<Mouse>>,
-    joystick: Rc<RefCell<Joystick>>,
-    sound: Rc<RefCell<crate::sound::SoundMixer>>,
-    log: Rc<RefCell<crate::log::Log>>,
-    tool: Option<Rc<RefCell<Tool>>>,
+    file: File,
+    keyboard: Keyboard,
+    mouse: Mouse,
+    joystick: Joystick,
+    sound: crate::sound::SoundMixer,
+    log: crate::log::Log,
+    tool: Option<Tool>,
     root_node: Rc<RefCell<RootNode>>,
     loader: Loader,
 
     drawn_nodes: list::SortVec<i32, DrawnNode>,
     camera_nodes: list::SortVec<u32, CameraNode>,
-    runner: TaskRunner<'static, AltseedError>,
+
+    context: Context<'static>,
+    pins: VecDeque<Pin<Box<dyn Future<Output = Result<Cont, AltseedError>>>>>,
 
     closed: bool,
     called_begin: bool,
@@ -173,27 +111,26 @@ impl Engine {
             }
 
             let e = Engine {
-                container: Rc::new(RefCell::new(CoreContainer {
-                    core: Core::get_instance()?,
-                    resources: Resources::get_instance()?,
-                    window: Window::get_instance()?,
-                })),
+                core: Core::get_instance()?,
+                resources: Resources::get_instance()?,
+                window: Window::get_instance()?,
                 graphics: Graphics::get_instance()?,
                 renderer: Renderer::get_instance()?,
-                file: Rc::new(RefCell::new(File::get_instance()?)),
-                keyboard: Rc::new(RefCell::new(Keyboard::get_instance()?)),
-                mouse: Rc::new(RefCell::new(Mouse::get_instance()?)),
-                joystick: Rc::new(RefCell::new(Joystick::get_instance()?)),
-                sound: Rc::new(RefCell::new(crate::sound::SoundMixer::new()?)),
-                log: Rc::new(RefCell::new(crate::log::Log::new()?)),
-                tool: Tool::get_instance().map(|x| Rc::new(RefCell::new(x))),
+                file: File::get_instance()?,
+                keyboard: Keyboard::get_instance()?,
+                mouse: Mouse::get_instance()?,
+                joystick: Joystick::get_instance()?,
+                sound: crate::sound::SoundMixer::new()?,
+                log: crate::log::Log::new()?,
+                tool: Tool::get_instance(),
                 loader: Loader {
                     phantom: PhantomData,
                 },
                 root_node: RootNode::new(),
                 drawn_nodes: list::SortVec::new(),
                 camera_nodes: list::SortVec::new(),
-                runner: TaskRunner::new(&WAKER),
+                context: Context::from_waker(&WAKER),
+                pins: VecDeque::new(),
 
                 closed: false,
                 called_begin: false,
@@ -254,15 +191,15 @@ impl Engine {
             return Ok(false);
         }
 
-        if self.container.borrow_mut().core.do_event() && self.graphics.do_events() {
+        if self.core.do_event() && self.graphics.do_events() {
             if !self.graphics.begin_frame() {
                 return Err(AltseedError::CoreError(
                     "Graphics::begin_frame failed".to_owned(),
                 ));
             }
 
-            if let Some(tool) = &self.tool {
-                tool.borrow_mut().new_frame();
+            if let Some(tool) = &mut self.tool {
+                tool.new_frame();
             }
 
             self.called_begin = true;
@@ -286,10 +223,28 @@ impl Engine {
         Ok(())
     }
 
-    fn update(&mut self) -> AltseedResult<()> {
-        // 非同期処理の継続を取り出す
-        self.runner.update()?;
+    fn update_task(&mut self) -> AltseedResult<()> {
+        if self.pins.is_empty() {
+            return Ok(());
+        }
 
+        for _ in 0..self.pins.len() {
+            let mut p = self.pins.pop_front().unwrap();
+
+            match p.as_mut().poll(&mut self.context) {
+                Poll::Pending => self.pins.push_back(p),
+                Poll::Ready(Ok(Cont::Fin)) => (),
+                Poll::Ready(Ok(Cont::Then(f))) => f(self)?,
+                Poll::Ready(Err(e)) => {
+                    return Err(e);
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn update(&mut self) -> AltseedResult<()> {
         // 再帰的にノードを更新
         update_node_recursive(
             &unsafe { Rc::from_raw(Rc::into_raw(self.root_node.clone()) as *const _) },
@@ -297,6 +252,9 @@ impl Engine {
             None,
             true,
         )?;
+
+        // 非同期処理の継続を取り出す
+        self.update_task()?;
 
         // NodeState::Registeredなものだけ残す。更新があったらソートする。
         self.drawn_nodes.update();
@@ -339,8 +297,8 @@ impl Engine {
             rc.borrow_mut().after_drawn();
         }
 
-        if let Some(tool) = &self.tool {
-            tool.borrow_mut().render();
+        if let Some(tool) = &mut self.tool {
+            tool.render();
         }
 
         if !self.graphics.end_frame() {
@@ -390,62 +348,110 @@ impl Engine {
         self.root_node.borrow_mut().add_child(child)
     }
 
-    /// ルートノードを取得します。
-    pub fn root_node(&self) -> &Rc<RefCell<RootNode>> {
-        &self.root_node
-    }
-
-    /// 非同期タスクを実行します。
-    pub fn run_task<F>(&mut self, future: F)
-    where
-        F: Future<Output = AltseedResult<()>> + 'static,
-    {
-        self.runner.run(future);
-    }
-
-    /// コアの機能
-    pub fn core(&self) -> &Rc<RefCell<CoreContainer>> {
-        &self.container
+    /// 非同期処理を発生させます。
+    pub fn spawn_task<F: Future<Output = AltseedResult<Cont>> + 'static>(&mut self, future: F) {
+        let future = Pin::from(Box::new(future));
+        self.pins.push_back(future);
     }
 
     /// ファイルを管理するクラスを取得します。
-    pub fn file(&self) -> &Rc<RefCell<File>> {
-        &self.file
+    pub fn file(&mut self) -> &mut File {
+        &mut self.file
     }
 
     /// キーボードを管理するクラスを取得します。
-    pub fn keyboard(&self) -> &Rc<RefCell<Keyboard>> {
-        &self.keyboard
+    pub fn keyboard(&mut self) -> &mut Keyboard {
+        &mut self.keyboard
     }
 
     /// マウスを管理するクラスを取得します。
-    pub fn mouse(&self) -> &Rc<RefCell<Mouse>> {
-        &self.mouse
+    pub fn mouse(&mut self) -> &mut Mouse {
+        &mut self.mouse
     }
 
     /// ジョイスティックを管理するクラスを取得します。
-    pub fn joystick(&self) -> &Rc<RefCell<Joystick>> {
-        &self.joystick
+    pub fn joystick(&mut self) -> &mut Joystick {
+        &mut self.joystick
     }
 
     /// ログを管理するクラスを取得します。
-    pub fn log(&self) -> &Rc<RefCell<crate::log::Log>> {
-        &self.log
+    pub fn log(&mut self) -> &mut crate::log::Log {
+        &mut self.log
     }
 
     /// 音を管理するクラスを取得します。
-    pub fn sound(&self) -> &Rc<RefCell<crate::sound::SoundMixer>> {
-        &self.sound
+    pub fn sound(&mut self) -> &mut crate::sound::SoundMixer {
+        &mut self.sound
     }
 
     /// ツールを管理するクラスを取得します。
-    pub unsafe fn tool(&self) -> &Option<Rc<RefCell<Tool>>> {
-        &self.tool
+    pub unsafe fn tool(&mut self) -> Option<&mut Tool> {
+        self.tool.as_mut()
     }
 
     /// ファイル読み込みを管理するクラスを取得します。
     pub fn loader(&self) -> &Loader {
         &self.loader
+    }
+
+    /// ウインドウのタイトルを取得します。
+    pub fn get_window_title(&mut self) -> String {
+        self.window.get_title()
+    }
+
+    /// ウインドウのタイトルを設定します。
+    pub fn set_window_title(&mut self, title: &str) -> &mut Self {
+        self.window.set_title(title.to_owned());
+        self
+    }
+
+    /// フレームレートの制御方法を取得します。
+    pub fn get_framerate_mode(&mut self) -> FramerateMode {
+        self.core.get_framerate_mode()
+    }
+
+    /// フレームレートの制御方法を設定します。
+    pub fn set_framerate_mode(&mut self, mode: FramerateMode) -> &mut Self {
+        self.core.set_framerate_mode(mode);
+        self
+    }
+
+    /// 目標フレームレートを取得します。
+    pub fn get_target_fps(&mut self) -> f32 {
+        self.core.get_target_fps()
+    }
+
+    /// 目標フレームレートを設定します。
+    pub fn set_target_fps(&mut self, fps: f32) -> &mut Self {
+        self.core.set_target_fps(fps);
+        self
+    }
+
+    /// 現在のFPSを取得します。
+    pub fn get_current_fps(&mut self) -> f32 {
+        self.core.get_current_fps()
+    }
+
+    /// 前のフレームからの経過時間(秒)を取得します。
+    pub fn get_delta_second(&mut self) -> f32 {
+        self.core.get_delta_second()
+    }
+
+    /// 指定した種類のリソースの個数を取得します。
+    /// # Arguments
+    /// * `type_` - 個数を検索するリソースの種類
+    pub fn count_resources(&mut self, type_: ResourceType) -> i32 {
+        self.resources.get_resources_count(type_)
+    }
+
+    /// 登録されたリソースをすべて削除します。
+    pub fn clear_resources(&mut self) {
+        self.resources.clear()
+    }
+
+    /// リソースの再読み込みを行います。
+    pub fn reload_resources(&mut self) {
+        self.resources.reload()
     }
 }
 

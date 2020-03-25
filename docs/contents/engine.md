@@ -37,11 +37,26 @@ engine.something();
 ## 非同期処理
 [Future](https://doc.rust-lang.org/beta/std/future/trait.Future.html)(async/await)に対応しています。
 
-[Engine::run_task](../../engine.struct.Engine.html#method.run_task)を利用して非同期処理を実行することができます。
+[Engine::spawn_task](../../engine.struct.Engine.html#method.spawn_task)を利用して非同期処理を実行することができます。
 ([Examples/load_async](../../examples/_06_load_async.rs))
 
 継続処理はメインループ内で取り出されます。
-これは`run_task`が`Send + Sync`を要求しないことからもわかります。
+これは`spawn_task`が`Send + Sync`を要求しないことからもわかります。
+
+非同期処理の実行後に`Engine`の機能にアクセスしたい場合は[Cont](../../task/enum.Cont.html)(Continuation, 継続)を用いて以下のように記述します。
+
+```ignore
+async {
+    // 処理
+
+    // 返り値で継続を指定
+    // 必要ない場合は`Cont::fin()`
+    Cont::then(|e: &mut Engine| {
+        e.hoge();
+        Ok(())
+    })
+}
+```
 
 ## C#版との違い
 
@@ -55,16 +70,6 @@ engine.something();
 
 2に関しては、`do_events`と`update`は更新順序が関係して本質的に`unsafe`なので隠蔽しました。
 処理を記述したい場合は、代わりに[Engine::run_with](../../engine/struct.Engine.html#method.run)を利用することができます。
-
-### FPSやWindowタイトル
-[CoreContainer](../../engine/struct.CoreContainer.html)という構造体に別れています。
-[Engine::core](../../engine/struct.Engine.html#method.core)を使って`Rc<RefCell<CoreContainer>>`を得られます。
-
-```ignore
-engine.core().borrow_mut().set_target_fps(120);
-```
-
-のように記述可能です。async/awaitなど継続渡しのための仕様です。
 
 ### ファイルを読み込む
 [Loader](../../engine/struct.Loader.html)に別れています。

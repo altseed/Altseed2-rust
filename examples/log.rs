@@ -3,23 +3,19 @@ use altseed2::prelude::*;
 
 fn main() -> AltseedResult<()> {
     // Altseedを初期化します。 ?演算子を利用してError時に早期終了します。
-    let engine = Engine::initialize("log", 800, 600)?;
+    let mut engine = Engine::initialize("log", 800, 600)?;
 
     engine
         .log()
-        .borrow_mut()
         .info("コンソールとファイルにログを出力できます");
 
-    engine
-        .log()
-        .borrow_mut()
-        .warn("重要度に応じて種類を変更できます");
+    engine.log().warn("重要度に応じて種類を変更できます");
 
-    engine.log().borrow_mut().trace("トレース");
-    engine.log().borrow_mut().info("情報");
-    engine.log().borrow_mut().debug("デバッグ");
-    engine.log().borrow_mut().error("エラー");
-    engine.log().borrow_mut().critical("致命的");
+    engine.log().trace("トレース");
+    engine.log().info("情報");
+    engine.log().debug("デバッグ");
+    engine.log().error("エラー");
+    engine.log().critical("致命的");
 
     // 正常終了
     Ok(())

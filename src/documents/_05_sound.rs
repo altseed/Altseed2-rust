@@ -5,10 +5,10 @@
 //!
 //! ```ignore
 //! let bgm: Arc<Mutex<Sound>> = engine.loader().load_sound("./bgm.ogg", false)?;
-//! let bgm_id: SoundID = engine.sound().borrow_mut().play(&mut bgm.lock())?;
+//! let bgm_id: SoundID = engine.sound().play(&mut bgm.lock())?;
 //!
 //! let se: Arc<Mutex<Sound>> = engine.loader().load_sound("./se.ogg", true)?;
-//! let se_id: SoundID = engine.sound().borrow_mut().play(&mut se.lock())?;
+//! let se_id: SoundID = engine.sound().play(&mut se.lock())?;
 //! ```
 //!
 //! ## Sound
