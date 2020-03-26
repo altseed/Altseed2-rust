@@ -941,6 +941,8 @@ extern "C" {
 
     fn cbg_Texture2D_GetPath(self_ptr: *mut RawPtr) -> *const u16;
 
+    fn cbg_Texture2D_Save(self_ptr: *mut RawPtr, path: *const u16) -> bool;
+
     fn cbg_Texture2D_GetSize(self_ptr: *mut RawPtr) -> crate::math::Vector2<i32>;
 
     fn cbg_Texture2D_Release(self_ptr: *mut RawPtr) -> ();
@@ -1115,6 +1117,13 @@ extern "C" {
     fn cbg_Font_LoadDynamicFont(path: *const u16, size: c_int) -> *mut RawPtr;
 
     fn cbg_Font_LoadStaticFont(path: *const u16) -> *mut RawPtr;
+
+    fn cbg_Font_GenerateFontFile(
+        dynamicFontPath: *const u16,
+        staticFontPath: *const u16,
+        size: c_int,
+        characters: *const u16,
+    ) -> bool;
 
     fn cbg_Font_GetGlyph(self_ptr: *mut RawPtr, character: c_int) -> *mut RawPtr;
 
@@ -2832,6 +2841,11 @@ pub trait AsTexture2D: std::fmt::Debug + HasRawPtr {
     /// 読み込んだファイルのパスを取得します。
 
     fn get_path(&mut self) -> String;
+    /// png画像として保存します
+    /// # Arguments
+    /// * `path` - 保存先
+
+    fn save(&mut self, path: &str) -> bool;
     /// テクスチャの大きさ(ピクセル)を取得します。
     fn get_size(&mut self) -> crate::math::Vector2<i32>;
 }
@@ -2848,6 +2862,15 @@ impl AsTexture2D for Texture2D {
     fn get_path(&mut self) -> String {
         let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
         decode_string(ret)
+    }
+
+    /// png画像として保存します
+    /// # Arguments
+    /// * `path` - 保存先
+
+    fn save(&mut self, path: &str) -> bool {
+        let ret = unsafe { cbg_Texture2D_Save(self.self_ptr, encode_string(&path).as_ptr()) };
+        ret
     }
 
     /// テクスチャの大きさ(ピクセル)を取得します。
@@ -2931,6 +2954,15 @@ impl AsTexture2D for RenderTexture {
     fn get_path(&mut self) -> String {
         let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
         decode_string(ret)
+    }
+
+    /// png画像として保存します
+    /// # Arguments
+    /// * `path` - 保存先
+
+    fn save(&mut self, path: &str) -> bool {
+        let ret = unsafe { cbg_Texture2D_Save(self.self_ptr, encode_string(&path).as_ptr()) };
+        ret
     }
 
     /// テクスチャの大きさ(ピクセル)を取得します。
@@ -4163,6 +4195,30 @@ impl Font {
             let ret = Font::try_get_from_cache(ret)?;
             Some(ret)
         }
+    }
+
+    /// a2fフォントを生成します
+    /// # Arguments
+    /// * `dynamic_font_path` - 読み込むtruetypeフォントのパス
+    /// * `static_font_path` - 生成するa2fフォントのパス
+    /// * `size` - フォントのサイズ
+    /// * `characters` - フォント化させる文字列
+
+    pub fn generate_font_file(
+        dynamic_font_path: &str,
+        static_font_path: &str,
+        size: i32,
+        characters: &str,
+    ) -> bool {
+        let ret = unsafe {
+            cbg_Font_GenerateFontFile(
+                encode_string(&dynamic_font_path).as_ptr(),
+                encode_string(&static_font_path).as_ptr(),
+                size,
+                encode_string(&characters).as_ptr(),
+            )
+        };
+        ret
     }
 
     /// 文字情報を取得する
