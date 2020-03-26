@@ -14,6 +14,7 @@ bitflags="1.2.1"
 num = "0.2"
 failure="0.1.7"
 downcast-rs = "1.1.1"
+retain_mut = "0.1.1"
 
 [dev-dependencies]
 futures = { version = "0.3", features = ["thread-pool"] }

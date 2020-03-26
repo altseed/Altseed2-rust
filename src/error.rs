@@ -30,10 +30,6 @@ pub enum AltseedError {
     #[fail(display = "Failed to create {} from '{}'", 0, 1)]
     FailedToCreateResource(ResourceType, String),
 
-    /// ノードの状態が無効です。
-    #[fail(display = "{}, target nodehas invalid NodeState '{:?}' ({})", 0, 1, 2)]
-    InvalidNodeState(String, NodeState, String),
-
     /// 音源の再生に失敗しました。
     #[fail(display = "Failed to play sound of '{}'", 0)]
     FailedToPlaySound(String),

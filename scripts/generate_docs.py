@@ -5,7 +5,6 @@ from generate_example import generate_example
 def generate_docs():
     docs = [
         'engine',
-        'node',
         'graphics',
         'keyboard_mouse',
         'joystick',

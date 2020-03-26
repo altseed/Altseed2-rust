@@ -21,6 +21,11 @@ extern crate bitflags;
 extern crate failure;
 extern crate downcast_rs;
 extern crate num;
+extern crate retain_mut;
+
+pub(crate) mod private {
+    pub trait Private {}
+}
 
 mod array;
 #[allow(unused_mut)]
@@ -29,13 +34,14 @@ mod log;
 mod sound;
 pub mod task;
 
+mod collections;
+pub mod component;
 /// 各種機能との仲介を行う
 pub mod engine;
 /// Altseedのエラー
 pub mod error;
 /// 数学系の機能
 pub mod math;
-pub mod node;
 /// Coreとの受け渡しに利用する構造体
 pub mod structs;
 
@@ -48,28 +54,19 @@ pub mod documents;
 pub mod examples;
 
 pub mod prelude {
-    //! re-export
-    //! ```no_run
-    //! use altseed2::*;
-    //! use altseed2::prelude::*;
-    //! ```
-
     pub use crate::engine::{Config, Engine, Loader};
     pub use crate::error::{AltseedError, AltseedResult};
-    pub use crate::math::{Easing, Vector2, Vector3, Vector4};
-    pub use crate::node::{
-        camera::CameraNode,
-        drawn::{Drawn, DrawnKind, DrawnNode},
-        polygon::Polygon,
-        sprite::Sprite,
-        text::Text,
-        transform::{HasTransform, Transform},
-        BaseNode, HasBaseNode, Node, NodeState,
-    };
+    pub use crate::math::{Easing, HasTransform, Transform, Vector2, Vector3, Vector4};
     pub use crate::task::Cont;
 
     pub use crate::core::*;
     pub use crate::structs::{Color, Rect, Vertex};
+
+    pub use crate::component::{
+        camera::{CameraComponent, CameraID, CameraStorage},
+        drawn::{DrawnComponent, DrawnID, DrawnStorage},
+        drawn_kind::{DrawnKind, Polygon, Sprite, Text},
+    };
 }
 
 /// AltseedのCoreとのバインディングです。

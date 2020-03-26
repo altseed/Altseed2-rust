@@ -1,4 +1,4 @@
-use crate::{math::Matrix44, prelude::*};
+use super::{vector::Vector2, Matrix44};
 use std::fmt;
 
 /// 変形行列を保持するための構造体
@@ -49,7 +49,7 @@ impl Transform {
             * Matrix44::translation(-self.center.x, -self.center.y, 0.0)
     }
 
-    pub(crate) fn update(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> bool {
+    pub fn update(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> bool {
         match (self.updated, ancestors) {
             (_, Some(p)) => {
                 self.transform = p * &self.calculate();
@@ -69,10 +69,6 @@ impl Transform {
 
     pub(crate) fn get(&self) -> &Matrix44<f32> {
         &self.transform
-    }
-
-    pub(crate) fn updated(&mut self) {
-        self.updated = true;
     }
 }
 
