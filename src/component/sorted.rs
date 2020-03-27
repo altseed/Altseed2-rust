@@ -196,6 +196,7 @@ where
         self.components.get_mut(*index as usize).map(|x| &mut x.1)
     }
 
+    /// 追加する
     pub fn push(&mut self, item: T) -> Entity {
         let entity = match self.removed_entities.pop() {
             Some(e) => Entity {
@@ -217,6 +218,7 @@ where
         entity
     }
 
+    /// 削除のフラグを立てます。実際の反映は更新時まで遅延されます。
     pub fn remove(&mut self, entity: Entity) -> bool {
         match self.get_mut(entity) {
             Some(d) => {
@@ -249,6 +251,7 @@ where
         sorted || key_updated
     }
 
+    /// 更新する
     pub fn update(&mut self) {
         let sorted_needed = self.update_components();
 
@@ -261,6 +264,7 @@ where
         }
     }
 
+    /// 全てのComponentに実行する関数を指定して更新する
     pub fn update_with<E, F>(&mut self, mut f: F) -> Result<(), E>
     where
         F: FnMut(&Entity, &mut T) -> Result<(), E>,

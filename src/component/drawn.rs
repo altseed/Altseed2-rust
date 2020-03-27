@@ -94,7 +94,9 @@ impl DrawnComponent {
     pub(crate) fn on_drawing(&mut self, entity: Entity, camera_storage: &mut CameraStorage) {
         if self.camera_group.is_updated() {
             for (_, camera) in camera_storage.storage.iter_mut() {
-                if camera.key().is_updated() {
+                // 生存していなかったらskip
+                // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
+                if !camera.alive() || camera.key().is_updated() {
                     continue;
                 }
 
@@ -132,17 +134,20 @@ impl DrawnComponent {
         Ok(())
     }
 
+    // Memoriedなfieldの更新
     pub(crate) fn update_memoried(&mut self) {
         self.z_order.update();
         self.camera_group.update();
     }
 }
 
+/// DrawnComponentにアクセスするためのID
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DrawnID {
     entity: Entity,
 }
 
+/// DrawnComponentを格納する
 #[derive(Debug)]
 pub struct DrawnStorage {
     pub(crate) storage: SortedStorage<DrawnComponent, i32>,
@@ -169,6 +174,7 @@ impl DrawnStorage {
         self.storage.remove(id.entity)
     }
 
+    /// 新しいDrawnComponentを追加します。
     pub fn push(&mut self, component: DrawnComponent) -> DrawnID {
         let entity = self.storage.push(component);
         DrawnID { entity }

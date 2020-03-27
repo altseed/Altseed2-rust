@@ -263,19 +263,21 @@ impl Engine {
         {
             let updater = |e: &Entity, d: &mut DrawnComponent| {
                 d.on_drawing(*e, camera_storage);
-                
+
                 if d.camera_group() == 0 {
                     d.draw(graphics, renderer)?;
                 }
-                
+
                 if d.camera_group.is_updated() || d.z_order.is_updated() {
                     memoried_updated_drawns.push(e.clone());
                 }
-                
+
                 Ok(())
             };
-            
-            drawn_storage.storage.update_with::<AltseedError, _>(updater)?;
+
+            drawn_storage
+                .storage
+                .update_with::<AltseedError, _>(updater)?;
         }
 
         Self::render_to_cmdlist(renderer, graphics)?;
@@ -348,18 +350,22 @@ impl Engine {
         self.pins.push_back(future);
     }
 
+    /// DrawnComponentを格納しているStorage
     pub fn drawn_storage(&self) -> &DrawnStorage {
         &self.drawn_storage
     }
 
+    /// DrawnComponentを格納しているStorage
     pub fn drawn_storage_mut(&mut self) -> &mut DrawnStorage {
         &mut self.drawn_storage
     }
 
+    /// CameraComponentを格納しているStorage
     pub fn camera_storage(&self) -> &CameraStorage {
         &self.camera_storage
     }
 
+    /// CameraComponentを格納しているStorage
     pub fn camera_storage_mut(&mut self) -> &mut CameraStorage {
         &mut self.camera_storage
     }

@@ -65,6 +65,7 @@ impl CameraComponent {
         self.drawn_entities.push_with(id, z_order);
     }
 
+    /// 呼び出し前にDrawnComponentは更新済みであることを想定している。
     pub(crate) fn draw(
         &mut self,
         drawn_storage: &mut DrawnStorage,
@@ -76,6 +77,8 @@ impl CameraComponent {
         // 自身のカメラグループが更新されているかどうか
         if self.group.is_updated() {
             self.drawn_entities.clear();
+
+            // DrawnComponentはソート済みのはずなので
             for (e, drawn) in drawn_storage
                 .storage
                 .iter()
@@ -86,6 +89,7 @@ impl CameraComponent {
         } else {
             let mut sort_needed = false;
             self.drawn_entities.retain_mut(|e| {
+                // 生存しており、カメラグループが合致しているものだけを取り出す。
                 if let Some(d) = drawn_storage.storage.get_mut(*e) {
                     sort_needed = d.key().is_updated();
                     d.camera_group() & group == group
@@ -113,11 +117,13 @@ impl CameraComponent {
     }
 }
 
+/// CameraComponentにアクセスするためのID
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct CameraID {
     entity: Entity,
 }
 
+/// CameraComponentを格納します。
 #[derive(Debug)]
 pub struct CameraStorage {
     pub(crate) storage: SortedStorage<CameraComponent, u32>,
@@ -144,6 +150,7 @@ impl CameraStorage {
         self.storage.remove(id.entity)
     }
 
+    /// 新しいCameraComponentを追加します。
     pub fn push(&mut self, component: CameraComponent) -> CameraID {
         let entity = self.storage.push(component);
         CameraID { entity }

@@ -10,7 +10,10 @@ fn draw_sprite() -> AltseedResult<()> {
 
     let size: Vector2<f32> = tex.borrow_mut().get_size().into();
 
-    let sprite = Sprite::new().with_texture(tex).with_center(size * 0.5).build();
+    let sprite = Sprite::new()
+        .with_texture(tex)
+        .with_center(size * 0.5)
+        .build();
 
     let sprite_id = engine.drawn_storage_mut().push(sprite);
 
@@ -23,10 +26,12 @@ fn draw_sprite() -> AltseedResult<()> {
 
         let fps = e.get_current_fps();
 
-        if let Some(d) = e.drawn_storage_mut().get_mut(sprite_id) {
-            if let DrawnKind::Sprite(sprite) = d.kind_mut() {
-                *sprite.angle_mut() += 0.1 * fps / 60.0;
-            }
+        if let Some(DrawnKind::Sprite(sprite)) = e
+            .drawn_storage_mut()
+            .get_mut(sprite_id)
+            .map(DrawnComponent::kind_mut)
+        {
+            *sprite.angle_mut() += 0.1 * fps / 60.0;
         } else {
             println!("Not Found!");
             e.close();
