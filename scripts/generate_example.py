@@ -5,6 +5,7 @@ def generate_example():
 
     examples = [
         'hello_world',
+        'sprite',
         'sound',
         'log',
     ]
