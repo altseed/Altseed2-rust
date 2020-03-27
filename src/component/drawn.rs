@@ -175,8 +175,8 @@ impl DrawnStorage {
     }
 
     /// 新しいDrawnComponentを追加します。
-    pub fn push(&mut self, component: DrawnComponent) -> DrawnID {
-        let entity = self.storage.push(component);
+    pub fn add(&mut self, component: DrawnComponent) -> DrawnID {
+        let entity = self.storage.add(component);
         DrawnID { entity }
     }
 }

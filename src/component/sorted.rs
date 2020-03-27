@@ -196,8 +196,9 @@ where
         self.components.get_mut(*index as usize).map(|x| &mut x.1)
     }
 
-    /// 追加する
-    pub fn push(&mut self, item: T) -> Entity {
+    /// 新しい要素を追加します。
+    /// 追加された要素にアクセスするためのEntityを返します。
+    pub fn add(&mut self, item: T) -> Entity {
         let entity = match self.removed_entities.pop() {
             Some(e) => Entity {
                 version: e.version + 1,

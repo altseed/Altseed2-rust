@@ -15,7 +15,7 @@ fn draw_sprite() -> AltseedResult<()> {
         .with_center(size * 0.5)
         .build();
 
-    let sprite_id = engine.drawn_storage_mut().push(sprite);
+    let sprite_id = engine.drawn_storage_mut().add(sprite);
 
     let mut count = 0;
     let engine = engine.run_with(|e| {
@@ -59,13 +59,13 @@ fn drawn_z_order() -> AltseedResult<()> {
 
     let id1 = engine
         .drawn_storage_mut()
-        .push(Sprite::new().with_texture(tex.clone()).build());
+        .add(Sprite::new().with_texture(tex.clone()).build());
 
     println!("{:?}", engine.drawn_storage());
 
     let id2 = engine
         .drawn_storage_mut()
-        .push(Sprite::new().with_texture(tex).with_pos(size * 0.2).build());
+        .add(Sprite::new().with_texture(tex).with_pos(size * 0.2).build());
 
     println!("{:?}", engine.drawn_storage());
 

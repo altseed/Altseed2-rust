@@ -151,8 +151,8 @@ impl CameraStorage {
     }
 
     /// 新しいCameraComponentを追加します。
-    pub fn push(&mut self, component: CameraComponent) -> CameraID {
-        let entity = self.storage.push(component);
+    pub fn add(&mut self, component: CameraComponent) -> CameraID {
+        let entity = self.storage.add(component);
         CameraID { entity }
     }
 }
