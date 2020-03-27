@@ -30,10 +30,7 @@ fn draw_sprite() -> AltseedResult<()> {
 
         let fps = e.get_current_fps();
 
-        if let Some(d) = e
-            .drawn_storage_mut()
-            .get_mut(sprite_id)
-        {
+        if let Some(d) = e.drawn_storage_mut().get_mut(sprite_id) {
             let trans = d.transform_mut().unwrap();
             *trans.angle_mut() += 0.1 * fps / 60.0;
         } else {

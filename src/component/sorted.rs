@@ -1,14 +1,16 @@
 use crate::collections::RetainMutResult;
 use crate::retain_mut::RetainMut;
 
-use super::{Component, Entity, ComponentContainer, Memoried};
+use super::{Component, ComponentContainer, Entity, Memoried};
 
 pub trait Sortable<T: PartialEq + Ord + Clone + Copy> {
     fn key(&self) -> &Memoried<T>;
     fn key_mut(&mut self) -> &mut Memoried<T>;
 }
 
-impl<T: Component + Sortable<U>, U: PartialEq + Ord + Clone + Copy> Sortable<U> for ComponentContainer<T> {
+impl<T: Component + Sortable<U>, U: PartialEq + Ord + Clone + Copy> Sortable<U>
+    for ComponentContainer<T>
+{
     fn key(&self) -> &Memoried<U> {
         self.data.key()
     }
@@ -233,7 +235,9 @@ where
 
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut T> {
         let index = self.indexes.get(&entity)?;
-        self.components.get_mut(*index as usize).map(|x| &mut x.data)
+        self.components
+            .get_mut(*index as usize)
+            .map(|x| &mut x.data)
     }
 
     /// 新しい要素を追加します。

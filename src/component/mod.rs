@@ -4,7 +4,7 @@ pub struct Entity {
     version: u32,
 }
 
-pub trait Component { }
+pub trait Component {}
 
 #[derive(Debug)]
 pub struct ComponentContainer<T: Component> {
@@ -15,7 +15,11 @@ pub struct ComponentContainer<T: Component> {
 
 impl<T: Component> ComponentContainer<T> {
     pub fn new(entity: Entity, data: T) -> Self {
-        ComponentContainer { entity, data, alive: true }
+        ComponentContainer {
+            entity,
+            data,
+            alive: true,
+        }
     }
 }
 

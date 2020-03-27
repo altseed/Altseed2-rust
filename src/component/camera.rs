@@ -17,7 +17,7 @@ pub struct CameraComponent {
     drawn_entities: LazySortVec<Entity, i32>,
 }
 
-impl Component for CameraComponent { }
+impl Component for CameraComponent {}
 
 impl Sortable<u32> for CameraComponent {
     fn key(&self) -> &Memoried<u32> {

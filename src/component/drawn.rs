@@ -17,7 +17,7 @@ pub struct DrawnComponent {
     pub(crate) camera_group: Memoried<u32>,
 }
 
-impl Component for DrawnComponent { }
+impl Component for DrawnComponent {}
 
 impl Sortable<i32> for DrawnComponent {
     fn key(&self) -> &Memoried<i32> {
