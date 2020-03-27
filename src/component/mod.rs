@@ -4,11 +4,19 @@ pub struct Entity {
     version: u32,
 }
 
-pub trait Component {
-    /// 次の更新時に削除するかどうかのフラグ
-    fn alive(&self) -> bool;
-    /// 次の更新時に削除するかどうかのフラグ
-    fn alive_mut(&mut self) -> &mut bool;
+pub trait Component { }
+
+#[derive(Debug)]
+pub struct ComponentContainer<T: Component> {
+    pub entity: Entity,
+    pub alive: bool,
+    pub data: T,
+}
+
+impl<T: Component> ComponentContainer<T> {
+    pub fn new(entity: Entity, data: T) -> Self {
+        ComponentContainer { entity, data, alive: true }
+    }
 }
 
 #[derive(Debug)]

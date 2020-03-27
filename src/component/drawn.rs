@@ -15,18 +15,9 @@ pub struct DrawnComponent {
     is_drawn: bool,
     pub(crate) z_order: Memoried<i32>,
     pub(crate) camera_group: Memoried<u32>,
-    alive: bool,
 }
 
-impl Component for DrawnComponent {
-    fn alive(&self) -> bool {
-        self.alive
-    }
-
-    fn alive_mut(&mut self) -> &mut bool {
-        &mut self.alive
-    }
-}
+impl Component for DrawnComponent { }
 
 impl Sortable<i32> for DrawnComponent {
     fn key(&self) -> &Memoried<i32> {
@@ -47,7 +38,6 @@ impl DrawnComponent {
             is_drawn: true,
             z_order: Memoried::new(0),
             camera_group: Memoried::new(0),
-            alive: true,
         }
     }
 
@@ -93,17 +83,17 @@ impl DrawnComponent {
 
     pub(crate) fn on_drawing(&mut self, entity: Entity, camera_storage: &mut CameraStorage) {
         if self.camera_group.is_updated() {
-            for (_, camera) in camera_storage.storage.iter_mut() {
+            for container in camera_storage.storage.iter_mut() {
                 // 生存していなかったらskip
                 // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
-                if !camera.alive() || camera.key().is_updated() {
+                if !container.alive || !container.data.key().is_updated() {
                     continue;
                 }
 
-                let group = camera.group();
+                let group = container.data.group();
 
                 if self.camera_group() & group == group {
-                    camera.add_drawn(entity, self.z_order());
+                    container.data.add_drawn(entity, self.z_order());
                 }
             }
         }
@@ -168,15 +158,19 @@ impl DrawnStorage {
         self.storage.get_mut(id.entity)
     }
 
-    /// DrawnComponentのaliveをfalseにします。
-    /// 削除の反映は次のフレームまで遅延されます。
+    /// 即座に新しいDrawnComponentを追加します。
+    pub fn add(&mut self, component: DrawnComponent) -> DrawnID {
+        let entity = self.storage.add(component);
+        DrawnID { entity }
+    }
+
+    /// 即座に要素を削除します。
     pub fn remove(&mut self, id: DrawnID) -> bool {
         self.storage.remove(id.entity)
     }
 
-    /// 新しいDrawnComponentを追加します。
-    pub fn add(&mut self, component: DrawnComponent) -> DrawnID {
-        let entity = self.storage.add(component);
-        DrawnID { entity }
+    /// 即座に全ての要素を削除します。
+    pub fn clear(&mut self) {
+        self.storage.clear();
     }
 }

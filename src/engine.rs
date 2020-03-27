@@ -283,8 +283,8 @@ impl Engine {
         Self::render_to_cmdlist(renderer, graphics)?;
 
         // カメラへ描画
-        for (_, c) in camera_storage.storage.iter_mut() {
-            c.draw(drawn_storage, graphics, renderer)?;
+        for container in camera_storage.storage.iter_mut() {
+            container.data.draw(drawn_storage, graphics, renderer)?;
             Self::render_to_cmdlist(renderer, graphics)?;
         }
 

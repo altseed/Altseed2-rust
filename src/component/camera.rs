@@ -15,18 +15,9 @@ pub struct CameraComponent {
     instance: RenderedCamera,
     group: Memoried<u32>,
     drawn_entities: LazySortVec<Entity, i32>,
-    alive: bool,
 }
 
-impl Component for CameraComponent {
-    fn alive(&self) -> bool {
-        self.alive
-    }
-
-    fn alive_mut(&mut self) -> &mut bool {
-        &mut self.alive
-    }
-}
+impl Component for CameraComponent { }
 
 impl Sortable<u32> for CameraComponent {
     fn key(&self) -> &Memoried<u32> {
@@ -44,7 +35,6 @@ impl CameraComponent {
             instance: RenderedCamera::create().unwrap(),
             group: Memoried::new(0),
             drawn_entities: LazySortVec::new(),
-            alive: true,
         }
     }
 
@@ -79,12 +69,12 @@ impl CameraComponent {
             self.drawn_entities.clear();
 
             // DrawnComponentはソート済みのはずなので
-            for (e, drawn) in drawn_storage
+            for (e, d) in drawn_storage
                 .storage
                 .iter()
                 .filter(|(_, d)| d.camera_group() & group == group)
             {
-                self.drawn_entities.push_with(*e, drawn.z_order());
+                self.drawn_entities.push_with(e, d.z_order());
             }
         } else {
             let mut sort_needed = false;
@@ -144,15 +134,19 @@ impl CameraStorage {
         self.storage.get_mut(id.entity)
     }
 
-    /// CameraComponentのaliveをfalseに指定します。
-    /// 削除の反映は次のフレームまで遅延されます。
+    /// 即座に新しいCameraComponentを追加します。
+    pub fn add(&mut self, component: CameraComponent) -> CameraID {
+        let entity = self.storage.add(component);
+        CameraID { entity }
+    }
+
+    /// 即座に要素を削除します。
     pub fn remove(&mut self, id: CameraID) -> bool {
         self.storage.remove(id.entity)
     }
 
-    /// 新しいCameraComponentを追加します。
-    pub fn add(&mut self, component: CameraComponent) -> CameraID {
-        let entity = self.storage.add(component);
-        CameraID { entity }
+    /// 即座に全ての要素を削除します。
+    pub fn clear(&mut self) {
+        self.storage.clear();
     }
 }
