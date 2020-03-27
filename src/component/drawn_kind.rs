@@ -26,8 +26,10 @@ macro_rules! impl_has_transform {
     ($name: ident) => {
         impl $name {
             pub(crate) fn update_transform(&mut self) {
-                if self.transform.update(None) {
-                    self.instance.set_transform(self.transform.get().clone());
+                if self.updated_transform {
+                    let m = self.transform_mut().matrix().clone();
+                    self.instance.set_transform(m);
+                    self.updated_transform = false;
                 }
             }
 
@@ -66,7 +68,12 @@ macro_rules! impl_has_transform {
             }
 
             fn transform_mut(&mut self) -> &mut Transform {
+                self.updated_transform = true;
                 &mut self.transform
+            }
+
+            fn matrix(&mut self) -> &Matrix44<f32> {
+                self.transform.matrix()
             }
         }
     };
@@ -76,6 +83,7 @@ macro_rules! impl_has_transform {
 pub struct Sprite {
     pub(crate) instance: RenderedSprite,
     transform: Transform,
+    updated_transform: bool,
 }
 
 impl_has_transform!(Sprite);
@@ -85,6 +93,7 @@ impl Sprite {
         Sprite {
             instance: RenderedSprite::create().unwrap(),
             transform: Transform::new(),
+            updated_transform: false,
         }
     }
 
@@ -132,6 +141,7 @@ impl Sprite {
 pub struct Text {
     pub(crate) instance: RenderedText,
     transform: Transform,
+    updated_transform: bool,
 }
 
 impl_has_transform!(Text);
@@ -140,6 +150,7 @@ impl Text {
         Text {
             instance: RenderedText::create().unwrap(),
             transform: Transform::new(),
+            updated_transform: false,
         }
     }
 
@@ -199,6 +210,7 @@ impl Text {
 pub struct Polygon {
     pub(crate) instance: RenderedPolygon,
     transform: Transform,
+    updated_transform: bool,
 }
 
 impl_has_transform!(Polygon);
@@ -209,6 +221,7 @@ impl Polygon {
         Polygon {
             instance: RenderedPolygon::create().unwrap(),
             transform: Transform::new(),
+            updated_transform: false,
         }
     }
 

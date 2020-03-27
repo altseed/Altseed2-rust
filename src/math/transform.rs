@@ -1,5 +1,4 @@
 use super::{vector::Vector2, Matrix44};
-use std::fmt;
 
 /// 変形行列を保持するための構造体
 #[derive(Debug)]
@@ -9,39 +8,32 @@ pub struct Transform {
     angle: f32,
     center: Vector2<f32>,
 
-    updated: bool,
-    transform: Matrix44<f32>,
-}
+    updated_parent: bool,
+    parent: Matrix44<f32>,
 
-impl fmt::Display for Transform {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "[pos: ({}, {}), center: ({}, {}), scale: ({}, {}), angle: {}]",
-            self.pos.x,
-            self.pos.y,
-            self.center.x,
-            self.center.y,
-            self.scale.x,
-            self.scale.y,
-            self.angle
-        )
-    }
+    updated_local: bool,
+    local: Matrix44<f32>,
+
+    matrix: Matrix44<f32>,
 }
 
 impl Transform {
-    pub(crate) fn new() -> Transform {
+    pub fn new() -> Transform {
         Transform {
             pos: Vector2::new(0.0, 0.0),
             scale: Vector2::new(1.0, 1.0),
             angle: 0.0,
             center: Vector2::new(0.0, 0.0),
-            updated: false,
-            transform: Matrix44::identity().clone(),
+            updated_parent: false,
+            parent: Matrix44::identity(),
+            updated_local: false,
+            local: Matrix44::identity(),
+            matrix: Matrix44::identity(),
         }
     }
 
-    pub(crate) fn calculate(&self) -> Matrix44<f32> {
+    // TODO
+    fn calc_local(&self) -> Matrix44<f32> {
         Matrix44::translation(self.center.x, self.center.y, 0.0)
             * Matrix44::translation(self.pos.x, self.pos.y, 0.0)
             * Matrix44::rotation_z(self.angle)
@@ -49,32 +41,52 @@ impl Transform {
             * Matrix44::translation(-self.center.x, -self.center.y, 0.0)
     }
 
-    pub fn update(&mut self, ancestors: Option<&crate::math::Matrix44<f32>>) -> bool {
-        match (self.updated, ancestors) {
-            (_, Some(p)) => {
-                self.transform = p * &self.calculate();
-                self.updated = false;
-                true
+    pub fn update(&mut self) -> Option<&Matrix44<f32>> {
+        match (self.updated_local, self.updated_parent) {
+            (false, false) => return None,
+            (true, true) => {
+                self.local = self.calc_local();
+                self.matrix = &self.parent * &self.local;
+                self.updated_local = false;
+                self.updated_parent = false;
             }
-            (true, None) => {
-                if self.updated {
-                    self.transform = self.calculate();
-                    self.updated = false;
-                }
-                true
+            (true, false) => {
+                self.local = self.calc_local();
+                self.matrix = &self.parent * &self.local;
+                self.updated_local = false;
             }
-            (false, None) => false,
+            (false, true) => {
+                self.matrix = &self.parent * &self.local;
+                self.updated_parent = false;
+            }
         }
-    }
 
-    pub(crate) fn get(&self) -> &Matrix44<f32> {
-        &self.transform
+        Some(&self.matrix)
     }
 }
 
 pub trait HasTransform {
     fn transform(&self) -> &Transform;
     fn transform_mut(&mut self) -> &mut Transform;
+
+    /// 変更があった際は再計算して、現在の行列を取得します。
+    fn matrix(&mut self) -> &Matrix44<f32> {
+        let t = self.transform_mut();
+        t.update();
+        &t.matrix
+    }
+
+    /// 親の行列
+    fn parent(&self) -> &Matrix44<f32> {
+        &self.transform().parent
+    }
+
+    /// 親の行列
+    fn parent_mut(&mut self) -> &mut Matrix44<f32> {
+        let t = self.transform_mut();
+        t.updated_parent = true;
+        &mut t.parent
+    }
 
     /// Position (位置)
     fn pos(&self) -> Vector2<f32> {
@@ -83,8 +95,9 @@ pub trait HasTransform {
 
     /// Position (位置)
     fn pos_mut(&mut self) -> &mut Vector2<f32> {
-        self.transform_mut().updated = true;
-        &mut self.transform_mut().pos
+        let t = self.transform_mut();
+        t.updated_local = true;
+        &mut t.pos
     }
 
     /// Scale (拡大率)
@@ -94,8 +107,9 @@ pub trait HasTransform {
 
     /// Scale (拡大率)
     fn scale_mut(&mut self) -> &mut Vector2<f32> {
-        self.transform_mut().updated = true;
-        &mut self.transform_mut().scale
+        let t = self.transform_mut();
+        t.updated_local = true;
+        &mut t.scale
     }
 
     /// Angle (角度)
@@ -105,19 +119,21 @@ pub trait HasTransform {
 
     /// Angle (角度)
     fn angle_mut(&mut self) -> &mut f32 {
-        self.transform_mut().updated = true;
-        &mut self.transform_mut().angle
+        let t = self.transform_mut();
+        t.updated_local = true;
+        &mut t.angle
     }
 
-    /// Center Position (中央位置)
+    /// Center Position (中心位置)
     fn center(&self) -> Vector2<f32> {
         self.transform().center
     }
 
-    /// Center Position (中央位置)
+    /// Center Position (中心位置)
     fn center_mut(&mut self) -> &mut Vector2<f32> {
-        self.transform_mut().updated = true;
-        &mut self.transform_mut().center
+        let t = self.transform_mut();
+        t.updated_local = true;
+        &mut t.center
     }
 }
 
