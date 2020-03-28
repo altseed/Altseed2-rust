@@ -81,20 +81,22 @@ impl DrawnComponent {
         }
     }
 
-    pub(crate) fn on_drawing(&mut self, entity: Entity, camera_storage: &mut CameraStorage) {
+    pub(crate) fn on_drawing(&mut self, entity: Entity, _: &mut CameraStorage) {
         if self.camera_group.is_updated() {
-            for (_, camera) in camera_storage.storage.iter_mut() {
-                // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
-                if !camera.is_key_updated() {
-                    continue;
-                }
+            CAMERA_STORAGE.with(|camera_storage| {
+                for (_, camera) in camera_storage.borrow_mut().iter_mut() {
+                    // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
+                    if !camera.is_key_updated() {
+                        continue;
+                    }
 
-                let group = camera.group();
+                    let group = camera.group();
 
-                if self.camera_group() & group == group {
-                    camera.add_drawn(entity, self.z_order());
+                    if self.camera_group() & group == group {
+                        camera.add_drawn(entity, self.z_order());
+                    }
                 }
-            }
+            })
         }
     }
 
@@ -130,46 +132,78 @@ impl DrawnComponent {
     }
 }
 
-/// DrawnComponentにアクセスするためのID
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+use std::cell::RefCell;
+use std::marker::PhantomData;
+
+thread_local! {
+    pub(crate) static DRAWN_STORAGE: RefCell<SortedStorage<DrawnComponent, i32>> = RefCell::new(SortedStorage::new());
+}
+
+/// Engineに登録されたDrawnComponentに対応するIDです。
+/// このIDがdropされる時、自動的に対応するDrawnComponentも削除されます。
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct DrawnID {
     entity: Entity,
+    phantom: PhantomData<*mut ()>,
+}
+
+impl Drop for DrawnID {
+    fn drop(&mut self) {
+        DRAWN_STORAGE.with(|s| s.borrow_mut().remove(self.entity));
+    }
 }
 
 /// DrawnComponentを格納する
 #[derive(Debug)]
 pub struct DrawnStorage {
-    pub(crate) storage: SortedStorage<DrawnComponent, i32>,
+    phantom: PhantomData<*mut ()>,
 }
 
 impl DrawnStorage {
     pub(crate) fn new() -> Self {
+        DRAWN_STORAGE.with(|s| s.borrow_mut().clear());
         DrawnStorage {
-            storage: SortedStorage::new(),
+            phantom: PhantomData,
         }
     }
 
-    pub fn get(&self, id: DrawnID) -> Option<&DrawnComponent> {
-        self.storage.get(id.entity)
+    /// IDに対応するDrawnComponentへの参照を取得します。
+    pub fn with<T, F: FnOnce(&DrawnComponent) -> T>(&self, id: &DrawnID, f: F) -> T {
+        // DrawnIDが存在を保証しているのでunwrapして良い
+        DRAWN_STORAGE.with(|s| f(s.borrow().get(id.entity).unwrap()))
     }
 
-    pub fn get_mut(&mut self, id: DrawnID) -> Option<&mut DrawnComponent> {
-        self.storage.get_mut(id.entity)
+    /// IDに対応するDrawnComponentへの可変参照を取得します。
+    pub fn with_mut<T, F: FnOnce(&mut DrawnComponent) -> T>(&mut self, id: &DrawnID, f: F) -> T {
+        // DrawnIDが存在を保証しているのでunwrapして良い
+        DRAWN_STORAGE.with(|s| f(s.borrow_mut().get_mut(id.entity).unwrap()))
     }
 
     /// 即座に新しいDrawnComponentを追加します。
     pub fn add(&mut self, component: DrawnComponent) -> DrawnID {
-        let entity = self.storage.add(component);
-        DrawnID { entity }
+        let entity = DRAWN_STORAGE.with(|s| s.borrow_mut().add(component));
+        DrawnID {
+            entity,
+            phantom: PhantomData,
+        }
     }
 
     /// 即座に要素を削除します。
-    pub fn remove(&mut self, id: DrawnID) -> Option<DrawnComponent> {
-        self.storage.remove(id.entity)
+    pub fn remove(&mut self, id: DrawnID) -> DrawnComponent {
+        // DrawnIDが存在を保証しているのでunwrapして良い
+        let res = DRAWN_STORAGE.with(|s| s.borrow_mut().remove(id.entity)).unwrap();
+        // removeしてあるのでdrop処理を行う必要はない
+        std::mem::forget(id);
+        res
     }
 
     /// 即座に全ての要素を削除します。
     pub fn clear(&mut self) {
-        self.storage.clear();
+        DRAWN_STORAGE.with(|s| s.borrow_mut().clear());
+    }
+
+    /// 現在の要素数を取得します。
+    pub fn len(&self) -> u32 {
+        DRAWN_STORAGE.with(|s| s.borrow().len())
     }
 }

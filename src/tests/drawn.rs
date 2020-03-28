@@ -1,8 +1,11 @@
-use altseed2::prelude::*;
+use crate::prelude::*;
+use crate::component::{drawn::DRAWN_STORAGE};
 
 #[test]
 fn draw_sprite() -> AltseedResult<()> {
     let mut engine = Engine::initialize("sprite", 800, 600)?;
+    println!("Engine initialized");
+    DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
 
     let tex = engine
         .loader()
@@ -15,37 +18,38 @@ fn draw_sprite() -> AltseedResult<()> {
         .with_center(size * 0.5)
         .build();
 
-    let sprite_id = engine.drawn_storage_mut().add(sprite);
-
-    println!("{:?}\n", engine.drawn_storage());
+    let mut sprite_id = Some(engine.drawn_storage_mut().add(sprite));
+    println!("sprite_id: {:?}", &sprite_id);
 
     let mut count = 0;
-    let engine = engine.run_with(|e| {
+    engine.run_with(|e| {
         println!("{}", count);
         if count == 60 {
             println!("remove");
-            let c = e.drawn_storage_mut().remove(sprite_id).unwrap();
+            let c = e.drawn_storage_mut().remove(sprite_id.take().unwrap());
             println!("{:?}\n", c);
         }
 
         let fps = e.get_current_fps();
 
-        if let Some(d) = e.drawn_storage_mut().get_mut(sprite_id) {
-            let trans = d.transform_mut().unwrap();
-            *trans.angle_mut() += 0.1 * fps / 60.0;
-        } else {
-            println!("Not Found!");
-            println!("{:?}\n", e.drawn_storage());
-            e.close();
-        }
+        match &sprite_id {
+            Some(id) => e.drawn_storage_mut().with_mut(id, |d| {
+                let trans = d.transform_mut().unwrap();
+                *trans.angle_mut() += 0.1 * fps / 60.0;
+            }),
+            None => {
+                println!("Not Found!");
+                assert_eq!(e.drawn_storage().len(), 0);
+                e.close();
+            }
+        };
 
         count += 1;
 
         Ok(())
     })?;
-
+    
     println!("finish");
-    println!("{:?}", engine.drawn_storage());
 
     Ok(())
 }
@@ -53,6 +57,8 @@ fn draw_sprite() -> AltseedResult<()> {
 #[test]
 fn drawn_z_order() -> AltseedResult<()> {
     let mut engine = Engine::initialize("sprite", 800, 600)?;
+    println!("Engine initialized");
+    DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
 
     let tex = engine
         .loader()
@@ -62,13 +68,11 @@ fn drawn_z_order() -> AltseedResult<()> {
 
     let sprite = Sprite::new().with_texture(tex.clone()).build();
     let id1 = engine.drawn_storage_mut().add(sprite);
-
-    println!("{:?}", engine.drawn_storage());
+    println!("id1: {:?}", &id1);
 
     let sprite = Sprite::new().with_texture(tex).with_pos(size * 0.2).build();
     let id2 = engine.drawn_storage_mut().add(sprite);
-
-    println!("{:?}", engine.drawn_storage());
+    println!("id2: {:?}", &id2);
 
     let mut count = 0;
     engine.run_with(|e| {
@@ -78,15 +82,13 @@ fn drawn_z_order() -> AltseedResult<()> {
         }
 
         if count % 15 == 0 {
-            {
-                let d = e.drawn_storage_mut().get_mut(id1).unwrap();
+            e.drawn_storage_mut().with_mut(&id1, |d| {
                 *d.z_order_mut() = (count / 15) % 2;
-            }
+            });
 
-            {
-                let d = e.drawn_storage_mut().get_mut(id2).unwrap();
+            e.drawn_storage_mut().with_mut(&id2, |d| {
                 *d.z_order_mut() = (count / 15 + 1) % 2;
-            }
+            });
         }
 
         count += 1;

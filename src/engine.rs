@@ -252,7 +252,9 @@ impl Engine {
         camera_storage: &mut CameraStorage,
     ) -> AltseedResult<()> {
         // 削除の反映, 必要があればソート
-        camera_storage.storage.update();
+        CAMERA_STORAGE.with(|camera_storage| {
+            camera_storage.borrow_mut().update();
+        });
 
         // カメラをリセット
         renderer.reset_camera();
@@ -275,24 +277,32 @@ impl Engine {
                 Ok(())
             };
 
-            drawn_storage
-                .storage
-                .update_with::<AltseedError, _>(updater)?;
+            DRAWN_STORAGE.with(|drawn_storage| {
+                drawn_storage
+                    .borrow_mut()
+                    .update_with::<AltseedError, _>(updater)
+            })?
         }
 
         Self::render_to_cmdlist(renderer, graphics)?;
 
         // カメラへ描画
-        for (_, c) in camera_storage.storage.iter_mut() {
-            c.draw(drawn_storage, graphics, renderer)?;
-            Self::render_to_cmdlist(renderer, graphics)?;
-        }
+        CAMERA_STORAGE.with::<_, AltseedResult<()>>(|camera_storage| {
+            for (_, c) in camera_storage.borrow_mut().iter_mut() {
+                c.draw(drawn_storage, graphics, renderer)?;
+                Self::render_to_cmdlist(renderer, graphics)?;
+            }
+            Ok(())
+        })?;
 
         // z_orderとcamera_groupを更新
-        for e in memoried_updated_drawns.into_iter() {
-            let d = drawn_storage.storage.get_mut(e).unwrap();
-            d.update_memoried();
-        }
+        DRAWN_STORAGE.with(|drawn_storage| {
+            let mut storage = drawn_storage.borrow_mut();
+            for e in memoried_updated_drawns.into_iter() {
+                let d = storage.get_mut(e).unwrap();
+                d.update_memoried();
+            }
+        });
 
         Ok(())
     }
