@@ -191,7 +191,9 @@ impl DrawnStorage {
     /// 即座に要素を削除します。
     pub fn remove(&mut self, id: DrawnID) -> DrawnComponent {
         // DrawnIDが存在を保証しているのでunwrapして良い
-        let res = DRAWN_STORAGE.with(|s| s.borrow_mut().remove(id.entity)).unwrap();
+        let res = DRAWN_STORAGE
+            .with(|s| s.borrow_mut().remove(id.entity))
+            .unwrap();
         // removeしてあるのでdrop処理を行う必要はない
         std::mem::forget(id);
         res
@@ -205,5 +207,34 @@ impl DrawnStorage {
     /// 現在の要素数を取得します。
     pub fn len(&self) -> u32 {
         DRAWN_STORAGE.with(|s| s.borrow().len())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::drawn_kind::Sprite;
+    use super::*;
+
+    #[test]
+    fn add_remove_drawn_components() {
+        let mut storage = DrawnStorage::new();
+
+        let id1 = storage.add(Sprite::new().build());
+        assert_eq!(storage.len(), 1);
+
+        let mut id2 = Some(storage.add(Sprite::new().build()));
+        assert_eq!(storage.len(), 2);
+
+        let mut id3 = Some(storage.add(Sprite::new().build()));
+        assert_eq!(storage.len(), 3);
+
+        id2.take();
+        assert_eq!(storage.len(), 2);
+
+        let _c = storage.remove(id1);
+        assert_eq!(storage.len(), 1);
+
+        id3.take();
+        assert_eq!(storage.len(), 0);
     }
 }

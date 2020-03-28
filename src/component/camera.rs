@@ -168,7 +168,9 @@ impl CameraStorage {
     /// 即座に要素を削除します。
     pub fn remove(&mut self, id: CameraID) -> CameraComponent {
         // CameraIDが存在を保証しているのでunwrapして良い
-        let res = CAMERA_STORAGE.with(|s| s.borrow_mut().remove(id.entity)).unwrap();
+        let res = CAMERA_STORAGE
+            .with(|s| s.borrow_mut().remove(id.entity))
+            .unwrap();
         // removeしてあるのでdrop処理を行う必要はない
         std::mem::forget(id);
         res

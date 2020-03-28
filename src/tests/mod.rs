@@ -1,4 +1,4 @@
 mod core;
-mod graphics;
 mod drawn;
+mod graphics;
 mod math;

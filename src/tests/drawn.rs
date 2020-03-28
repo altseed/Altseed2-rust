@@ -1,5 +1,5 @@
+use crate::component::drawn::DRAWN_STORAGE;
 use crate::prelude::*;
-use crate::component::{drawn::DRAWN_STORAGE};
 
 #[test]
 fn draw_sprite() -> AltseedResult<()> {
@@ -48,7 +48,7 @@ fn draw_sprite() -> AltseedResult<()> {
 
         Ok(())
     })?;
-    
+
     println!("finish");
 
     Ok(())
@@ -56,6 +56,7 @@ fn draw_sprite() -> AltseedResult<()> {
 
 #[test]
 fn drawn_z_order() -> AltseedResult<()> {
+    DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
     let mut engine = Engine::initialize("sprite", 800, 600)?;
     println!("Engine initialized");
     DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
@@ -70,9 +71,13 @@ fn drawn_z_order() -> AltseedResult<()> {
     let id1 = engine.drawn_storage_mut().add(sprite);
     println!("id1: {:?}", &id1);
 
+    DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
+
     let sprite = Sprite::new().with_texture(tex).with_pos(size * 0.2).build();
     let id2 = engine.drawn_storage_mut().add(sprite);
     println!("id2: {:?}", &id2);
+
+    DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
 
     let mut count = 0;
     engine.run_with(|e| {

@@ -95,8 +95,9 @@ where
         self.items.push(item);
     }
 
-    pub fn sort_by_key<F: FnMut(&T) -> U>(&mut self, f: F) {
-        self.items.sort_by_key(f);
+    pub fn sort_by_key<F: FnMut(&T) -> U + Clone>(&mut self, mut f: F) {
+        self.items.sort_by_key(f.clone());
+        self.last_key = Some(f(self.items.last().unwrap()));
         self.sort_needed = false;
     }
 
@@ -120,11 +121,12 @@ where
                 Some(x) if x > key => {
                     self.sort_needed = true;
                 }
-                _ => (),
+                _ => {
+                    self.last_key = Some(key);
+                }
             }
         }
 
-        self.last_key = Some(key);
         self.items.push(item);
     }
 
@@ -139,6 +141,7 @@ where
 
         if self.sort_needed || key_updated {
             self.items.sort_by_key(|x| x.key());
+            self.last_key = Some(self.items.last().unwrap().key());
             self.sort_needed = false;
             true
         } else {
@@ -304,10 +307,12 @@ where
 
     /// 全ての要素を削除します。
     pub fn clear(&mut self) {
-        self.components.clear();
-        for entity in self.indexes.iter() {
-            self.removed_entities.push(*entity);
+        for x in self.components.iter() {
+            if let Some((e, _)) = x {
+                self.removed_entities.push(*e);
+            }
         }
+        self.components.clear();
     }
 
     /// 更新する
@@ -357,9 +362,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::super::{Component, Memoried};
     use super::*;
-    use super::super::{Entity, Component, Memoried};
 
+    #[derive(Debug)]
     struct TestC {
         key: Memoried<i32>,
     }
@@ -374,7 +380,7 @@ mod tests {
         }
     }
 
-    impl Component for TestC { }
+    impl Component for TestC {}
 
     impl TestC {
         fn new() -> Self {
@@ -385,12 +391,12 @@ mod tests {
     }
 
     #[test]
-    fn add_remove() {
+    fn add_remove_sorted_storage() {
         let mut storage = SortedStorage::new();
 
-        let e1 = storage.add(TestC::new());
+        let _e1 = storage.add(TestC::new());
         let e2 = storage.add(TestC::new());
-        let e3 = storage.add(TestC::new());
+        let _e3 = Some(storage.add(TestC::new()));
 
         assert_eq!(storage.len(), 3);
         assert_eq!(storage.indexes.len(), 3);
@@ -400,8 +406,9 @@ mod tests {
         assert_eq!(storage.len(), 2);
         assert_eq!(storage.indexes.len(), 3);
         assert_eq!(storage.components.len(), 3);
-        
+
         storage.update();
+
         assert_eq!(storage.indexes.len(), 3);
         assert_eq!(storage.components.len(), 2);
     }
