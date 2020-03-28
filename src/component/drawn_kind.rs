@@ -13,6 +13,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+/// 描画の種類を表します。
 #[derive(Debug)]
 pub enum DrawnKind {
     Sprite(Sprite),
@@ -79,6 +80,7 @@ macro_rules! impl_has_transform {
     };
 }
 
+/// 画像の描画を表します。
 #[derive(Debug)]
 pub struct Sprite {
     pub(crate) instance: RenderedSprite,
@@ -114,6 +116,7 @@ impl Sprite {
         self
     }
 
+    /// テクスチャを設定します。
     pub fn with_texture<T: AsTexture2D + 'static>(mut self, texture: Rc<RefCell<T>>) -> Self {
         self.set_texture(texture);
         self
@@ -137,6 +140,7 @@ impl Sprite {
     }
 }
 
+/// 文字列の描画を表します。
 #[derive(Debug)]
 pub struct Text {
     pub(crate) instance: RenderedText,
@@ -206,6 +210,7 @@ impl Text {
     }
 }
 
+/// ポリゴンの描画を表します。
 #[derive(Debug)]
 pub struct Polygon {
     pub(crate) instance: RenderedPolygon,
@@ -216,7 +221,6 @@ pub struct Polygon {
 impl_has_transform!(Polygon);
 
 impl Polygon {
-    /// 新しい[Polygon](struct.Polygon.html)を作成します。
     pub fn new() -> Self {
         Polygon {
             instance: RenderedPolygon::create().unwrap(),
