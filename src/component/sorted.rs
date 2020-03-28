@@ -1,22 +1,22 @@
 use crate::collections::RetainMutResult;
 use crate::retain_mut::RetainMut;
 
-use super::{Component, ComponentContainer, Entity, Memoried};
+use super::{Component, Entity};
 
 pub trait Sortable<T: PartialEq + Ord + Clone + Copy> {
-    fn key(&self) -> &Memoried<T>;
-    fn key_mut(&mut self) -> &mut Memoried<T>;
+    fn key(&self) -> T;
+    fn is_key_updated(&self) -> bool;
 }
 
-impl<T: Component + Sortable<U>, U: PartialEq + Ord + Clone + Copy> Sortable<U>
-    for ComponentContainer<T>
+impl<T: Sortable<U>, U: PartialEq + Ord + Clone + Copy + Default> Sortable<U>
+    for Option<(Entity, T)>
 {
-    fn key(&self) -> &Memoried<U> {
-        self.data.key()
+    fn key(&self) -> U {
+        self.as_ref().map(|x| x.1.key()).unwrap_or_default()
     }
 
-    fn key_mut(&mut self) -> &mut Memoried<U> {
-        self.data.key_mut()
+    fn is_key_updated(&self) -> bool {
+        self.as_ref().map(|x| x.1.is_key_updated()).unwrap_or(false)
     }
 }
 
@@ -113,7 +113,7 @@ where
     U: PartialEq + Ord + Clone + Copy,
 {
     pub fn push(&mut self, item: T) {
-        let key = item.key().value();
+        let key = item.key();
 
         if !self.sort_needed {
             match self.last_key {
@@ -128,17 +128,17 @@ where
         self.items.push(item);
     }
 
-    // returns whether the sort has been performed or not
+    /// ソートが行われたかどうかを返す
     pub fn update<F: FnMut(&mut T) -> bool>(&mut self, mut f: F) -> bool {
         let mut key_updated = false;
         self.items.retain_mut(|x| {
             let v = f(x);
-            key_updated = x.key_mut().is_updated();
+            key_updated = x.is_key_updated();
             v
         });
 
         if self.sort_needed || key_updated {
-            self.items.sort_by_key(|x| x.key().value());
+            self.items.sort_by_key(|x| x.key());
             self.sort_needed = false;
             true
         } else {
@@ -147,18 +147,16 @@ where
     }
 }
 
-use std::collections::HashMap;
-
 pub struct Iter<'a, T: Component> {
-    components: std::slice::Iter<'a, ComponentContainer<T>>,
+    components: std::slice::Iter<'a, Option<(Entity, T)>>,
 }
 
 impl<'a, T: Component> std::iter::Iterator for Iter<'a, T> {
     type Item = (Entity, &'a T);
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(container) = self.components.next() {
-            if container.alive {
-                return Some((container.entity, &container.data));
+            if let Some(x) = container {
+                return Some((x.0, &x.1));
             }
         }
 
@@ -167,15 +165,15 @@ impl<'a, T: Component> std::iter::Iterator for Iter<'a, T> {
 }
 
 pub struct IterMut<'a, T: Component> {
-    components: std::slice::IterMut<'a, ComponentContainer<T>>,
+    components: std::slice::IterMut<'a, Option<(Entity, T)>>,
 }
 
 impl<'a, T: Component> std::iter::Iterator for IterMut<'a, T> {
     type Item = (Entity, &'a mut T);
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(container) = self.components.next() {
-            if container.alive {
-                return Some((container.entity, &mut container.data));
+            if let Some(x) = container {
+                return Some((x.0, &mut x.1));
             }
         }
 
@@ -187,24 +185,24 @@ impl<'a, T: Component> std::iter::Iterator for IterMut<'a, T> {
 pub struct SortedStorage<T, U>
 where
     T: Sortable<U> + Component,
-    U: PartialEq + Ord + Clone + Copy,
+    U: PartialEq + Ord + Clone + Copy + Default,
 {
-    next_id: u32,
+    next_index: u32,
     removed_entities: Vec<Entity>,
-    indexes: HashMap<Entity, u32>,
-    components: LazySortVec<ComponentContainer<T>, U>,
+    indexes: Vec<Entity>,
+    components: LazySortVec<Option<(Entity, T)>, U>,
 }
 
 impl<T, U> SortedStorage<T, U>
 where
     T: Sortable<U> + Component,
-    U: PartialEq + Ord + Clone + Copy,
+    U: PartialEq + Ord + Clone + Copy + Default,
 {
     pub fn new() -> Self {
         SortedStorage {
-            next_id: 0,
+            next_index: 0,
             removed_entities: Vec::new(),
-            indexes: HashMap::new(),
+            indexes: Vec::new(),
             components: LazySortVec::new(),
         }
     }
@@ -215,105 +213,114 @@ where
         }
     }
 
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, ComponentContainer<T>> {
-        self.components.iter_mut()
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        IterMut {
+            components: self.components.iter_mut(),
+        }
     }
 
     pub fn contains(&self, entity: Entity) -> bool {
-        self.indexes.get(&entity).is_some()
+        match self.indexes.get(entity.index as usize) {
+            Some(e) if e.version == entity.version => true,
+            _ => false,
+        }
     }
 
     pub fn len(&self) -> u32 {
-        self.indexes.len() as u32
+        self.next_index - self.removed_entities.len() as u32
     }
 
     pub fn get(&self, entity: Entity) -> Option<&T> {
-        let index = self.indexes.get(&entity)?;
+        let e = self.indexes.get(entity.index as usize)?;
+        if e.version != entity.version {
+            return None;
+        }
 
-        self.components.get(*index as usize).map(|x| &x.data)
+        self.components
+            .get(e.index as usize)?
+            .as_ref()
+            .map(|x| &x.1)
     }
 
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut T> {
-        let index = self.indexes.get(&entity)?;
+        let e = self.indexes.get(entity.index as usize)?;
+        if e.version != entity.version {
+            return None;
+        }
+
         self.components
-            .get_mut(*index as usize)
-            .map(|x| &mut x.data)
+            .get_mut(e.index as usize)?
+            .as_mut()
+            .map(|x| &mut x.1)
     }
 
     /// 新しい要素を追加します。
     /// 追加された要素にアクセスするためのEntityを返します。
     pub fn add(&mut self, item: T) -> Entity {
+        let components_index = self.components.len() as u32;
+
         let entity = match self.removed_entities.pop() {
-            Some(e) => Entity {
-                version: e.version + 1,
-                ..e
-            },
+            Some(entity) => {
+                self.indexes[entity.index as usize] = Entity {
+                    index: components_index,
+                    ..entity
+                };
+                entity
+            }
             None => {
-                let id = self.next_id;
-                self.next_id += 1;
-                Entity { id, version: 0 }
+                let index = self.next_index;
+                self.next_index += 1;
+                let entity = Entity { index, version: 0 };
+                self.indexes.push(Entity {
+                    index: components_index,
+                    ..entity
+                });
+                entity
             }
         };
-
-        let index = self.components.len();
-        self.indexes.insert(entity, index as u32);
-
-        self.components.push(ComponentContainer::new(entity, item));
-
+        let key = item.key();
+        self.components.push_with(Some((entity, item)), key);
         entity
     }
 
-    /// 要素を削除します。削除に成功したらtrueを返します。
-    pub fn remove(&mut self, entity: Entity) -> bool {
-        if let Some(index) = self.indexes.remove(&entity) {
-            self.removed_entities.push(entity);
-            let container = self.components.get_mut(index as usize).unwrap();
-            container.alive = false;
-            true
-        } else {
-            false
+    /// 要素を削除します。削除に成功したら格納されていた要素を返します。
+    pub fn remove(&mut self, entity: Entity) -> Option<T> {
+        match self.indexes.get_mut(entity.index as usize) {
+            Some(e) if e.version == entity.version => {
+                e.version += 1;
+                let new_entity = Entity {
+                    version: entity.version + 1,
+                    ..entity
+                };
+                self.removed_entities.push(new_entity);
+                self.components
+                    .get_mut(e.index as usize)?
+                    .take()
+                    .map(|x| x.1)
+            }
+            _ => None,
         }
     }
 
     /// 全ての要素を削除します。
     pub fn clear(&mut self) {
         self.components.clear();
-        for (entity, _) in self.indexes.iter() {
+        for entity in self.indexes.iter() {
             self.removed_entities.push(*entity);
         }
-        self.indexes.clear();
-    }
-
-    fn update_components(&mut self) -> bool {
-        let SortedStorage {
-            components,
-            indexes,
-            removed_entities,
-            next_id: _,
-        } = self;
-
-        let mut key_updated = false;
-        let sorted = components.update(|c| {
-            let v = c.alive;
-            if !v {
-                indexes.remove(&c.entity);
-                removed_entities.push(c.entity);
-            }
-            key_updated = c.data.key_mut().is_updated();
-            v
-        });
-
-        sorted || key_updated
     }
 
     /// 更新する
     pub fn update(&mut self) {
-        let sorted_needed = self.update_components();
+        // ソートが行われたかどうか
+        let is_sort_performed = self.components.update(|c| c.is_some());
 
-        if sorted_needed {
+        if is_sort_performed {
             let mut index = 0;
             for c in self.components.iter_mut() {
-                *self.indexes.get_mut(&c.entity).unwrap() = index;
+                // update_componentsでretain済みなのでunwrap
+                let (entity, _) = c.as_mut().unwrap();
+                self.indexes.get_mut(entity.index as usize).unwrap().index = index;
                 index += 1;
             }
         }
@@ -324,21 +331,78 @@ where
     where
         F: FnMut(&Entity, &mut T) -> Result<(), E>,
     {
-        let sorted_needed = self.update_components();
+        // ソートが行われたかどうか
+        let is_sort_performed = self.components.update(|c| c.is_some());
 
-        if sorted_needed {
+        if is_sort_performed {
             let mut index = 0;
             for c in self.components.iter_mut() {
-                f(&c.entity, &mut c.data)?;
-                *self.indexes.get_mut(&c.entity).unwrap() = index;
+                // update_componentsでretain済みなのでunwrap
+                let (entity, comp) = c.as_mut().unwrap();
+                f(entity, comp)?;
+                self.indexes.get_mut(entity.index as usize).unwrap().index = index;
                 index += 1;
             }
         } else {
             for c in self.components.iter_mut() {
-                f(&c.entity, &mut c.data)?;
+                // update_componentsでretain済みなのでunwrap
+                let (entity, comp) = c.as_mut().unwrap();
+                f(entity, comp)?;
             }
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::{Entity, Component, Memoried};
+
+    struct TestC {
+        key: Memoried<i32>,
+    }
+
+    impl Sortable<i32> for TestC {
+        fn key(&self) -> i32 {
+            self.key.value()
+        }
+
+        fn is_key_updated(&self) -> bool {
+            self.key.is_updated()
+        }
+    }
+
+    impl Component for TestC { }
+
+    impl TestC {
+        fn new() -> Self {
+            TestC {
+                key: Memoried::new(0),
+            }
+        }
+    }
+
+    #[test]
+    fn add_remove() {
+        let mut storage = SortedStorage::new();
+
+        let e1 = storage.add(TestC::new());
+        let e2 = storage.add(TestC::new());
+        let e3 = storage.add(TestC::new());
+
+        assert_eq!(storage.len(), 3);
+        assert_eq!(storage.indexes.len(), 3);
+        assert_eq!(storage.components.len(), 3);
+
+        storage.remove(e2);
+        assert_eq!(storage.len(), 2);
+        assert_eq!(storage.indexes.len(), 3);
+        assert_eq!(storage.components.len(), 3);
+        
+        storage.update();
+        assert_eq!(storage.indexes.len(), 3);
+        assert_eq!(storage.components.len(), 2);
     }
 }

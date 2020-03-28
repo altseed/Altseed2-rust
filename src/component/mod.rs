@@ -1,27 +1,10 @@
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Entity {
-    id: u32,
+    index: u32,
     version: u32,
 }
 
 pub trait Component {}
-
-#[derive(Debug)]
-pub struct ComponentContainer<T: Component> {
-    pub entity: Entity,
-    pub alive: bool,
-    pub data: T,
-}
-
-impl<T: Component> ComponentContainer<T> {
-    pub fn new(entity: Entity, data: T) -> Self {
-        ComponentContainer {
-            entity,
-            data,
-            alive: true,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Memoried<T> {

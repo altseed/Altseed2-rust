@@ -20,12 +20,12 @@ pub struct DrawnComponent {
 impl Component for DrawnComponent {}
 
 impl Sortable<i32> for DrawnComponent {
-    fn key(&self) -> &Memoried<i32> {
-        &self.z_order
+    fn key(&self) -> i32 {
+        self.z_order.value()
     }
 
-    fn key_mut(&mut self) -> &mut Memoried<i32> {
-        &mut self.z_order
+    fn is_key_updated(&self) -> bool {
+        self.z_order.is_updated()
     }
 }
 
@@ -83,17 +83,16 @@ impl DrawnComponent {
 
     pub(crate) fn on_drawing(&mut self, entity: Entity, camera_storage: &mut CameraStorage) {
         if self.camera_group.is_updated() {
-            for container in camera_storage.storage.iter_mut() {
-                // 生存していなかったらskip
+            for (_, camera) in camera_storage.storage.iter_mut() {
                 // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
-                if !container.alive || !container.data.key().is_updated() {
+                if !camera.is_key_updated() {
                     continue;
                 }
 
-                let group = container.data.group();
+                let group = camera.group();
 
                 if self.camera_group() & group == group {
-                    container.data.add_drawn(entity, self.z_order());
+                    camera.add_drawn(entity, self.z_order());
                 }
             }
         }
@@ -165,7 +164,7 @@ impl DrawnStorage {
     }
 
     /// 即座に要素を削除します。
-    pub fn remove(&mut self, id: DrawnID) -> bool {
+    pub fn remove(&mut self, id: DrawnID) -> Option<DrawnComponent> {
         self.storage.remove(id.entity)
     }
 

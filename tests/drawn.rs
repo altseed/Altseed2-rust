@@ -17,15 +17,15 @@ fn draw_sprite() -> AltseedResult<()> {
 
     let sprite_id = engine.drawn_storage_mut().add(sprite);
 
-    println!("{:?}", engine.drawn_storage());
+    println!("{:?}\n", engine.drawn_storage());
 
     let mut count = 0;
     let engine = engine.run_with(|e| {
         println!("{}", count);
         if count == 60 {
             println!("remove");
-            e.drawn_storage_mut().remove(sprite_id);
-            println!("{:?}", e.drawn_storage());
+            let c = e.drawn_storage_mut().remove(sprite_id).unwrap();
+            println!("{:?}\n", c);
         }
 
         let fps = e.get_current_fps();
@@ -35,7 +35,7 @@ fn draw_sprite() -> AltseedResult<()> {
             *trans.angle_mut() += 0.1 * fps / 60.0;
         } else {
             println!("Not Found!");
-            println!("{:?}", e.drawn_storage());
+            println!("{:?}\n", e.drawn_storage());
             e.close();
         }
 

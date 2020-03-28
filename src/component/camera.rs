@@ -20,12 +20,12 @@ pub struct CameraComponent {
 impl Component for CameraComponent {}
 
 impl Sortable<u32> for CameraComponent {
-    fn key(&self) -> &Memoried<u32> {
-        &self.group
+    fn key(&self) -> u32 {
+        self.group.value()
     }
 
-    fn key_mut(&mut self) -> &mut Memoried<u32> {
-        &mut self.group
+    fn is_key_updated(&self) -> bool {
+        self.group.is_updated()
     }
 }
 
@@ -81,7 +81,7 @@ impl CameraComponent {
             self.drawn_entities.retain_mut(|e| {
                 // 生存しており、カメラグループが合致しているものだけを取り出す。
                 if let Some(d) = drawn_storage.storage.get_mut(*e) {
-                    sort_needed = d.key().is_updated();
+                    sort_needed = d.is_key_updated();
                     d.camera_group() & group == group
                 } else {
                     false
@@ -90,7 +90,7 @@ impl CameraComponent {
 
             if sort_needed || self.drawn_entities.sort_needed() {
                 self.drawn_entities
-                    .sort_by_key(|e| drawn_storage.storage.get(*e).unwrap().key().value());
+                    .sort_by_key(|e| drawn_storage.storage.get(*e).unwrap().key());
             }
         }
 
@@ -141,7 +141,7 @@ impl CameraStorage {
     }
 
     /// 即座に要素を削除します。
-    pub fn remove(&mut self, id: CameraID) -> bool {
+    pub fn remove(&mut self, id: CameraID) -> Option<CameraComponent> {
         self.storage.remove(id.entity)
     }
 
