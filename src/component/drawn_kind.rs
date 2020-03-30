@@ -4,14 +4,11 @@ use crate::{
 };
 
 use crate::auto_generated_core_binding::{
-    AsTexture2D, Font, RenderedPolygon, RenderedSprite, RenderedText, Vector2FArray, VertexArray,
+    AsTextureBase, Font, RenderedPolygon, RenderedSprite, RenderedText, Texture2D, Vector2FArray,
+    VertexArray,
 };
 
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 /// 描画の種類を表します。
 #[derive(Debug)]
@@ -100,13 +97,13 @@ impl Sprite {
     }
 
     /// テクスチャを取得します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<dyn AsTextureBase>>> {
         self.instance.get_texture()
     }
 
     /// テクスチャを設定します。
-    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, texture: Rc<RefCell<T>>) -> &mut Self {
-        let size = texture.borrow_mut().get_size();
+    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, texture: Arc<Mutex<T>>) -> &mut Self {
+        let size = texture.lock().unwrap().get_size();
         self.instance.set_texture(texture).set_src(Rect::new(
             0.0,
             0.0,
@@ -117,7 +114,7 @@ impl Sprite {
     }
 
     /// テクスチャを設定します。
-    pub fn with_texture<T: AsTexture2D + 'static>(mut self, texture: Rc<RefCell<T>>) -> Self {
+    pub fn with_texture<T: AsTextureBase + 'static>(mut self, texture: Arc<Mutex<T>>) -> Self {
         self.set_texture(texture);
         self
     }
@@ -230,13 +227,13 @@ impl Polygon {
     }
 
     /// テクスチャを取得します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<Texture2D>>> {
         self.instance.get_texture()
     }
 
     /// テクスチャを設定します。
-    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, texture: Rc<RefCell<T>>) -> &mut Self {
-        let size = texture.borrow_mut().get_size();
+    pub fn set_texture(&mut self, texture: Arc<Mutex<Texture2D>>) -> &mut Self {
+        let size = texture.lock().unwrap().get_size();
         self.instance.set_texture(texture).set_src(Rect::new(
             0.0,
             0.0,
@@ -247,7 +244,7 @@ impl Polygon {
     }
 
     /// テクスチャを設定します。
-    pub fn with_texture<T: AsTexture2D + 'static>(mut self, texture: Rc<RefCell<T>>) -> Self {
+    pub fn with_texture(mut self, texture: Arc<Mutex<Texture2D>>) -> Self {
         self.set_texture(texture);
         self
     }

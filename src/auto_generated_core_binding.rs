@@ -929,21 +929,24 @@ extern "C" {
 
     fn cbg_Graphics_DoEvents(self_ptr: *mut RawPtr) -> bool;
 
-    fn cbg_Graphics_GetCommandList(self_ptr: *mut RawPtr) -> *mut RawPtr;
-
     fn cbg_Graphics_GetBuiltinShader(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
+    fn cbg_Graphics_GetClearColor(self_ptr: *mut RawPtr) -> crate::structs::Color;
+    fn cbg_Graphics_SetClearColor(self_ptr: *mut RawPtr, value: crate::structs::Color) -> ();
+
     fn cbg_Graphics_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_TextureBase_Save(self_ptr: *mut RawPtr, path: *const u16) -> bool;
+
+    fn cbg_TextureBase_GetSize(self_ptr: *mut RawPtr) -> crate::math::Vector2<i32>;
+
+    fn cbg_TextureBase_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Texture2D_Load(path: *const u16) -> *mut RawPtr;
 
     fn cbg_Texture2D_Reload(self_ptr: *mut RawPtr) -> bool;
 
     fn cbg_Texture2D_GetPath(self_ptr: *mut RawPtr) -> *const u16;
-
-    fn cbg_Texture2D_Save(self_ptr: *mut RawPtr, path: *const u16) -> bool;
-
-    fn cbg_Texture2D_GetSize(self_ptr: *mut RawPtr) -> crate::math::Vector2<i32>;
 
     fn cbg_Texture2D_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -993,7 +996,7 @@ extern "C" {
 
     fn cbg_Renderer_DrawPolygon(self_ptr: *mut RawPtr, polygon: *mut RawPtr) -> ();
 
-    fn cbg_Renderer_Render(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
+    fn cbg_Renderer_Render(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Renderer_SetCamera(self_ptr: *mut RawPtr, commandList: *mut RawPtr) -> ();
 
@@ -1131,8 +1134,6 @@ extern "C" {
 
     fn cbg_Font_GetKerning(self_ptr: *mut RawPtr, c1: c_int, c2: c_int) -> c_int;
 
-    fn cbg_Font_GetPath(self_ptr: *mut RawPtr) -> *const u16;
-
     fn cbg_Font_CalcTextureSize(
         self_ptr: *mut RawPtr,
         text: *const u16,
@@ -1153,6 +1154,10 @@ extern "C" {
     fn cbg_Font_GetDescent(self_ptr: *mut RawPtr) -> c_int;
 
     fn cbg_Font_GetLineGap(self_ptr: *mut RawPtr) -> c_int;
+
+    fn cbg_Font_GetIsStaticFont(self_ptr: *mut RawPtr) -> bool;
+
+    fn cbg_Font_GetPath(self_ptr: *mut RawPtr) -> *const u16;
 
     fn cbg_Font_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1414,8 +1419,6 @@ extern "C" {
 
     fn cbg_StreamFile_GetTempBuffer(self_ptr: *mut RawPtr) -> *mut RawPtr;
 
-    fn cbg_StreamFile_GetPath(self_ptr: *mut RawPtr) -> *const u16;
-
     fn cbg_StreamFile_Reload(self_ptr: *mut RawPtr) -> bool;
 
     fn cbg_StreamFile_GetSize(self_ptr: *mut RawPtr) -> c_int;
@@ -1425,6 +1428,8 @@ extern "C" {
     fn cbg_StreamFile_GetTempBufferSize(self_ptr: *mut RawPtr) -> c_int;
 
     fn cbg_StreamFile_GetIsInPackage(self_ptr: *mut RawPtr) -> bool;
+
+    fn cbg_StreamFile_GetPath(self_ptr: *mut RawPtr) -> *const u16;
 
     fn cbg_StreamFile_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1471,10 +1476,6 @@ extern "C" {
 
     fn cbg_Sound_Load(path: *const u16, isDecompressed: bool) -> *mut RawPtr;
 
-    fn cbg_Sound_GetPath(self_ptr: *mut RawPtr) -> *const u16;
-
-    fn cbg_Sound_GetIsDecompressed(self_ptr: *mut RawPtr) -> bool;
-
     fn cbg_Sound_GetLoopStartingPoint(self_ptr: *mut RawPtr) -> c_float;
     fn cbg_Sound_SetLoopStartingPoint(self_ptr: *mut RawPtr, value: c_float) -> ();
 
@@ -1485,6 +1486,10 @@ extern "C" {
     fn cbg_Sound_SetIsLoopingMode(self_ptr: *mut RawPtr, value: bool) -> ();
 
     fn cbg_Sound_GetLength(self_ptr: *mut RawPtr) -> c_float;
+
+    fn cbg_Sound_GetPath(self_ptr: *mut RawPtr) -> *const u16;
+
+    fn cbg_Sound_GetIsDecompressed(self_ptr: *mut RawPtr) -> bool;
 
     fn cbg_Sound_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -2756,6 +2761,7 @@ impl Drop for Joystick {
 #[derive(Debug)]
 pub(crate) struct Graphics {
     self_ptr: *mut RawPtr,
+    clear_color: Option<crate::structs::Color>,
 }
 
 impl HasRawPtr for Graphics {
@@ -2769,7 +2775,10 @@ impl Graphics {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Graphics { self_ptr })
+        Some(Graphics {
+            self_ptr,
+            clear_color: None,
+        })
     }
 
     /// インスタンスを取得します。
@@ -2781,29 +2790,23 @@ impl Graphics {
 
     /// 描画を開始します。
 
-    pub fn begin_frame(&mut self) -> bool {
+    pub(crate) fn begin_frame(&mut self) -> bool {
         let ret = unsafe { cbg_Graphics_BeginFrame(self.self_ptr) };
         ret
     }
 
     /// 描画を終了します。
 
-    pub fn end_frame(&mut self) -> bool {
+    pub(crate) fn end_frame(&mut self) -> bool {
         let ret = unsafe { cbg_Graphics_EndFrame(self.self_ptr) };
         ret
     }
 
     /// イベントを処理します。
 
-    pub fn do_events(&mut self) -> bool {
+    pub(crate) fn do_events(&mut self) -> bool {
         let ret = unsafe { cbg_Graphics_DoEvents(self.self_ptr) };
         ret
-    }
-
-    /// コマンドリストを取得します。
-    pub fn get_command_list(&mut self) -> Option<CommandList> {
-        let ret = unsafe { cbg_Graphics_GetCommandList(self.self_ptr) };
-        CommandList::cbg_create_raw(ret)
     }
 
     /// 組み込みのシェーダを取得します。
@@ -2814,6 +2817,22 @@ impl Graphics {
             Some(ret)
         }
     }
+
+    /// クリア色を取得または設定します。
+    pub fn get_clear_color(&mut self) -> crate::structs::Color {
+        if let Some(value) = &self.clear_color {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Graphics_GetClearColor(self.self_ptr) };
+        ret
+    }
+
+    /// クリア色を取得または設定します。
+    pub fn set_clear_color(&mut self, mut value: crate::structs::Color) -> &mut Self {
+        unsafe { cbg_Graphics_SetClearColor(self.self_ptr, value.clone()) }
+        self.clear_color = Some(value.clone());
+        self
+    }
 }
 
 impl Drop for Graphics {
@@ -2822,25 +2841,22 @@ impl Drop for Graphics {
     }
 }
 
-/// 2Dテクスチャのクラス
+/// テクスチャのベースクラス
 #[derive(Debug)]
-pub struct Texture2D {
+pub struct TextureBase {
     self_ptr: *mut RawPtr,
 }
 
-impl HasRawPtr for Texture2D {
+unsafe impl Send for TextureBase {}
+unsafe impl Sync for TextureBase {}
+
+impl HasRawPtr for TextureBase {
     fn self_ptr(&mut self) -> *mut RawPtr {
         self.self_ptr.clone()
     }
 }
 
-pub trait AsTexture2D: std::fmt::Debug + HasRawPtr {
-    /// 再読み込みを行います。
-
-    fn reload(&mut self) -> bool;
-    /// 読み込んだファイルのパスを取得します。
-
-    fn get_path(&mut self) -> String;
+pub trait AsTextureBase: std::fmt::Debug + HasRawPtr {
     /// png画像として保存します
     /// # Arguments
     /// * `path` - 保存先
@@ -2849,77 +2865,143 @@ pub trait AsTexture2D: std::fmt::Debug + HasRawPtr {
     /// テクスチャの大きさ(ピクセル)を取得します。
     fn get_size(&mut self) -> crate::math::Vector2<i32>;
 }
-impl AsTexture2D for Texture2D {
-    /// 再読み込みを行います。
-
-    fn reload(&mut self) -> bool {
-        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
-        ret
-    }
-
-    /// 読み込んだファイルのパスを取得します。
-
-    fn get_path(&mut self) -> String {
-        let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
-        decode_string(ret)
-    }
-
+impl AsTextureBase for TextureBase {
     /// png画像として保存します
     /// # Arguments
     /// * `path` - 保存先
 
     fn save(&mut self, path: &str) -> bool {
-        let ret = unsafe { cbg_Texture2D_Save(self.self_ptr, encode_string(&path).as_ptr()) };
+        let ret = unsafe { cbg_TextureBase_Save(self.self_ptr, encode_string(&path).as_ptr()) };
         ret
     }
 
     /// テクスチャの大きさ(ピクセル)を取得します。
     fn get_size(&mut self) -> crate::math::Vector2<i32> {
-        let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
+        let ret = unsafe { cbg_TextureBase_GetSize(self.self_ptr) };
+        ret
+    }
+}
+impl TextureBase {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Arc::new(Mutex::new(TextureBase { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
+        lazy_static! {
+            static ref TEXTUREBASE_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<TextureBase>>>> =
+                RwLock::new(HashMap::new());
+        }
+        let mut hash_map = TEXTUREBASE_CACHE.write().unwrap();
+        let storage = RawPtrStorage(self_ptr);
+        if let Some(x) = hash_map.get(&storage) {
+            match x.upgrade() {
+                Some(o) => {
+                    return Some(o);
+                }
+                None => {
+                    hash_map.remove(&storage);
+                }
+            }
+        }
+        let o = Self::cbg_create_raw(self_ptr)?;
+        hash_map.insert(storage, Arc::downgrade(&o));
+        Some(o)
+    }
+}
+
+impl Drop for TextureBase {
+    fn drop(&mut self) {
+        unsafe { cbg_TextureBase_Release(self.self_ptr) };
+    }
+}
+
+/// テクスチャのクラス
+#[derive(Debug)]
+pub struct Texture2D {
+    self_ptr: *mut RawPtr,
+}
+
+unsafe impl Send for Texture2D {}
+unsafe impl Sync for Texture2D {}
+
+impl HasRawPtr for Texture2D {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsTextureBase for Texture2D {
+    /// png画像として保存します
+    /// # Arguments
+    /// * `path` - 保存先
+
+    fn save(&mut self, path: &str) -> bool {
+        let ret = unsafe { cbg_TextureBase_Save(self.self_ptr, encode_string(&path).as_ptr()) };
+        ret
+    }
+
+    /// テクスチャの大きさ(ピクセル)を取得します。
+    fn get_size(&mut self) -> crate::math::Vector2<i32> {
+        let ret = unsafe { cbg_TextureBase_GetSize(self.self_ptr) };
         ret
     }
 }
 impl Texture2D {
-    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
         if self_ptr == NULLPTR {
             return None;
         }
-        Some(Rc::new(RefCell::new(Texture2D { self_ptr })))
+        Some(Arc::new(Mutex::new(Texture2D { self_ptr })))
     }
 
-    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
-        thread_local! {
-            static TEXTURE2D_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Texture2D>>>> = RefCell::new(HashMap::new());
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Arc<Mutex<Self>>> {
+        lazy_static! {
+            static ref TEXTURE2D_CACHE: RwLock<HashMap<RawPtrStorage, sync::Weak<Mutex<Texture2D>>>> =
+                RwLock::new(HashMap::new());
         }
-        TEXTURE2D_CACHE.with(|hash_map| {
-            let mut hash_map = hash_map.borrow_mut();
-            let storage = RawPtrStorage(self_ptr);
-            if let Some(x) = hash_map.get(&storage) {
-                match x.upgrade() {
-                    Some(o) => {
-                        return Some(o);
-                    }
-                    None => {
-                        hash_map.remove(&storage);
-                    }
+        let mut hash_map = TEXTURE2D_CACHE.write().unwrap();
+        let storage = RawPtrStorage(self_ptr);
+        if let Some(x) = hash_map.get(&storage) {
+            match x.upgrade() {
+                Some(o) => {
+                    return Some(o);
+                }
+                None => {
+                    hash_map.remove(&storage);
                 }
             }
-            let o = Self::cbg_create_raw(self_ptr)?;
-            hash_map.insert(storage, Rc::downgrade(&o));
-            Some(o)
-        })
+        }
+        let o = Self::cbg_create_raw(self_ptr)?;
+        hash_map.insert(storage, Arc::downgrade(&o));
+        Some(o)
     }
 
     /// 指定したファイルからテクスチャを読み込みます。
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub(crate) fn load(path: &str) -> Option<Rc<RefCell<Texture2D>>> {
+    pub(crate) fn load(path: &str) -> Option<Arc<Mutex<Texture2D>>> {
         let ret = unsafe { cbg_Texture2D_Load(encode_string(&path).as_ptr()) };
         {
             let ret = Texture2D::try_get_from_cache(ret)?;
             Some(ret)
         }
+    }
+
+    /// 再読み込みを行います。
+
+    pub fn reload(&mut self) -> bool {
+        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
+        ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+    pub fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
+        decode_string(ret)
     }
 }
 
@@ -2941,33 +3023,19 @@ impl HasRawPtr for RenderTexture {
     }
 }
 
-impl AsTexture2D for RenderTexture {
-    /// 再読み込みを行います。
-
-    fn reload(&mut self) -> bool {
-        let ret = unsafe { cbg_Texture2D_Reload(self.self_ptr) };
-        ret
-    }
-
-    /// 読み込んだファイルのパスを取得します。
-
-    fn get_path(&mut self) -> String {
-        let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
-        decode_string(ret)
-    }
-
+impl AsTextureBase for RenderTexture {
     /// png画像として保存します
     /// # Arguments
     /// * `path` - 保存先
 
     fn save(&mut self, path: &str) -> bool {
-        let ret = unsafe { cbg_Texture2D_Save(self.self_ptr, encode_string(&path).as_ptr()) };
+        let ret = unsafe { cbg_TextureBase_Save(self.self_ptr, encode_string(&path).as_ptr()) };
         ret
     }
 
     /// テクスチャの大きさ(ピクセル)を取得します。
     fn get_size(&mut self) -> crate::math::Vector2<i32> {
-        let ret = unsafe { cbg_Texture2D_GetSize(self.self_ptr) };
+        let ret = unsafe { cbg_TextureBase_GetSize(self.self_ptr) };
         ret
     }
 }
@@ -3110,10 +3178,10 @@ impl Material {
     /// # Arguments
     /// * `key` - 検索するTexture2Dのインスタンスの名前
 
-    pub fn get_texture(&mut self, key: &str) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_texture(&mut self, key: &str) -> Option<Arc<Mutex<TextureBase>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
         {
-            let ret = Texture2D::try_get_from_cache(ret)?;
+            let ret = TextureBase::try_get_from_cache(ret)?;
             Some(ret)
         }
     }
@@ -3123,7 +3191,7 @@ impl Material {
     /// * `key` - 検索するTexture2Dのインスタンスの名前
     /// * `value` - 設定するTexture2Dのインスタンスの値
 
-    pub fn set_texture<T0: AsTexture2D>(&mut self, key: &str, value: &mut T0) -> () {
+    pub fn set_texture<T0: AsTextureBase>(&mut self, key: &str, value: &mut T0) -> () {
         unsafe {
             cbg_Material_SetTexture(
                 self.self_ptr,
@@ -3212,11 +3280,9 @@ impl Renderer {
     }
 
     /// コマンドリストを描画します。
-    /// # Arguments
-    /// * `command_list` - 描画するコマンドリスト
 
-    pub(crate) fn render(&mut self, command_list: &mut CommandList) -> () {
-        unsafe { cbg_Renderer_Render(self.self_ptr, command_list.self_ptr()) }
+    pub fn render(&mut self) -> () {
+        unsafe { cbg_Renderer_Render(self.self_ptr) }
     }
 
     /// 使用するカメラを設定します。
@@ -3359,7 +3425,7 @@ impl Drop for Rendered {
 #[derive(Debug)]
 pub(crate) struct RenderedSprite {
     self_ptr: *mut RawPtr,
-    texture: Option<Rc<RefCell<dyn AsTexture2D>>>,
+    texture: Option<Arc<Mutex<dyn AsTextureBase>>>,
     src: Option<crate::structs::Rect<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     transform: Option<crate::math::Matrix44<f32>>,
@@ -3416,20 +3482,28 @@ impl RenderedSprite {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<dyn AsTextureBase>>> {
         if let Some(value) = &self.texture {
             return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedSprite_GetTexture(self.self_ptr) };
         {
-            let ret = Texture2D::try_get_from_cache(ret)?;
+            let ret = TextureBase::try_get_from_cache(ret)?;
             Some(ret)
         }
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, value: Rc<RefCell<T>>) -> &mut Self {
-        unsafe { cbg_RenderedSprite_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
+    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, value: Arc<Mutex<T>>) -> &mut Self {
+        unsafe {
+            cbg_RenderedSprite_SetTexture(
+                self.self_ptr,
+                value
+                    .lock()
+                    .expect("Failed to get lock of TextureBase")
+                    .self_ptr(),
+            )
+        }
         self.texture = Some(value.clone());
         self
     }
@@ -3643,7 +3717,7 @@ impl Drop for RenderedText {
 pub(crate) struct RenderedPolygon {
     self_ptr: *mut RawPtr,
     vertexes: Option<Rc<RefCell<VertexArray>>>,
-    texture: Option<Rc<RefCell<dyn AsTexture2D>>>,
+    texture: Option<Arc<Mutex<Texture2D>>>,
     src: Option<crate::structs::Rect<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     transform: Option<crate::math::Matrix44<f32>>,
@@ -3726,7 +3800,7 @@ impl RenderedPolygon {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Option<Rc<RefCell<dyn AsTexture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<Texture2D>>> {
         if let Some(value) = &self.texture {
             return Some(value.clone());
         }
@@ -3738,8 +3812,16 @@ impl RenderedPolygon {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture<T: AsTexture2D + 'static>(&mut self, value: Rc<RefCell<T>>) -> &mut Self {
-        unsafe { cbg_RenderedPolygon_SetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
+    pub fn set_texture(&mut self, value: Arc<Mutex<Texture2D>>) -> &mut Self {
+        unsafe {
+            cbg_RenderedPolygon_SetTexture(
+                self.self_ptr,
+                value
+                    .lock()
+                    .expect("Failed to get lock of Texture2D")
+                    .self_ptr(),
+            )
+        }
         self.texture = Some(value.clone());
         self
     }
@@ -4237,7 +4319,7 @@ impl Font {
     /// # Arguments
     /// * `index` - インデックス
 
-    pub fn get_font_texture(&mut self, index: i32) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_font_texture(&mut self, index: i32) -> Option<Arc<Mutex<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetFontTexture(self.self_ptr, index) };
         {
             let ret = Texture2D::try_get_from_cache(ret)?;
@@ -4253,13 +4335,6 @@ impl Font {
     pub fn get_kerning(&mut self, c1: i32, c2: i32) -> i32 {
         let ret = unsafe { cbg_Font_GetKerning(self.self_ptr, c1, c2) };
         ret
-    }
-
-    /// 読み込んだファイルのパスを取得します。
-
-    pub(crate) fn get_path(&mut self) -> String {
-        let ret = unsafe { cbg_Font_GetPath(self.self_ptr) };
-        decode_string(ret)
     }
 
     /// テキストを描画したときのサイズを取得します
@@ -4302,11 +4377,7 @@ impl Font {
     /// * `character` - 文字
     /// * `texture` - テクスチャ
 
-    pub(crate) fn add_image_glyph<T0: AsTexture2D>(
-        &mut self,
-        character: i32,
-        texture: &mut T0,
-    ) -> () {
+    pub(crate) fn add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
         unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr()) }
     }
 
@@ -4314,7 +4385,7 @@ impl Font {
     /// # Arguments
     /// * `character` - 文字
 
-    pub fn get_image_glyph(&mut self, character: i32) -> Option<Rc<RefCell<Texture2D>>> {
+    pub fn get_image_glyph(&mut self, character: i32) -> Option<Arc<Mutex<Texture2D>>> {
         let ret = unsafe { cbg_Font_GetImageGlyph(self.self_ptr, character) };
         {
             let ret = Texture2D::try_get_from_cache(ret)?;
@@ -4344,6 +4415,18 @@ impl Font {
     pub fn get_line_gap(&mut self) -> i32 {
         let ret = unsafe { cbg_Font_GetLineGap(self.self_ptr) };
         ret
+    }
+
+    /// StaticFontか否か
+    pub fn get_is_static_font(&mut self) -> bool {
+        let ret = unsafe { cbg_Font_GetIsStaticFont(self.self_ptr) };
+        ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+    pub fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Font_GetPath(self.self_ptr) };
+        decode_string(ret)
     }
 }
 
@@ -5187,13 +5270,6 @@ impl StreamFile {
         }
     }
 
-    /// 読み込んだファイルのパスを取得します。
-
-    pub(crate) fn get_path(&mut self) -> String {
-        let ret = unsafe { cbg_StreamFile_GetPath(self.self_ptr) };
-        decode_string(ret)
-    }
-
     /// 再読み込みを行います。
 
     pub fn reload(&mut self) -> bool {
@@ -5223,6 +5299,12 @@ impl StreamFile {
     pub fn get_is_in_package(&mut self) -> bool {
         let ret = unsafe { cbg_StreamFile_GetIsInPackage(self.self_ptr) };
         ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+    pub fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_StreamFile_GetPath(self.self_ptr) };
+        decode_string(ret)
     }
 }
 
@@ -5515,20 +5597,6 @@ impl Sound {
         }
     }
 
-    /// 読み込んだファイルのパスを取得します。
-
-    pub(crate) fn get_path(&mut self) -> String {
-        let ret = unsafe { cbg_Sound_GetPath(self.self_ptr) };
-        decode_string(ret)
-    }
-
-    /// 音源を解凍するかどうかを取得する
-
-    pub(crate) fn get_is_decompressed(&mut self) -> bool {
-        let ret = unsafe { cbg_Sound_GetIsDecompressed(self.self_ptr) };
-        ret
-    }
-
     /// ループ開始地点(秒)を取得または設定します。
     pub fn get_loop_starting_point(&mut self) -> f32 {
         if let Some(value) = &self.loop_starting_point {
@@ -5580,6 +5648,18 @@ impl Sound {
     /// 音源の長さ(秒)を取得します。
     pub fn get_length(&mut self) -> f32 {
         let ret = unsafe { cbg_Sound_GetLength(self.self_ptr) };
+        ret
+    }
+
+    /// 読み込んだファイルのパスを取得します。
+    pub fn get_path(&mut self) -> String {
+        let ret = unsafe { cbg_Sound_GetPath(self.self_ptr) };
+        decode_string(ret)
+    }
+
+    /// 音源を解凍するかどうかを取得する
+    pub fn get_is_decompressed(&mut self) -> bool {
+        let ret = unsafe { cbg_Sound_GetIsDecompressed(self.self_ptr) };
         ret
     }
 }

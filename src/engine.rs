@@ -31,12 +31,10 @@ use crate::component::{camera::*, drawn::*, Entity};
 
 use crate::error::*;
 use std::{
-    cell::RefCell,
     collections::VecDeque,
     future::Future,
     marker::PhantomData,
     pin::Pin,
-    rc::Rc,
     sync::{Arc, Mutex},
     task::{Context, Poll},
 };
@@ -210,20 +208,6 @@ impl Engine {
         Ok(false)
     }
 
-    pub(crate) fn render_to_cmdlist(
-        renderer: &mut Renderer,
-        graphics: &mut Graphics,
-    ) -> AltseedResult<()> {
-        let mut cmdlist = graphics.get_command_list().ok_or(AltseedError::CoreError(
-            "Graphics::get_command_list failed".to_owned(),
-        ))?;
-
-        // コマンドリストに描画
-        renderer.render(&mut cmdlist);
-
-        Ok(())
-    }
-
     fn update_task(&mut self) -> AltseedResult<()> {
         if self.pins.is_empty() {
             return Ok(());
@@ -284,13 +268,13 @@ impl Engine {
             })?
         }
 
-        Self::render_to_cmdlist(renderer, graphics)?;
+        renderer.render();
 
         // カメラへ描画
         CAMERA_STORAGE.with::<_, AltseedResult<()>>(|camera_storage| {
             for (_, c) in camera_storage.borrow_mut().iter_mut() {
                 c.draw(drawn_storage, graphics, renderer)?;
-                Self::render_to_cmdlist(renderer, graphics)?;
+                renderer.render();
             }
             Ok(())
         })?;
@@ -483,7 +467,7 @@ impl Engine {
 
 impl Loader {
     /// 指定したファイルからテクスチャを読み込みます。
-    pub fn load_texture2d(&self, path: &str) -> AltseedResult<Rc<RefCell<Texture2D>>> {
+    pub fn load_texture2d(&self, path: &str) -> AltseedResult<Arc<Mutex<Texture2D>>> {
         Texture2D::load(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Texture2D,
             path.to_owned(),

@@ -39,9 +39,7 @@ fn rendered_sprite() {
         renderer.draw_sprite(&mut x1);
         renderer.draw_sprite(&mut x2);
 
-        let mut cmdlist = graphics.get_command_list().unwrap();
-        // cmdlist.set_render_target_with_screen();
-        renderer.render(&mut cmdlist);
+        renderer.render();
         assert!(graphics.end_frame());
     }
 
@@ -63,7 +61,7 @@ fn rendered_text() {
     imagefont
         .lock()
         .unwrap()
-        .add_image_glyph::<Texture2D>('〇' as i32, &mut tex.borrow_mut());
+        .add_image_glyph('〇' as i32, &mut tex.lock().unwrap());
 
     let mut x1 = RenderedText::create().unwrap();
     let mut x2 = RenderedText::create().unwrap();
@@ -87,14 +85,11 @@ fn rendered_text() {
         count += 1;
         assert!(graphics.begin_frame());
 
-        let mut cmdlist = graphics.get_command_list().unwrap();
-        // cmdlist.set_render_target_with_screen();
-
         renderer.reset_camera();
         renderer.draw_text(&mut x1);
         renderer.draw_text(&mut x2);
 
-        renderer.render(&mut cmdlist);
+        renderer.render();
         assert!(graphics.end_frame());
     }
 
@@ -141,9 +136,7 @@ fn rendered_camera() {
         renderer.draw_sprite(&mut x1);
         renderer.draw_sprite(&mut x2);
 
-        let mut cmdlist = graphics.get_command_list().unwrap();
-        // cmdlist.set_render_target_with_screen();
-        renderer.render(&mut cmdlist);
+        renderer.render();
         assert!(graphics.end_frame());
     }
 

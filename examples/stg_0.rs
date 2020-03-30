@@ -4,7 +4,6 @@ use num::One;
 use retain_mut::RetainMut;
 
 use std::sync::{Arc, Mutex};
-use std::{cell::RefCell, rc::Rc};
 
 const PLAYER_SCALE: f32 = 0.3;
 const PLAYER_SPEED: f32 = 200.0;
@@ -16,8 +15,8 @@ const GAME_SIZE: Vector2<f32> = Vector2 { x: 800.0, y: 600.0 };
 
 #[derive(Debug)]
 struct GameResources {
-    player: Rc<RefCell<Texture2D>>,
-    bullet: Rc<RefCell<Texture2D>>,
+    player: Arc<Mutex<Texture2D>>,
+    bullet: Arc<Mutex<Texture2D>>,
 }
 
 #[derive(Debug)]
@@ -28,7 +27,7 @@ struct Player {
 
 impl Player {
     fn new(res: &GameResources, engine: &mut Engine) -> Self {
-        let tex_size: Vector2<f32> = res.player.borrow_mut().get_size().into();
+        let tex_size: Vector2<f32> = res.player.lock().unwrap().get_size().into();
         let sprite = Sprite::new()
             .with_texture(res.player.clone())
             .with_center(tex_size * 0.5)
@@ -92,7 +91,7 @@ impl Bullet {
         res: &GameResources,
         engine: &mut Engine,
     ) -> AltseedResult<Self> {
-        let tex_size: Vector2<f32> = res.bullet.borrow_mut().get_size().into();
+        let tex_size: Vector2<f32> = res.bullet.lock().unwrap().get_size().into();
         let sprite = Sprite::new()
             .with_texture(res.bullet.clone())
             .with_scale(Vector2::one() * BULLET_SCALE)

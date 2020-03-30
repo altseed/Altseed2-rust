@@ -14,9 +14,7 @@ fn core() {
 
         assert!(graphics.begin_frame());
 
-        let mut cmdlist = graphics.get_command_list().unwrap();
-        cmdlist.set_render_target_with_screen();
-        renderer.render(&mut cmdlist);
+        renderer.render();
         assert!(graphics.end_frame());
     }
 

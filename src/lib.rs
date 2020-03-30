@@ -75,7 +75,7 @@ pub mod core {
     pub use crate::sound::{SoundID, SoundMixer};
 
     pub use crate::auto_generated_core_binding::{
-        AsTexture2D, BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode,
+        AsTextureBase, BuiltinShaderType, ButtonState, CursorMode, File, Font, FramerateMode,
         Joystick, JoystickAxisType, JoystickButtonType, JoystickType, Keyboard, Keys, LogCategory,
         LogLevel, Material, Mouse, MouseButtons, RenderTexture, ResourceType, Shader, Sound,
         StaticFile, StreamFile, Texture2D, Tool, WritingDirection,

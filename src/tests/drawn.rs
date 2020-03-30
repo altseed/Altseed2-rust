@@ -11,7 +11,7 @@ fn draw_sprite() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
-    let size: Vector2<f32> = tex.borrow_mut().get_size().into();
+    let size: Vector2<f32> = tex.lock().unwrap().get_size().into();
 
     let sprite = Sprite::new()
         .with_texture(tex)
@@ -65,7 +65,7 @@ fn drawn_z_order() -> AltseedResult<()> {
         .loader()
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
-    let size: Vector2<f32> = tex.borrow_mut().get_size().into();
+    let size: Vector2<f32> = tex.lock().unwrap().get_size().into();
 
     let sprite = Sprite::new().with_texture(tex.clone()).build();
     let id1 = engine.drawn_storage_mut().add(sprite);
