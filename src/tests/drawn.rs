@@ -16,6 +16,7 @@ fn draw_sprite() -> AltseedResult<()> {
     let sprite = Sprite::new()
         .with_texture(tex)
         .with_center(size * 0.5)
+        .with_pos(size * 0.5)
         .build();
 
     let mut sprite_id = Some(engine.drawn_storage_mut().add(sprite));
