@@ -1,6 +1,6 @@
 //! #
 use altseed2::prelude::*;
-use num::One;
+use num::{One, Zero};
 use retain_mut::RetainMut;
 
 use std::sync::{Arc, Mutex};
@@ -14,9 +14,73 @@ const BULLET_SPEED: f32 = 300.0;
 const GAME_SIZE: Vector2<f32> = Vector2 { x: 800.0, y: 600.0 };
 
 #[derive(Debug)]
-struct GameResources {
-    player: Arc<Mutex<Texture2D>>,
-    bullet: Arc<Mutex<Texture2D>>,
+struct Bullet {
+    id: DrawnID,
+    pos: Vector2<f32>,
+    dir: Vector2<f32>,
+}
+
+#[derive(Debug)]
+struct BulletSystem {
+    texture: Arc<Mutex<Texture2D>>,
+    texture_size: Vector2<f32>,
+    bullets: Vec<Bullet>,
+}
+
+impl BulletSystem {
+    fn new(engine: &mut Engine) -> AltseedResult<Self> {
+        let tex = engine
+            .loader()
+            .load_texture2d("./Core/TestData/IO/AltseedPink256.png")?;
+
+        let size = tex.lock().unwrap().get_size().into();
+
+        Ok(BulletSystem {
+            texture: tex,
+            texture_size: size,
+            bullets: Vec::new(),
+        })
+    }
+
+    fn add(&mut self, pos: Vector2<f32>, dir: Vector2<f32>, engine: &mut Engine) {
+        let sprite = Sprite::new()
+            .with_texture(self.texture.clone())
+            .with_scale(Vector2::one() * BULLET_SCALE)
+            .with_center(self.texture_size * 0.5)
+            .with_pos(pos)
+            .build();
+
+        self.bullets.push(Bullet {
+            id: engine.drawn_storage_mut().add(sprite),
+            pos,
+            dir,
+        });
+    }
+
+    fn update(&mut self, engine: &mut Engine) {
+        let size = self.texture_size;
+        self.bullets.retain_mut(|bullet| {
+            if bullet.pos.x + size.x < 0.0
+                || GAME_SIZE.x < bullet.pos.x - size.x
+                || bullet.pos.y + size.y < 0.0
+                || GAME_SIZE.y < bullet.pos.y - size.y
+            {
+                return false;
+            }
+
+            let delta = engine.get_delta_second();
+            bullet.pos += bullet.dir * BULLET_SPEED * delta;
+
+            // 描画の反映
+            engine.drawn_storage_mut().with_mut(&bullet.id, |d| {
+                let t = d.transform_mut().unwrap();
+                *t.pos_mut() = bullet.pos;
+                *t.angle_mut() += 10.0 * delta;
+            });
+
+            true
+        });
+    }
 }
 
 #[derive(Debug)]
@@ -26,145 +90,82 @@ struct Player {
 }
 
 impl Player {
-    fn new(res: &GameResources, engine: &mut Engine) -> Self {
-        let tex_size: Vector2<f32> = res.player.lock().unwrap().get_size().into();
+    fn new(engine: &mut Engine) -> AltseedResult<Self> {
+        let tex = engine
+            .loader()
+            .load_texture2d("./Core/TestData/IO/AltseedPink256.png")?;
+
+        let tex_size: Vector2<f32> = tex.lock().unwrap().get_size().into();
+
+        let pos = GAME_SIZE * 0.5;
+
         let sprite = Sprite::new()
-            .with_texture(res.player.clone())
+            .with_texture(tex)
             .with_center(tex_size * 0.5)
             .with_scale(Vector2::one() * PLAYER_SCALE)
+            .with_pos(pos)
             .build();
-        Player {
-            id: engine.drawn_storage_mut().add(sprite),
-            pos: GAME_SIZE * 0.5,
-        }
+
+        let id = engine.drawn_storage_mut().add(sprite);
+
+        Ok(Player { id, pos })
     }
 
-    fn update(
-        &mut self,
-        bullets: &mut Vec<Bullet>,
-        res: &GameResources,
-        engine: &mut Engine,
-    ) -> AltseedResult<()> {
+    fn update(&mut self, bullets: &mut BulletSystem, engine: &mut Engine) -> AltseedResult<()> {
+        if engine.keyboard().is_push(Keys::Z) {
+            bullets.add(self.pos, Vector2::new(0.0, -1.0), engine);
+        }
+
         let mut diff = Vector2::new(0.0, 0.0);
-        if engine.keyboard().get_key_state(Keys::Right) == ButtonState::Hold {
+
+        if engine.keyboard().is_hold(Keys::Right) {
             diff += Vector2::new(1.0, 0.0);
         }
 
-        if engine.keyboard().get_key_state(Keys::Left) == ButtonState::Hold {
+        if engine.keyboard().is_hold(Keys::Left) {
             diff += Vector2::new(-1.0, 0.0);
         }
 
-        if engine.keyboard().get_key_state(Keys::Up) == ButtonState::Hold {
+        if engine.keyboard().is_hold(Keys::Up) {
             diff += Vector2::new(0.0, -1.0);
         }
 
-        if engine.keyboard().get_key_state(Keys::Down) == ButtonState::Hold {
+        if engine.keyboard().is_hold(Keys::Down) {
             diff += Vector2::new(0.0, 1.0);
         }
 
-        self.pos += diff * PLAYER_SPEED * engine.get_delta_second();
+        if diff != Zero::zero() {
+            self.pos += diff * PLAYER_SPEED * engine.get_delta_second();
 
-        if engine.keyboard().get_key_state(Keys::Z) == ButtonState::Push {
-            bullets.push(Bullet::new(self.pos, Vector2::new(0.0, -1.0), res, engine)?);
+            // 描画の反映
+            engine.drawn_storage_mut().with_mut(&self.id, |d| {
+                *d.transform_mut().unwrap().pos_mut() = self.pos;
+            });
         }
-
-        engine.drawn_storage_mut().with_mut(&self.id, |d| {
-            *d.transform_mut().unwrap().pos_mut() = self.pos;
-        });
 
         Ok(())
     }
 }
 
 #[derive(Debug)]
-struct Bullet {
-    id: DrawnID,
-    pos: Vector2<f32>,
-    dir: Vector2<f32>,
-    size: Vector2<f32>,
-}
-
-impl Bullet {
-    fn new(
-        pos: Vector2<f32>,
-        dir: Vector2<f32>,
-        res: &GameResources,
-        engine: &mut Engine,
-    ) -> AltseedResult<Self> {
-        let tex_size: Vector2<f32> = res.bullet.lock().unwrap().get_size().into();
-        let sprite = Sprite::new()
-            .with_texture(res.bullet.clone())
-            .with_scale(Vector2::one() * BULLET_SCALE)
-            .with_center(tex_size * 0.5)
-            .build();
-        Ok(Bullet {
-            id: engine.drawn_storage_mut().add(sprite),
-            pos,
-            dir,
-            size: tex_size * BULLET_SCALE,
-        })
-    }
-
-    fn update(&mut self, engine: &mut Engine) -> bool {
-        self.pos += self.dir * BULLET_SPEED * engine.get_delta_second();
-
-        if self.pos.x + self.size.x < 0.0
-            || GAME_SIZE.x < self.pos.x - self.size.x
-            || self.pos.y + self.size.y < 0.0
-            || GAME_SIZE.y < self.pos.y - self.size.y
-        {
-            return false;
-        }
-
-        engine.drawn_storage_mut().with_mut(&self.id, |d| {
-            *d.transform_mut().unwrap().pos_mut() = self.pos;
-        });
-
-        true
-    }
-}
-
-#[derive(Debug)]
 struct Game {
-    res: GameResources,
     player: Player,
-    bullets: Vec<Bullet>,
+    bullets: BulletSystem,
 }
 
 impl Game {
     fn new(engine: &mut Engine) -> AltseedResult<Self> {
-        // 画像を読み込みます。
-        let tex = engine
-            .loader()
-            .load_texture2d("./Core/TestData/IO/AltseedPink256.png")?;
-
-        let res = GameResources {
-            player: tex.clone(),
-            bullet: tex,
-        };
-
-        let player = Player::new(&res, engine);
-
         Ok(Game {
-            res: res,
-            player: player,
-            bullets: Vec::new(),
+            player: Player::new(engine)?,
+            bullets: BulletSystem::new(engine)?,
         })
     }
 
     fn update(&mut self, engine: &mut Engine) -> AltseedResult<()> {
-        let Game {
-            res,
-            player,
-            bullets,
-        } = self;
+        let Game { player, bullets } = self;
 
-        player.update(bullets, res, engine)?;
-        bullets.retain_mut(|b| b.update(engine));
-
-        if engine.keyboard().get_key_state(Keys::Space) == ButtonState::Push {
-            println!("{:?}", bullets);
-        }
+        player.update(bullets, engine)?;
+        bullets.update(engine);
 
         Ok(())
     }
