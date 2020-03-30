@@ -12,37 +12,6 @@ impl<T: Sortable<U>, U: Ord + Clone + Copy + Default> Sortable<U> for Option<(En
     }
 }
 
-/// 更新してソートが行われたかどうかを返す
-pub fn retain_mut_then_sort<T, U, F>(this: &mut Vec<T>, mut f: F) -> bool
-where
-    T: Sortable<U>,
-    U: Ord + Clone + Copy,
-    F: FnMut(&mut T) -> bool,
-{
-    let mut last_key = None;
-    let mut sort_needed = false;
-    this.retain_mut(|x| {
-        let v = f(x);
-        if !sort_needed && v {
-            let key = x.key();
-            match last_key {
-                Some(x) if x > key => {
-                    sort_needed = true;
-                }
-                _ => (),
-            }
-            last_key = Some(key)
-        }
-        v
-    });
-
-    if sort_needed {
-        this.sort_by_key(|x| x.key());
-    }
-
-    sort_needed
-}
-
 pub struct Iter<'a, T: Component> {
     components: std::slice::Iter<'a, Option<(Entity, T)>>,
 }
@@ -85,7 +54,6 @@ where
     T: Sortable<U> + Component,
     U: Ord + Clone + Copy + Default,
 {
-    next_index: u32,
     removed_entities: Vec<Entity>,
     indexes: Vec<Entity>,
     components: Vec<Option<(Entity, T)>>,
@@ -99,7 +67,6 @@ where
 {
     pub fn new() -> Self {
         SortedStorage {
-            next_index: 0,
             removed_entities: Vec::new(),
             indexes: Vec::new(),
             components: Vec::new(),
@@ -127,7 +94,7 @@ where
     }
 
     pub fn len(&self) -> u32 {
-        self.next_index - self.removed_entities.len() as u32
+        self.indexes.len() as u32 - self.removed_entities.len() as u32
     }
 
     pub fn get(&self, entity: Entity) -> Option<&T> {
@@ -136,10 +103,7 @@ where
             return None;
         }
 
-        self.components
-            .get(e.index as usize)?
-            .as_ref()
-            .map(|x| &x.1)
+        self.components[e.index as usize].as_ref().map(|x| &x.1)
     }
 
     pub fn get_mut(&mut self, entity: Entity) -> Option<&mut T> {
@@ -148,10 +112,7 @@ where
             return None;
         }
 
-        self.components
-            .get_mut(e.index as usize)?
-            .as_mut()
-            .map(|x| &mut x.1)
+        self.components[e.index as usize].as_mut().map(|x| &mut x.1)
     }
 
     /// 新しい要素を追加します。
@@ -161,21 +122,18 @@ where
 
         let entity = match self.removed_entities.pop() {
             Some(entity) => {
-                self.indexes[entity.index as usize] = Entity {
-                    index: components_index,
-                    ..entity
-                };
+                self.indexes[entity.index as usize].index = components_index;
                 entity
             }
             None => {
-                let index = self.next_index;
-                self.next_index += 1;
-                let entity = Entity { index, version: 0 };
+                let index = self.indexes.len() as u32;
+
                 self.indexes.push(Entity {
                     index: components_index,
-                    ..entity
+                    version: 0,
                 });
-                entity
+
+                Entity { index, version: 0 }
             }
         };
 
@@ -185,21 +143,22 @@ where
 
     /// 要素を削除します。削除に成功したら格納されていた要素を返します。
     pub fn remove(&mut self, entity: Entity) -> Option<T> {
-        match self.indexes.get_mut(entity.index as usize) {
-            Some(e) if e.version == entity.version => {
-                e.version += 1;
-                let new_entity = Entity {
-                    version: entity.version + 1,
-                    ..entity
-                };
-                self.removed_entities.push(new_entity);
-                self.components
-                    .get_mut(e.index as usize)?
-                    .take()
-                    .map(|x| x.1)
-            }
-            _ => None,
+        let e = self.indexes.get_mut(entity.index as usize)?;
+
+        if e.version != entity.version {
+            return None;
         }
+
+        let (_, res) = self.components[e.index as usize].take()?;
+
+        e.version += 1;
+
+        self.removed_entities.push(Entity {
+            version: entity.version + 1,
+            ..entity
+        });
+
+        Some(res)
     }
 
     /// 全ての要素を削除します。
@@ -212,15 +171,55 @@ where
         self.components.clear();
     }
 
+    /// 更新してソートが行われたかどうかを返す
+    fn update_components(&mut self) -> bool {
+        let mut last_key = None;
+        let mut sort_needed = false;
+        let SortedStorage {
+            indexes,
+            components,
+            removed_entities: _,
+            phantom: _,
+        } = self;
+
+        let mut index = 0;
+        components.retain_mut(|x| {
+            if let Some((e, c)) = x {
+                if !sort_needed {
+                    let key = c.key();
+                    match last_key {
+                        Some(x) if x > key => {
+                            sort_needed = true;
+                        }
+                        _ => {
+                            last_key = Some(key);
+                            indexes[e.index as usize].index = index;
+                            index += 1;
+                        }
+                    }
+                }
+                true
+            } else {
+                false
+            }
+        });
+
+        if sort_needed {
+            components.sort_by_key(|x| x.key());
+        }
+
+        sort_needed
+    }
+
     /// 更新する
     pub fn update(&mut self) {
         // ソートが行われたかどうか
-        let is_sort_performed = retain_mut_then_sort(&mut self.components, |c| c.is_some());
+        let is_sort_performed = self.update_components();
 
         if is_sort_performed {
             let mut index = 0;
             for c in self.components.iter_mut() {
-                // update_componentsでretain済みなのでunwrap
+                // retain済みなのでunwrap
                 let (entity, _) = c.as_mut().unwrap();
                 self.indexes.get_mut(entity.index as usize).unwrap().index = index;
                 index += 1;
@@ -234,20 +233,20 @@ where
         F: FnMut(&Entity, &mut T) -> Result<(), E>,
     {
         // ソートが行われたかどうか
-        let is_sort_performed = retain_mut_then_sort(&mut self.components, |c| c.is_some());
+        let is_sort_performed = self.update_components();
 
         if is_sort_performed {
             let mut index = 0;
             for c in self.components.iter_mut() {
-                // update_componentsでretain済みなのでunwrap
+                // retain済みなのでunwrap
                 let (entity, comp) = c.as_mut().unwrap();
                 f(entity, comp)?;
-                self.indexes.get_mut(entity.index as usize).unwrap().index = index;
+                self.indexes[entity.index as usize].index = index;
                 index += 1;
             }
         } else {
             for c in self.components.iter_mut() {
-                // update_componentsでretain済みなのでunwrap
+                // retain済みなのでunwrap
                 let (entity, comp) = c.as_mut().unwrap();
                 f(entity, comp)?;
             }

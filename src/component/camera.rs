@@ -139,7 +139,7 @@ pub struct CameraID {
 
 impl Drop for CameraID {
     fn drop(&mut self) {
-        CAMERA_STORAGE.with(|s| s.borrow_mut().remove(self.entity));
+        CAMERA_STORAGE.with(|s| s.borrow_mut().remove(self.entity).unwrap());
     }
 }
 

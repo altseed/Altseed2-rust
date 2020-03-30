@@ -153,7 +153,9 @@ pub struct DrawnID {
 
 impl Drop for DrawnID {
     fn drop(&mut self) {
-        DRAWN_STORAGE.with(|s| s.borrow_mut().remove(self.entity));
+        DRAWN_STORAGE.with(|s| {
+            s.borrow_mut().remove(self.entity).unwrap();
+        });
     }
 }
 
