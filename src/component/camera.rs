@@ -2,7 +2,7 @@ use crate::retain_mut::RetainMut;
 
 use super::{
     drawn::*,
-    sorted::{LazySortVec, Sortable, SortedStorage},
+    sorted::{Sortable, SortedStorage},
     Component, Entity, Memoried,
 };
 
@@ -14,7 +14,7 @@ use crate::error::*;
 pub struct CameraComponent {
     instance: RenderedCamera,
     group: Memoried<u32>,
-    drawn_entities: LazySortVec<Entity, i32>,
+    drawn_entities: Vec<Entity>,
 }
 
 impl Component for CameraComponent {}
@@ -23,10 +23,6 @@ impl Sortable<u32> for CameraComponent {
     fn key(&self) -> u32 {
         self.group.value()
     }
-
-    fn is_key_updated(&self) -> bool {
-        self.group.is_updated()
-    }
 }
 
 impl CameraComponent {
@@ -34,8 +30,12 @@ impl CameraComponent {
         CameraComponent {
             instance: RenderedCamera::create().unwrap(),
             group: Memoried::new(0),
-            drawn_entities: LazySortVec::new(),
+            drawn_entities: Vec::new(),
         }
+    }
+
+    pub(crate) fn is_group_updated(&self) -> bool {
+        self.group.is_updated()
     }
 
     pub fn group(&self) -> u32 {
@@ -51,8 +51,8 @@ impl CameraComponent {
         self
     }
 
-    pub(crate) fn add_drawn(&mut self, id: Entity, z_order: i32) {
-        self.drawn_entities.push_with(id, z_order);
+    pub(crate) fn add_drawn(&mut self, id: Entity) {
+        self.drawn_entities.push(id);
     }
 
     /// 呼び出し前にDrawnComponentは更新済みであることを想定している。
@@ -71,33 +71,47 @@ impl CameraComponent {
                 self.drawn_entities.clear();
 
                 // DrawnComponentはソート済みのはずなので
-                for (e, d) in storage
+                for (e, _) in storage
                     .iter()
                     .filter(|(_, d)| d.camera_group() & group == group)
                 {
-                    self.drawn_entities.push_with(e, d.z_order());
+                    self.drawn_entities.push(e);
                 }
             } else {
                 let mut sort_needed = false;
+                let mut last_key = None;
                 self.drawn_entities.retain_mut(|e| {
                     // 生存しており、カメラグループが合致しているものだけを取り出す。
                     if let Some(d) = storage.get_mut(*e) {
-                        sort_needed = d.is_key_updated();
-                        d.camera_group() & group == group
+                        let v = d.camera_group() & group == group;
+
+                        // 対象のDrawnComponent群のソートが崩れていたらフラグを立てる
+                        if !sort_needed && v {
+                            let key = d.key();
+                            match last_key {
+                                Some(x) if x > key => sort_needed = true,
+                                _ => (),
+                            };
+                            last_key = Some(key);
+                        }
+
+                        v
                     } else {
                         false
                     }
                 });
 
-                if sort_needed || self.drawn_entities.sort_needed() {
+                if sort_needed {
                     self.drawn_entities
                         .sort_by_key(|e| storage.get(*e).unwrap().key());
                 }
 
                 self.group.update();
 
+                // カメラの指定
                 renderer.set_camera(&mut self.instance);
 
+                // 描画
                 for e in self.drawn_entities.iter() {
                     let d = storage.get_mut(*e).unwrap();
                     d.draw(graphics, renderer)?;
@@ -157,7 +171,8 @@ impl CameraStorage {
     }
 
     /// 即座に新しいCameraComponentを追加します。
-    pub fn add(&mut self, component: CameraComponent) -> CameraID {
+    pub fn add(&mut self, mut component: CameraComponent) -> CameraID {
+        component.group.reset();
         let entity = CAMERA_STORAGE.with(|s| s.borrow_mut().add(component));
         CameraID {
             entity,
@@ -168,9 +183,10 @@ impl CameraStorage {
     /// 即座に要素を削除します。
     pub fn remove(&mut self, id: CameraID) -> CameraComponent {
         // CameraIDが存在を保証しているのでunwrapして良い
-        let res = CAMERA_STORAGE
+        let mut res = CAMERA_STORAGE
             .with(|s| s.borrow_mut().remove(id.entity))
             .unwrap();
+        res.group.reset();
         // removeしてあるのでdrop処理を行う必要はない
         std::mem::forget(id);
         res

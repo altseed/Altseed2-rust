@@ -270,7 +270,7 @@ impl Engine {
                     d.draw(graphics, renderer)?;
                 }
 
-                if d.camera_group.is_updated() || d.z_order.is_updated() {
+                if d.camera_group.is_updated() {
                     memoried_updated_drawns.push(e.clone());
                 }
 

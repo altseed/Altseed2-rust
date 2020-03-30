@@ -13,7 +13,7 @@ use crate::math::{HasTransform, Transform};
 pub struct DrawnComponent {
     kind: DrawnKind,
     is_drawn: bool,
-    pub(crate) z_order: Memoried<i32>,
+    pub(crate) z_order: i32,
     pub(crate) camera_group: Memoried<u32>,
 }
 
@@ -21,11 +21,7 @@ impl Component for DrawnComponent {}
 
 impl Sortable<i32> for DrawnComponent {
     fn key(&self) -> i32 {
-        self.z_order.value()
-    }
-
-    fn is_key_updated(&self) -> bool {
-        self.z_order.is_updated()
+        self.z_order
     }
 }
 
@@ -36,7 +32,7 @@ impl DrawnComponent {
         DrawnComponent {
             kind,
             is_drawn: true,
-            z_order: Memoried::new(0),
+            z_order: 0,
             camera_group: Memoried::new(0),
         }
     }
@@ -50,11 +46,15 @@ impl DrawnComponent {
     }
 
     pub fn z_order(&self) -> i32 {
-        self.z_order.value()
+        self.z_order
     }
 
     pub fn z_order_mut(&mut self) -> &mut i32 {
-        self.z_order.value_mut()
+        &mut self.z_order
+    }
+
+    pub fn with_z_order(self, z_order: i32) -> Self {
+        DrawnComponent { z_order, ..self }
     }
 
     pub fn camera_group(&self) -> u32 {
@@ -63,6 +63,11 @@ impl DrawnComponent {
 
     pub fn camera_group_mut(&mut self) -> &mut u32 {
         self.camera_group.value_mut()
+    }
+
+    pub fn with_camera_group(mut self, camera_group: u32) -> Self {
+        *self.camera_group.value_mut() = camera_group;
+        self
     }
 
     pub fn transform(&self) -> Option<&Transform> {
@@ -86,14 +91,14 @@ impl DrawnComponent {
             CAMERA_STORAGE.with(|camera_storage| {
                 for (_, camera) in camera_storage.borrow_mut().iter_mut() {
                     // カメラのグループが更新されていたらカメラ側でまとめて取り出すので追加しない。
-                    if !camera.is_key_updated() {
+                    if !camera.is_group_updated() {
                         continue;
                     }
 
                     let group = camera.group();
 
                     if self.camera_group() & group == group {
-                        camera.add_drawn(entity, self.z_order());
+                        camera.add_drawn(entity);
                     }
                 }
             })
@@ -125,9 +130,8 @@ impl DrawnComponent {
         Ok(())
     }
 
-    // Memoriedなfieldの更新
+    // cameragroupの更新
     pub(crate) fn update_memoried(&mut self) {
-        self.z_order.update();
         self.camera_group.update();
     }
 }
@@ -180,7 +184,8 @@ impl DrawnStorage {
     }
 
     /// 即座に新しいDrawnComponentを追加します。
-    pub fn add(&mut self, component: DrawnComponent) -> DrawnID {
+    pub fn add(&mut self, mut component: DrawnComponent) -> DrawnID {
+        component.camera_group.reset();
         let entity = DRAWN_STORAGE.with(|s| s.borrow_mut().add(component));
         DrawnID {
             entity,
@@ -191,9 +196,10 @@ impl DrawnStorage {
     /// 即座に要素を削除します。
     pub fn remove(&mut self, id: DrawnID) -> DrawnComponent {
         // DrawnIDが存在を保証しているのでunwrapして良い
-        let res = DRAWN_STORAGE
+        let mut res = DRAWN_STORAGE
             .with(|s| s.borrow_mut().remove(id.entity))
             .unwrap();
+        res.camera_group.reset();
         // removeしてあるのでdrop処理を行う必要はない
         std::mem::forget(id);
         res

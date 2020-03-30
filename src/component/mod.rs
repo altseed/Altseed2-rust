@@ -45,6 +45,10 @@ impl<T: PartialEq + Clone + Copy> Memoried<T> {
             Some(_) => false,
         }
     }
+
+    pub fn reset(&mut self) {
+        self.prev = None;
+    }
 }
 
 pub mod camera;
