@@ -10,7 +10,7 @@
 [Altseed](https://github.com/altseed/Altseed) の後継となるべく開発しているゲームエンジンです。
 
 # Related Repositories
-ー[CppBindingGenerator](https://github.com/altseed/CppBindingGenerator): FFIコード生成
+- [CppBindingGenerator](https://github.com/altseed/CppBindingGenerator): FFIコード生成
 - [Core](https://github.com/altseed/Altseed2): 各種機能
 - [Engine(C#)](https://github.com/altseed/Altseed2-csharp): C#版
 
