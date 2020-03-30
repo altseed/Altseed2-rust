@@ -27,15 +27,16 @@ impl Default for Config {
     }
 }
 
+use crate::component::{camera::*, drawn::*, Entity};
+
 use crate::error::*;
-use crate::node::*;
 use std::{
     cell::RefCell,
     collections::VecDeque,
     future::Future,
     marker::PhantomData,
     pin::Pin,
-    rc::{Rc, Weak},
+    rc::Rc,
     sync::{Arc, Mutex},
     task::{Context, Poll},
 };
@@ -62,11 +63,10 @@ pub struct Engine {
     sound: crate::sound::SoundMixer,
     log: crate::log::Log,
     tool: Option<Tool>,
-    root_node: Rc<RefCell<RootNode>>,
     loader: Loader,
 
-    drawn_nodes: list::SortVec<i32, DrawnNode>,
-    camera_nodes: list::SortVec<u32, CameraNode>,
+    drawn_storage: DrawnStorage,
+    camera_storage: CameraStorage,
 
     context: Context<'static>,
     pins: VecDeque<Pin<Box<dyn Future<Output = Result<Cont, AltseedError>>>>>,
@@ -126,9 +126,10 @@ impl Engine {
                 loader: Loader {
                     phantom: PhantomData,
                 },
-                root_node: RootNode::new(),
-                drawn_nodes: list::SortVec::new(),
-                camera_nodes: list::SortVec::new(),
+
+                drawn_storage: DrawnStorage::new(),
+                camera_storage: CameraStorage::new(),
+
                 context: Context::from_waker(&WAKER),
                 pins: VecDeque::new(),
 
@@ -244,58 +245,78 @@ impl Engine {
         Ok(())
     }
 
-    fn update(&mut self) -> AltseedResult<()> {
-        // 再帰的にノードを更新
-        update_node_recursive(
-            &unsafe { Rc::from_raw(Rc::into_raw(self.root_node.clone()) as *const _) },
-            self,
-            None,
-            true,
-        )?;
+    fn update_graphics(
+        graphics: &mut Graphics,
+        renderer: &mut Renderer,
+        drawn_storage: &mut DrawnStorage,
+        camera_storage: &mut CameraStorage,
+    ) -> AltseedResult<()> {
+        // 削除の反映, 必要があればソート
+        CAMERA_STORAGE.with(|camera_storage| {
+            camera_storage.borrow_mut().update();
+        });
 
+        // カメラをリセット
+        renderer.reset_camera();
+        // スクリーンへ描画
+        let mut memoried_updated_drawns: Vec<Entity> = Vec::new();
+
+        // 削除の反映, 必要があればソート, 描画処理
+        {
+            let updater = |e: &Entity, d: &mut DrawnComponent| {
+                d.on_drawing(*e, camera_storage);
+
+                if d.camera_group() == 0 {
+                    d.draw(graphics, renderer)?;
+                }
+
+                if d.camera_group.is_updated() {
+                    memoried_updated_drawns.push(e.clone());
+                }
+
+                Ok(())
+            };
+
+            DRAWN_STORAGE.with(|drawn_storage| {
+                drawn_storage
+                    .borrow_mut()
+                    .update_with::<AltseedError, _>(updater)
+            })?
+        }
+
+        Self::render_to_cmdlist(renderer, graphics)?;
+
+        // カメラへ描画
+        CAMERA_STORAGE.with::<_, AltseedResult<()>>(|camera_storage| {
+            for (_, c) in camera_storage.borrow_mut().iter_mut() {
+                c.draw(drawn_storage, graphics, renderer)?;
+                Self::render_to_cmdlist(renderer, graphics)?;
+            }
+            Ok(())
+        })?;
+
+        // z_orderとcamera_groupを更新
+        DRAWN_STORAGE.with(|drawn_storage| {
+            let mut storage = drawn_storage.borrow_mut();
+            for e in memoried_updated_drawns.into_iter() {
+                let d = storage.get_mut(e).unwrap();
+                d.update_memoried();
+            }
+        });
+
+        Ok(())
+    }
+
+    fn update(&mut self) -> AltseedResult<()> {
         // 非同期処理の継続を取り出す
         self.update_task()?;
 
-        // NodeState::Registeredなものだけ残す。更新があったらソートする。
-        self.drawn_nodes.update();
-        self.camera_nodes.update();
-
-        // カメラをリセット
-        self.renderer.reset_camera();
-        // self.graphics
-        //     .get_command_list()
-        //     .ok_or(AltseedError::CoreError(
-        //         "Graphics::get_command_list failed".to_owned(),
-        //     ))?
-        //     .set_render_target_with_screen();
-
-        // スクリーンへ描画
-        for node in self.drawn_nodes.iter() {
-            let rc = node.upgrade().expect("Already filtered");
-            let mut node_ref = rc.borrow_mut();
-
-            node_ref.before_drawn(&mut self.camera_nodes);
-
-            if node_ref.get_camera_group() == 0 {
-                node_ref.on_drawn(&mut self.graphics, &mut self.renderer);
-            }
-        }
-
-        Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
-
-        // カメラへ描画
-        for camera in self.camera_nodes.iter() {
-            let rc = camera.upgrade().expect("Already filtered");
-            let mut node_ref = rc.borrow_mut();
-            node_ref.on_drawn(&self.drawn_nodes, &mut self.graphics, &mut self.renderer)?;
-            // コマンドリストへ
-            Self::render_to_cmdlist(&mut self.renderer, &mut self.graphics)?;
-        }
-
-        for node in self.drawn_nodes.iter() {
-            let rc = node.upgrade().expect("Already filtered");
-            rc.borrow_mut().after_drawn();
-        }
+        Self::update_graphics(
+            &mut self.graphics,
+            &mut self.renderer,
+            &mut self.drawn_storage,
+            &mut self.camera_storage,
+        )?;
 
         if let Some(tool) = &mut self.tool {
             tool.render();
@@ -333,25 +354,30 @@ impl Engine {
         Ok(self)
     }
 
-    /// DrawnNodeが接続された時に呼び出される。
-    pub(crate) fn add_drawn_node(&mut self, item: Weak<RefCell<DrawnNode>>, z_order: i32) {
-        self.drawn_nodes.add(item, z_order)
-    }
-
-    /// CameraNodeが接続された時に呼び出される。
-    pub(crate) fn add_camera_node(&mut self, item: Weak<RefCell<CameraNode>>, camera_group: u32) {
-        self.camera_nodes.add(item, camera_group)
-    }
-
-    /// エンジンに新しいノードを追加するフラグを立てます。実際の更新はフレームの終わりに実行されます。
-    pub fn add_node<T: Node + 'static>(&self, child: Rc<RefCell<T>>) -> AltseedResult<()> {
-        self.root_node.borrow_mut().add_child(child)
-    }
-
     /// 非同期処理を発生させます。
     pub fn spawn_task<F: Future<Output = AltseedResult<Cont>> + 'static>(&mut self, future: F) {
         let future = Pin::from(Box::new(future));
         self.pins.push_back(future);
+    }
+
+    /// DrawnComponentを格納しているStorage
+    pub fn drawn_storage(&self) -> &DrawnStorage {
+        &self.drawn_storage
+    }
+
+    /// DrawnComponentを格納しているStorage
+    pub fn drawn_storage_mut(&mut self) -> &mut DrawnStorage {
+        &mut self.drawn_storage
+    }
+
+    /// CameraComponentを格納しているStorage
+    pub fn camera_storage(&self) -> &CameraStorage {
+        &self.camera_storage
+    }
+
+    /// CameraComponentを格納しているStorage
+    pub fn camera_storage_mut(&mut self) -> &mut CameraStorage {
+        &mut self.camera_storage
     }
 
     /// ファイルを管理するクラスを取得します。

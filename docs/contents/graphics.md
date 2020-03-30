@@ -1,103 +1,78 @@
-# 描画について（DrawnNode・CameraNode・他）
+# 描画機能について
 
-## DrawnNode
-[DrawnNode](../../node/drawn/struct.DrawnNode.html)は描画を行うためのノードです。
+C#版と違って、Rust版ではノードツリーを提供していません。  
+描画に関する情報を格納する[`DrawnComponent`](../../component/drawn/struct.DrawnComponent.html)の配列を管理するだけです。
 
-### データ構造
-概ねこのような構造になっています。
+以下のコードは、新しい[`DrawnComponent`](../../component/drawn/struct.DrawnComponent.html)をエンジンに追加するサンプルです。
 
-```rust
-// 画像描画
-struct Sprite { /* 省略 */ }
-// 文字列描画
-struct Text { /* 省略 */ }
-// ポリゴン描画
-struct Polygon { /* 省略 */ }
+```no_run
+use altseed2::prelude::*;
 
-// 描画の種類
-enum DrawnKind {
-    Sprite(Sprite),
-    Text(Text),
-    Polygon(Polygon),
-}
+fn main() -> AltseedResult<()> {
+    // Altseedを初期化します。
+    let mut engine = Engine::initialize("sprite", 800, 600)?;
 
-// 描画の種類と管理用の値を保持
-struct DrawnNode {
-    // 描画の種類
-    kind: DrawnKind,
-    // 描画されるかどうか
-    is_drawn: bool,
-    // 描画順
-    z_order: i32,
-    // 描画先のカメラの指定
-    camera_group: u32,
+    // 画像を読み込みます。
+    let tex = engine
+        .loader()
+        .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
+
+    // 画像を描画するSpriteを基にDrawnComponentを作成します。
+    let sprite = Sprite::new().with_texture(tex).build();
+  
+    // DrawnComponentをengineに登録してIDを取得します。
+    let _id = engine.drawn_storage_mut().add(sprite);
+
+    engine.run()?;
+
+    Ok(())
 }
 ```
 
-### 使い方
+画像を表示するサンプル: [Examples/Sprite](../../examples/_01_sprite.rs)
 
-以下のような記述が可能です。
+## DrawnID・DrawnStorageについて
+[`DrawnID`](../../component/drawn/struct.DrawnID.html)は`Engine`経由で`DrawnComponent`にアクセスするための構造体です。
+`DrawnComponent`への所有権を表しており、このIDが`Drop`すると対応した`DrawnComponen`が自動的に削除されます。
 
-```ignore
-// 画像を読み込み
-let tex1 = engine.loader().load_texture2d("hoge.png")?;
+[`DrawnStorage`](../../component/drawn/struct.DrawnStorage.html)は[`DrawnComponent`](../../component/drawn/struct.DrawnComponent.html)を管理するための構造体です。
 
-// node: Rc<RefCell<DrawnNode>>
-let node = Sprite::new()
-    // 画像を指定
-    .with_tex(tex1)
-    // 描画範囲指定
-    .with_src(Rect::new(100.0, 100.0, 100.0, 100.0))
-    // 位置指定
-    .with_pos(Vector2::new(100.0, 100.0))
-    // SpriteからRc<RefCell<DrawnNode>>に変換
-    .into_node();
+[`DrawnStorage::add`](../../component/drawn/struct.DrawnStorage.html#method.add): 新しい`DrawnComponent`を追加します。
+[`DrawnStorage::remove`](../../component/drawn/struct.DrawnStorage.html#method.remove): 登録されている`DrawnComponent`を削除します。`DrawnID`の`Drop`による削除と異なり、削除した`DrawnComponent`を取得できます。
 
-// エンジンにノードを登録
-engine.add_node(node.clone())?;
-```
+[`DrawnStorage::with`](../../component/drawn/struct.DrawnStorage.html#method.with): `&DrawnComponent`を受け取る関数を実行します。
 
-[into_node](../../node/drawn/trait.Drawn.html#method.into_node)の代わりに[DrawnNode::new](../../node/drawn/struct.DrawnNode.html#method.new)を利用することも可能です。
+[`CameraStorage::with`](../../component/camera/struct.CameraStorage.html#method.with): `&mut CameraComponent`を受け取る関数を実行します。
 
-### `Rc<RefCell<DrawnNode>>`から`Sprite`に変更を加える
+## DrawnComponentについて
+[`DrawnComponent`](../../component/drawn/struct.DrawnComponent.html)は以下のものから構成されます。
 
-```ignore
-// `if let`を使って取り出す。`sprite`は`&mut Sprite`
-if let DrawnKind::Sprite(sprite) = node.borrow_mut().kind_mut() {
+- `z_order`: `i32`で描画順を表します。
+- `camera_group`: `u32`で描画対象のカメラグループを指定します。ビットANDを行うため、複数のカメラへの描画も指定できます。
+- `kind`: [`DrawnKind`](../../component/drawn_kind/enum.DrawnKind.html))の種類ごとに
+  [`Sprite`](../../component/drawn_kind/struct.Sprite.html),
+  [`Text`](../../component/drawn_kind/struct.Text.html),
+  [`Polygon`](../../component/drawn_kind/struct.Polygon.html),
+  に分かれています。
 
-    let tex2 = engine.loader().load_texture2d("hoge.png")?;
-    // 画像を変更
-    sprite.set_tex(tex2);
-    // 位置を変更
-    sprite.pos_mut() = Vector2::new(200.0, 200.0);
-}
+- [`DrawnComponent::transform_mut`](../../component/drawn/struct.DrawnComponent.html#methods.transform_mut.html)
+  , [`DrawnComponent::transform`](../../component/drawn/struct.DrawnComponent.html#methods.transform.html)
+  : 格納しているDrawnKindが[`Transform`](../../math/transform/struct.Transform.html)を保持していた時のみ参照を取得します。
 
-```
+## DrawnKindについて
+[`DrawnKind`](../../component/drawn_kind/enum.DrawnKind.html)は以下の描画の種類を格納します。
 
-## CameraNode
-[CameraNode](../../node/camera/struct.CameraNode.html)はDrawnNodeの描画先を指定するためのノードです。
+- [`Sprite`](../../component/drawn_kind/struct.Sprite.html): 画像の描画を表します。
 
-描画対象のDrawnNode群は、`u32`のカメラグループの値をビットANDすることで指定されます。
+- [`Text`](../../component/drawn_kind/struct.Text.html): 文字列の描画を表します。
 
-例えば以下の時、
-```ignore
-camera1: CameraNode { group: 0x001 }
-camera2: CameraNode { group: 0x010 }
+- [`Polygon`](../../component/drawn_kind/struct.Polygon.html): ポリゴン単位での描画を表します。
 
-node1: DrawnNode { camera_group: 0x001 }
-node2: DrawnNode { camera_group: 0x010 }
-node3: DrawnNode { camera_group: 0x011 }
-```
+詳しくはそれぞれのリファレンスをご覧ください。
 
-`camera1`では`node1`と`node3`が、
-`camera2`では`node2`と`node3`が描画対象になります。
+## CameraComponentについて
+[`CameraID`](../../components/camera/struct.CameraID.html)・
+[`CameraStorage`](../../components/camera/struct.CameraStorage.html)
+は`DrawnComponent`のものと同じように扱えます。
 
-### カメラグループの指定
-**CameraNode**:  
-[CameraNode::get_group](../../node/camera/struct.CameraNode.html#method.get_group),
-[CameraNode::set_group](../../node/camera/struct.CameraNode.html#method.set_group)を利用します。
-
-**DrawnNode**:  
-[DrawnNode::get_camera_group](../../node/drawn/struct.DrawnNode.html#method.get_camera_group),
-[DrawnNode::set_camera_group](../../node/drawn/struct.DrawnNode.html#method.set_camera_group)を利用します。
-
+- `group`: `u32`でカメラグループを指定します。

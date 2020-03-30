@@ -1,16 +1,13 @@
 import os, sys, shutil, subprocess
 
 def generate_example():
-    timer_frame = 10
+    # timer_frame = 10
 
     examples = [
         'hello_world',
         'sprite',
-        'text',
         'sound',
         'log',
-        'load_async',
-        'custom_node',
     ]
 
     target_dir = '../src/examples'
@@ -56,9 +53,6 @@ def generate_example():
                 fd.write(auto_generated_msg)
                 ft.write(auto_generated_msg)
 
-                enabled_timer = False
-                added_timer = False
-
                 for line in content:
                     if line.startswith('//!'):
                         fd.write(line)
@@ -66,19 +60,22 @@ def generate_example():
                 fd.write('//! ```no_run\n')
                 ft.write('//! ```\n')
 
+                # enabled_timer = False
+                # added_timer = False
+
                 for line in content:
                     if (not line.startswith('//!')):
-                        if not enabled_timer and 'add-timer' in line:
-                            ft.write('//! include!("../tests/timer.rs");\n')
-                            enabled_timer = True
-                            continue
+                        # if not enabled_timer and 'add-timer' in line:
+                        #     ft.write('//! include!("../tests/timer.rs");\n')
+                        #     enabled_timer = True
+                        #     continue
 
                         fd.write('//! ' + line)
                         ft.write('//! ' + line)
 
-                        if enabled_timer and (not added_timer) and 'Engine::initialize' in line:
-                            ft.write('//!     engine.add_node(timer::TimerNode::new({}))?;\n'.format(timer_frame))
-                            added_timer = True
+                        # if enabled_timer and (not added_timer) and 'Engine::initialize' in line:
+                        #     ft.write('//!     engine.add_node(timer::TimerNode::new({}))?;\n'.format(timer_frame))
+                        #     added_timer = True
                 
                 fd.write('''//! ```
     //!

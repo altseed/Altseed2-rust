@@ -3,15 +3,16 @@
 
 //! # Engineについて
 //!
-//! AltseedのEngineには主に二つの役割があります。
+//! Altseedの[Engine](../../engine/struct.Engine.html)には以下の役割があります。
 //!
 //! 1. Altseedの[Core](../../core/index.html)機能へアクセスする。
-//! 2. Nodeを管理する。([Documents/Node](../_01_node/index.html))
+//! 2. 描画機能の管理を行う。
 //!
 //! 以下はRust版Altseedでの最も簡単なサンプルです。
 //!
 //! ```no_run
 //! use altseed2::prelude::*;
+//!
 //! fn main() -> AltseedResult<()> {
 //!     let engine = Engine::initialize("test", 800, 600)?;
 //!
