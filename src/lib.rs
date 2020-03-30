@@ -30,6 +30,7 @@ pub(crate) mod private {
 mod array;
 #[allow(unused_mut)]
 mod auto_generated_core_binding;
+mod core_ext;
 mod log;
 mod sound;
 pub mod task;
