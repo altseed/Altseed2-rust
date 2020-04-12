@@ -12,8 +12,8 @@ fn rendered_sprite() {
         &mut Configuration::new().unwrap()
     ));
 
-    let t1 = Texture2D::load("./Core/TestData/IO/AltseedPink.png").unwrap();
-    let t2 = Texture2D::load("./Core/TestData/IO/AltseedPink.jpg").unwrap();
+    let t1 = Texture2D::__load("./Core/TestData/IO/AltseedPink.png").unwrap();
+    let t2 = Texture2D::__load("./Core/TestData/IO/AltseedPink.jpg").unwrap();
 
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
@@ -29,13 +29,15 @@ fn rendered_sprite() {
     let mut graphics = Graphics::get_instance().unwrap();
     let mut renderer = Renderer::get_instance().unwrap();
 
+    let mut camera = RenderedCamera::create().unwrap();
+
     let mut count = 0;
     while core.do_event() && graphics.do_events() && count < 5 {
         count += 1;
 
         assert!(graphics.begin_frame());
 
-        renderer.reset_camera();
+        renderer.set_camera(&mut camera);
         renderer.draw_sprite(&mut x1);
         renderer.draw_sprite(&mut x2);
 
@@ -55,13 +57,13 @@ fn rendered_text() {
         &mut Configuration::new().unwrap()
     ));
 
-    let font = Font::load_dynamic_font("./Core/TestData/Font/mplus-1m-regular.ttf", 50).unwrap();
+    let font = Font::__load_dynamic_font("./Core/TestData/Font/mplus-1m-regular.ttf", 50).unwrap();
     let imagefont = Font::create_image_font(&mut font.lock().unwrap()).unwrap();
-    let tex = Texture2D::load("./Core/TestData/IO/AltseedPink.png").unwrap();
+    let tex = Texture2D::__load("./Core/TestData/IO/AltseedPink.png").unwrap();
     imagefont
         .lock()
         .unwrap()
-        .add_image_glyph('〇' as i32, &mut tex.lock().unwrap());
+        .add_image_glyph('〇', &mut tex.lock().unwrap());
 
     let mut x1 = RenderedText::create().unwrap();
     let mut x2 = RenderedText::create().unwrap();
@@ -80,12 +82,15 @@ fn rendered_text() {
     let mut graphics = Graphics::get_instance().unwrap();
     let mut renderer = Renderer::get_instance().unwrap();
 
+    let mut camera = RenderedCamera::create().unwrap();
+
     let mut count = 0;
     while core.do_event() && graphics.do_events() && count < 10 {
         count += 1;
         assert!(graphics.begin_frame());
 
-        renderer.reset_camera();
+        // renderer.reset_camera();
+        renderer.set_camera(&mut camera);
         renderer.draw_text(&mut x1);
         renderer.draw_text(&mut x2);
 
@@ -105,8 +110,8 @@ fn rendered_camera() {
         &mut Configuration::new().unwrap()
     ));
 
-    let t1 = Texture2D::load("./Core/TestData/IO/AltseedPink.png").unwrap();
-    let t2 = Texture2D::load("./Core/TestData/IO/AltseedPink.jpg").unwrap();
+    let t1 = Texture2D::__load("./Core/TestData/IO/AltseedPink.png").unwrap();
+    let t2 = Texture2D::__load("./Core/TestData/IO/AltseedPink.jpg").unwrap();
 
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
