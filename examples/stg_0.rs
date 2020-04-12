@@ -43,18 +43,16 @@ impl BulletSystem {
     }
 
     fn add(&mut self, pos: Vector2<f32>, dir: Vector2<f32>, engine: &mut Engine) {
-        let sprite = Sprite::new()
-            .with_texture(self.texture.clone())
-            .with_scale(Vector2::one() * BULLET_SCALE)
-            .with_center(self.texture_size * 0.5)
-            .with_pos(pos)
-            .build();
-
-        self.bullets.push(Bullet {
-            id: engine.drawn_storage_mut().add(sprite),
-            pos,
-            dir,
+        let id = engine.drawn_storage_mut().create_sprite(|sprite| {
+            sprite
+                .with_texture(self.texture.clone())
+                .with_scale(Vector2::one() * BULLET_SCALE)
+                .with_center(self.texture_size * 0.5)
+                .with_pos(pos)
+                .into_drawn()
         });
+
+        self.bullets.push(Bullet { id, pos, dir });
     }
 
     fn update(&mut self, engine: &mut Engine) {
@@ -99,14 +97,14 @@ impl Player {
 
         let pos = GAME_SIZE * 0.5;
 
-        let sprite = Sprite::new()
-            .with_texture(tex)
-            .with_center(tex_size * 0.5)
-            .with_scale(Vector2::one() * PLAYER_SCALE)
-            .with_pos(pos)
-            .build();
-
-        let id = engine.drawn_storage_mut().add(sprite);
+        let id = engine.drawn_storage_mut().create_sprite(|sprite| {
+            sprite
+                .with_texture(tex)
+                .with_center(tex_size * 0.5)
+                .with_scale(Vector2::one() * PLAYER_SCALE)
+                .with_pos(pos)
+                .into_drawn()
+        });
 
         Ok(Player { id, pos })
     }

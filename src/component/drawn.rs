@@ -223,4 +223,19 @@ impl DrawnStorage {
     pub fn len(&self) -> usize {
         DRAWN_STORAGE.with(|s| s.borrow().len())
     }
+
+    #[inline]
+    pub fn create_sprite<F: FnOnce(Sprite) -> DrawnComponent>(&mut self, f: F) -> DrawnID {
+        self.add(f(Sprite::new()))
+    }
+
+    #[inline]
+    pub fn create_text<F: FnOnce(Text) -> DrawnComponent>(&mut self, f: F) -> DrawnID {
+        self.add(f(Text::new()))
+    }
+
+    #[inline]
+    pub fn create_polygon<F: FnOnce(Polygon) -> DrawnComponent>(&mut self, f: F) -> DrawnID {
+        self.add(f(Polygon::new()))
+    }
 }

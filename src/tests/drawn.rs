@@ -17,7 +17,7 @@ fn draw_sprite() -> AltseedResult<()> {
         .with_texture(tex)
         .with_center(size * 0.5)
         .with_pos(size * 0.5)
-        .build();
+        .into_drawn();
 
     let mut sprite_id = Some(engine.drawn_storage_mut().add(sprite));
     println!("sprite_id: {:?}", &sprite_id);
@@ -68,13 +68,16 @@ fn drawn_z_order() -> AltseedResult<()> {
 
     let size: Vector2<f32> = tex.lock().unwrap().get_size().into();
 
-    let sprite = Sprite::new().with_texture(tex.clone()).build();
+    let sprite = Sprite::new().with_texture(tex.clone()).into_drawn();
     let id1 = engine.drawn_storage_mut().add(sprite);
     println!("id1: {:?}", &id1);
 
     DRAWN_STORAGE.with(|s| println!("{:?}", s.borrow()));
 
-    let sprite = Sprite::new().with_texture(tex).with_pos(size * 0.2).build();
+    let sprite = Sprite::new()
+        .with_texture(tex)
+        .with_pos(size * 0.2)
+        .into_drawn();
     let id2 = engine.drawn_storage_mut().add(sprite);
     println!("id2: {:?}", &id2);
 

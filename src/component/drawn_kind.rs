@@ -55,7 +55,7 @@ macro_rules! impl_has_transform {
                 self
             }
 
-            pub fn build(self) -> DrawnComponent {
+            pub fn into_drawn(self) -> DrawnComponent {
                 DrawnComponent::new(DrawnKind::$name(self))
             }
         }
@@ -88,7 +88,7 @@ pub struct Sprite {
 impl_has_transform!(Sprite);
 
 impl Sprite {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Sprite {
             instance: RenderedSprite::create().unwrap(),
             transform: Transform::new(),
@@ -144,7 +144,7 @@ pub struct Text {
 
 impl_has_transform!(Text);
 impl Text {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Text {
             instance: RenderedText::create().unwrap(),
             transform: Transform::new(),
@@ -215,7 +215,7 @@ pub struct Polygon {
 impl_has_transform!(Polygon);
 
 impl Polygon {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Polygon {
             instance: RenderedPolygon::create().unwrap(),
             transform: Transform::new(),

@@ -12,9 +12,10 @@ fn main() -> AltseedResult<()> {
         .load_texture2d("./Core/TestData/IO/AltseedPink.png")?;
 
     // 画像を格納するDrawnComponentを作成します。
-    let sprite = Sprite::new().with_texture(tex).build();
     // DrawnComponentをengineに登録してIDを取得します。
-    let id = engine.drawn_storage_mut().add(sprite);
+    let id = engine
+        .drawn_storage_mut()
+        .create_sprite(|sprite| sprite.with_texture(tex).into_drawn());
 
     let mut count = 0;
     // 所有権を渡してメインループを実行します。

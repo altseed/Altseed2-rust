@@ -28,7 +28,7 @@ impl Sortable<u32> for CameraComponent {
 }
 
 impl CameraComponent {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         CameraComponent {
             instance: RenderedCamera::create().unwrap(),
             group: Memoried::new(0),
@@ -216,5 +216,13 @@ impl CameraStorage {
     /// 現在の要素数を取得します。
     pub fn len(&self) -> usize {
         CAMERA_STORAGE.with(|s| s.borrow().len())
+    }
+
+    #[inline]
+    pub fn create_camera<F: FnOnce(CameraComponent) -> CameraComponent>(
+        &mut self,
+        f: F,
+    ) -> CameraID {
+        self.add(f(CameraComponent::new()))
     }
 }

@@ -1,5 +1,5 @@
-use crate::math::Vector2;
 use super::{storage::Storage, Component, Entity, Memoried};
+use crate::math::Vector2;
 
 #[derive(Debug)]
 pub struct ColliderComponent {
