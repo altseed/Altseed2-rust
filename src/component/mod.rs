@@ -52,6 +52,7 @@ impl<T: PartialEq + Clone + Copy> Memoried<T> {
 }
 
 pub mod camera;
+pub mod collider;
 pub mod drawn;
 pub mod drawn_kind;
 pub mod sorted;
