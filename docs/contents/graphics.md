@@ -48,7 +48,7 @@ fn main() -> AltseedResult<()> {
 [`DrawnComponent`](../../component/drawn/struct.DrawnComponent.html)は以下のものから構成されます。
 
 - `z_order`: `i32`で描画順を表します。
-- `camera_group`: `u32`で描画対象のカメラグループを指定します。ビットANDを行うため、複数のカメラへの描画も指定できます。
+- `camera_group`: `u32`で描画対象のカメラグループを指定します。ビットANDを行うため、複数のカメラへを指定できます。**この値が0の時、スクリーンに直接描画が行われます。**
 - `kind`: [`DrawnKind`](../../component/drawn_kind/enum.DrawnKind.html))の種類ごとに
   [`Sprite`](../../component/drawn_kind/struct.Sprite.html),
   [`Text`](../../component/drawn_kind/struct.Text.html),

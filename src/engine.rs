@@ -279,20 +279,19 @@ impl Engine {
         // カリング用AABBの更新
         culling.update_aabb();
 
-        
         if !screen_target_drawns.is_empty() {
             // カメラをリセット
             renderer.set_camera(default_camera);
             // スクリーンへ描画
             DRAWN_STORAGE.with::<_, AltseedResult<()>>(|drawn_storage| {
                 let culling_ids: HashSet<i32> = culling
-                .get_drawing_rendered_ids()
-                .unwrap()
-                .borrow_mut()
-                .to_vec()
-                .into_iter()
-                .collect();
-                
+                    .get_drawing_rendered_ids()
+                    .unwrap()
+                    .borrow_mut()
+                    .to_vec()
+                    .into_iter()
+                    .collect();
+
                 let mut drawn_storage = drawn_storage.borrow_mut();
                 for e in screen_target_drawns.into_iter() {
                     // screen_target_drawnsへの追加はcomponent削除の反映後なのでunwrap
