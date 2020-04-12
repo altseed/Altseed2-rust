@@ -7,8 +7,12 @@ macro_rules! impl_array {
         #[allow(dead_code)]
         impl $name {
             pub fn to_vec(&mut self) -> Vec<$ty> {
-                let mut v = Vec::<$tyraw>::with_capacity(self.get_count() as usize);
-                self.copy_to(v.as_mut_ptr() as *mut RawPtr);
+                let count = self.get_count() as usize;
+                let mut v = Vec::<$tyraw>::with_capacity(count);
+                unsafe {
+                    self.copy_to(v.as_mut_ptr() as *mut RawPtr);
+                    v.set_len(count);
+                }
                 v.into_iter().collect()
             }
 

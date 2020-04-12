@@ -1,4 +1,4 @@
-use crate::auto_generated_core_binding::{Graphics, Renderer};
+use crate::auto_generated_core_binding::{AsRendered, Graphics, Renderer};
 
 use super::{
     camera::*,
@@ -86,7 +86,23 @@ impl DrawnComponent {
         }
     }
 
+    pub(crate) fn culling_id(&mut self) -> i32 {
+        match &mut self.kind {
+            DrawnKind::Sprite(x) => x.instance.get_id(),
+            DrawnKind::Text(x) => x.instance.get_id(),
+            DrawnKind::Polygon(x) => x.instance.get_id(),
+        }
+    }
+
     pub(crate) fn on_drawing(&mut self, entity: Entity, _: &mut CameraStorage) {
+        if self.is_drawn {
+            match &mut self.kind {
+                DrawnKind::Sprite(x) => x.update_transform(),
+                DrawnKind::Text(x) => x.update_transform(),
+                DrawnKind::Polygon(x) => x.update_transform(),
+            }
+        }
+
         if self.camera_group.is_updated() {
             CAMERA_STORAGE.with(|camera_storage| {
                 for (_, camera) in camera_storage.borrow_mut().iter_mut() {
@@ -112,18 +128,9 @@ impl DrawnComponent {
     ) -> AltseedResult<()> {
         if self.is_drawn {
             match &mut self.kind {
-                DrawnKind::Sprite(x) => {
-                    x.update_transform();
-                    renderer.draw_sprite(&mut x.instance);
-                }
-                DrawnKind::Text(x) => {
-                    x.update_transform();
-                    renderer.draw_text(&mut x.instance)
-                }
-                DrawnKind::Polygon(x) => {
-                    x.update_transform();
-                    renderer.draw_polygon(&mut x.instance)
-                }
+                DrawnKind::Sprite(x) => renderer.draw_sprite(&mut x.instance),
+                DrawnKind::Text(x) => renderer.draw_text(&mut x.instance),
+                DrawnKind::Polygon(x) => renderer.draw_polygon(&mut x.instance),
             }
         }
 
@@ -215,34 +222,5 @@ impl DrawnStorage {
     /// 現在の要素数を取得します。
     pub fn len(&self) -> u32 {
         DRAWN_STORAGE.with(|s| s.borrow().len())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::super::drawn_kind::Sprite;
-    use super::*;
-
-    #[test]
-    fn add_remove_drawn_components() {
-        let mut storage = DrawnStorage::new();
-
-        let id1 = storage.add(Sprite::new().build());
-        assert_eq!(storage.len(), 1);
-
-        let mut id2 = Some(storage.add(Sprite::new().build()));
-        assert_eq!(storage.len(), 2);
-
-        let mut id3 = Some(storage.add(Sprite::new().build()));
-        assert_eq!(storage.len(), 3);
-
-        id2.take();
-        assert_eq!(storage.len(), 2);
-
-        let _c = storage.remove(id1);
-        assert_eq!(storage.len(), 1);
-
-        id3.take();
-        assert_eq!(storage.len(), 0);
     }
 }

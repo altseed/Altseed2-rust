@@ -46,6 +46,20 @@ struct RawPtrStorage(*mut RawPtr);
 unsafe impl Send for RawPtrStorage {}
 unsafe impl Sync for RawPtrStorage {}
 
+/// 描画方法を表します。
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GraphicsDeviceType {
+    /// 実行環境をもとに自動選択
+    Default,
+    /// DirectX
+    DirectX,
+    /// Metal
+    Metal,
+    /// Vulkan
+    Vulkan,
+}
+
 /// フレームレートモード
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -382,6 +396,16 @@ pub enum WritingDirection {
     Horizontal,
 }
 
+///
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum RenderTargetCareType {
+    /// クリアしない
+    DontCare,
+    /// クリアする
+    Clear,
+}
+
 /// ツール機能で使用する方向
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -701,6 +725,12 @@ extern "C" {
     fn cbg_Configuration_GetIsResizable(self_ptr: *mut RawPtr) -> bool;
     fn cbg_Configuration_SetIsResizable(self_ptr: *mut RawPtr, value: bool) -> ();
 
+    fn cbg_Configuration_GetDeviceType(self_ptr: *mut RawPtr) -> c_int;
+    fn cbg_Configuration_SetDeviceType(self_ptr: *mut RawPtr, value: c_int) -> ();
+
+    fn cbg_Configuration_GetWaitVSync(self_ptr: *mut RawPtr) -> bool;
+    fn cbg_Configuration_SetWaitVSync(self_ptr: *mut RawPtr, value: bool) -> ();
+
     fn cbg_Configuration_GetConsoleLoggingEnabled(self_ptr: *mut RawPtr) -> bool;
     fn cbg_Configuration_SetConsoleLoggingEnabled(self_ptr: *mut RawPtr, value: bool) -> ();
 
@@ -858,6 +888,10 @@ extern "C" {
 
     fn cbg_Resources_Release(self_ptr: *mut RawPtr) -> ();
 
+    fn cbg_Cursor_Create(path: *const u16, hot: crate::math::Vector2<i32>) -> *mut RawPtr;
+
+    fn cbg_Cursor_Release(self_ptr: *mut RawPtr) -> ();
+
     fn cbg_Keyboard_GetKeyState(self_ptr: *mut RawPtr, key: c_int) -> c_int;
 
     fn cbg_Keyboard_GetInstance() -> *mut RawPtr;
@@ -867,6 +901,8 @@ extern "C" {
     fn cbg_Mouse_GetInstance() -> *mut RawPtr;
 
     fn cbg_Mouse_GetMouseButtonState(self_ptr: *mut RawPtr, button: c_int) -> c_int;
+
+    fn cbg_Mouse_SetCursorImage(self_ptr: *mut RawPtr, cursor: *mut RawPtr) -> ();
 
     fn cbg_Mouse_GetPosition(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
     fn cbg_Mouse_SetPosition(self_ptr: *mut RawPtr, value: crate::math::Vector2<f32>) -> ();
@@ -1011,7 +1047,7 @@ extern "C" {
     fn cbg_CommandList_SetRenderTarget(
         self_ptr: *mut RawPtr,
         target: *mut RawPtr,
-        viewport: crate::structs::Rect<i32>,
+        renderPassParameter: crate::structs::RenderPassParameter,
     ) -> ();
 
     fn cbg_CommandList_RenderToRenderTarget(self_ptr: *mut RawPtr, material: *mut RawPtr) -> ();
@@ -1020,6 +1056,8 @@ extern "C" {
 
     fn cbg_Rendered_GetTransform(self_ptr: *mut RawPtr) -> crate::math::Matrix44<f32>;
     fn cbg_Rendered_SetTransform(self_ptr: *mut RawPtr, value: crate::math::Matrix44<f32>) -> ();
+
+    fn cbg_Rendered_GetId(self_ptr: *mut RawPtr) -> c_int;
 
     fn cbg_Rendered_Release(self_ptr: *mut RawPtr) -> ();
 
@@ -1160,6 +1198,16 @@ extern "C" {
     fn cbg_Font_GetPath(self_ptr: *mut RawPtr) -> *const u16;
 
     fn cbg_Font_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_CullingSystem_GetInstance() -> *mut RawPtr;
+
+    fn cbg_CullingSystem_UpdateAABB(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_CullingSystem_GetDrawingRenderedCount(self_ptr: *mut RawPtr) -> c_int;
+
+    fn cbg_CullingSystem_GetDrawingRenderedIds(self_ptr: *mut RawPtr) -> *mut RawPtr;
+
+    fn cbg_CullingSystem_Release(self_ptr: *mut RawPtr) -> ();
 
     fn cbg_Tool_GetInstance() -> *mut RawPtr;
 
@@ -1595,14 +1643,56 @@ extern "C" {
 
     fn cbg_Window_Release(self_ptr: *mut RawPtr) -> ();
 
+    fn cbg_Collider_Constructor_0() -> *mut RawPtr;
+
+    fn cbg_Collider_GetIsCollidedWith(self_ptr: *mut RawPtr, collider: *mut RawPtr) -> bool;
+
+    fn cbg_Collider_GetPosition(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
+    fn cbg_Collider_SetPosition(self_ptr: *mut RawPtr, value: crate::math::Vector2<f32>) -> ();
+
+    fn cbg_Collider_GetRotation(self_ptr: *mut RawPtr) -> c_float;
+    fn cbg_Collider_SetRotation(self_ptr: *mut RawPtr, value: c_float) -> ();
+
+    fn cbg_Collider_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_CircleCollider_Constructor_0() -> *mut RawPtr;
+
+    fn cbg_CircleCollider_GetRadius(self_ptr: *mut RawPtr) -> c_float;
+    fn cbg_CircleCollider_SetRadius(self_ptr: *mut RawPtr, value: c_float) -> ();
+
+    fn cbg_CircleCollider_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_RectangleCollider_Constructor_0() -> *mut RawPtr;
+
+    fn cbg_RectangleCollider_GetSize(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
+    fn cbg_RectangleCollider_SetSize(self_ptr: *mut RawPtr, value: crate::math::Vector2<f32>)
+        -> ();
+
+    fn cbg_RectangleCollider_GetCenterPosition(self_ptr: *mut RawPtr) -> crate::math::Vector2<f32>;
+    fn cbg_RectangleCollider_SetCenterPosition(
+        self_ptr: *mut RawPtr,
+        value: crate::math::Vector2<f32>,
+    ) -> ();
+
+    fn cbg_RectangleCollider_Release(self_ptr: *mut RawPtr) -> ();
+
+    fn cbg_PolygonCollider_Constructor_0() -> *mut RawPtr;
+
+    fn cbg_PolygonCollider_GetVertexes(self_ptr: *mut RawPtr) -> *mut RawPtr;
+    fn cbg_PolygonCollider_SetVertexes(self_ptr: *mut RawPtr, value: *mut RawPtr) -> ();
+
+    fn cbg_PolygonCollider_Release(self_ptr: *mut RawPtr) -> ();
+
 }
 
-/// Coreを初期化する際の設定を保持すクラス
+/// Altseed2 の設定を表すクラス
 #[derive(Debug)]
 pub struct Configuration {
     self_ptr: *mut RawPtr,
     is_fullscreen: Option<bool>,
     is_resizable: Option<bool>,
+    device_type: Option<GraphicsDeviceType>,
+    wait_vsync: Option<bool>,
     console_logging_enabled: Option<bool>,
     file_logging_enabled: Option<bool>,
     log_file_name: Option<String>,
@@ -1624,6 +1714,8 @@ impl Configuration {
             self_ptr,
             is_fullscreen: None,
             is_resizable: None,
+            device_type: None,
+            wait_vsync: None,
             console_logging_enabled: None,
             file_logging_enabled: None,
             log_file_name: None,
@@ -1631,7 +1723,7 @@ impl Configuration {
         })
     }
 
-    /// 新しいインスタンスを生成する
+    /// 新しいインスタンスを生成します。
 
     pub fn new() -> Option<Configuration> {
         Self::cbg_create_raw(unsafe { cbg_Configuration_Constructor_0() })
@@ -1647,10 +1739,9 @@ impl Configuration {
     }
 
     /// 全画面モードかどうかを取得または設定します。
-    pub fn set_is_fullscreen(&mut self, value: bool) -> &mut Self {
+    pub fn set_is_fullscreen(&mut self, value: bool) {
         unsafe { cbg_Configuration_SetIsFullscreen(self.self_ptr, value) }
         self.is_fullscreen = Some(value.clone());
-        self
     }
 
     /// 画面サイズ可変かどうかを取得または設定します。
@@ -1663,10 +1754,39 @@ impl Configuration {
     }
 
     /// 画面サイズ可変かどうかを取得または設定します。
-    pub fn set_is_resizable(&mut self, value: bool) -> &mut Self {
+    pub fn set_is_resizable(&mut self, value: bool) {
         unsafe { cbg_Configuration_SetIsResizable(self.self_ptr, value) }
         self.is_resizable = Some(value.clone());
-        self
+    }
+
+    /// 描画方法を取得または設定します。
+    pub fn get_device_type(&mut self) -> GraphicsDeviceType {
+        if let Some(value) = &self.device_type {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Configuration_GetDeviceType(self.self_ptr) };
+        unsafe { std::mem::transmute(ret) }
+    }
+
+    /// 描画方法を取得または設定します。
+    pub fn set_device_type(&mut self, value: GraphicsDeviceType) {
+        unsafe { cbg_Configuration_SetDeviceType(self.self_ptr, value as i32) }
+        self.device_type = Some(value.clone());
+    }
+
+    /// 垂直同期信号を待つかどうかを取得または設定します。
+    pub fn get_wait_vsync(&mut self) -> bool {
+        if let Some(value) = &self.wait_vsync {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Configuration_GetWaitVSync(self.self_ptr) };
+        ret
+    }
+
+    /// 垂直同期信号を待つかどうかを取得または設定します。
+    pub fn set_wait_vsync(&mut self, value: bool) {
+        unsafe { cbg_Configuration_SetWaitVSync(self.self_ptr, value) }
+        self.wait_vsync = Some(value.clone());
     }
 
     /// ログをコンソールに出力するかどうかを取得または設定します。
@@ -1679,10 +1799,9 @@ impl Configuration {
     }
 
     /// ログをコンソールに出力するかどうかを取得または設定します。
-    pub fn set_console_logging_enabled(&mut self, value: bool) -> &mut Self {
+    pub fn set_console_logging_enabled(&mut self, value: bool) {
         unsafe { cbg_Configuration_SetConsoleLoggingEnabled(self.self_ptr, value) }
         self.console_logging_enabled = Some(value.clone());
-        self
     }
 
     /// ログをファイルに出力するかどうかを取得または設定します。
@@ -1695,10 +1814,9 @@ impl Configuration {
     }
 
     /// ログをファイルに出力するかどうかを取得または設定します。
-    pub fn set_file_logging_enabled(&mut self, value: bool) -> &mut Self {
+    pub fn set_file_logging_enabled(&mut self, value: bool) {
         unsafe { cbg_Configuration_SetFileLoggingEnabled(self.self_ptr, value) }
         self.file_logging_enabled = Some(value.clone());
-        self
     }
 
     /// ログファイル名を取得または設定します。
@@ -1711,10 +1829,9 @@ impl Configuration {
     }
 
     /// ログファイル名を取得または設定します。
-    pub fn set_log_file_name(&mut self, value: String) -> &mut Self {
+    pub fn set_log_file_name(&mut self, value: String) {
         unsafe { cbg_Configuration_SetLogFileName(self.self_ptr, encode_string(&value).as_ptr()) }
         self.log_file_name = Some(value.clone());
-        self
     }
 
     /// ツール機能を使用するかどうかを取得または設定します。
@@ -1727,10 +1844,9 @@ impl Configuration {
     }
 
     /// ツール機能を使用するかどうかを取得または設定します。
-    pub fn set_tool_enabled(&mut self, value: bool) -> &mut Self {
+    pub fn set_tool_enabled(&mut self, value: bool) {
         unsafe { cbg_Configuration_SetToolEnabled(self.self_ptr, value) }
         self.tool_enabled = Some(value.clone());
-        self
     }
 }
 
@@ -1827,10 +1943,9 @@ impl Core {
     }
 
     /// 目標のFPSを取得または設定します。
-    pub fn set_target_fps(&mut self, value: f32) -> &mut Self {
+    pub fn set_target_fps(&mut self, value: f32) {
         unsafe { cbg_Core_SetTargetFPS(self.self_ptr, value) }
         self.target_fps = Some(value.clone());
-        self
     }
 
     /// フレームレートモードを取得または設定します。デフォルトでは可変フレームレートです。
@@ -1843,10 +1958,9 @@ impl Core {
     }
 
     /// フレームレートモードを取得または設定します。デフォルトでは可変フレームレートです。
-    pub fn set_framerate_mode(&mut self, value: FramerateMode) -> &mut Self {
+    pub fn set_framerate_mode(&mut self, value: FramerateMode) {
         unsafe { cbg_Core_SetFramerateMode(self.self_ptr, value as i32) }
         self.framerate_mode = Some(value.clone());
-        self
     }
 }
 
@@ -2496,6 +2610,69 @@ impl Drop for Resources {
     }
 }
 
+/// カーソルを表します。
+#[derive(Debug)]
+pub struct Cursor {
+    self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for Cursor {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl Cursor {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(Cursor { self_ptr })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static CURSOR_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Cursor>>>> = RefCell::new(HashMap::new());
+        }
+        CURSOR_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    /// 指定したpng画像を読み込んだCursorのインスタンスを生成します。
+    /// # Arguments
+    /// * `path` - 読み込むpng画像のパス
+    /// * `hot` - カーソルのクリック判定座標を指定します。カーソル画像はここが中心となります。
+
+    pub fn create(path: &str, mut hot: crate::math::Vector2<i32>) -> Option<Rc<RefCell<Cursor>>> {
+        let ret = unsafe { cbg_Cursor_Create(encode_string(&path).as_ptr(), hot.clone()) };
+        {
+            let ret = Cursor::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+}
+
+impl Drop for Cursor {
+    fn drop(&mut self) {
+        unsafe { cbg_Cursor_Release(self.self_ptr) };
+    }
+}
+
 /// キーボードを表します。
 #[derive(Debug)]
 pub struct Keyboard {
@@ -2581,6 +2758,14 @@ impl Mouse {
         unsafe { std::mem::transmute(ret) }
     }
 
+    /// カーソル画像をセットします。
+    /// # Arguments
+    /// * `cursor` - 状態を取得するマウスのボタン
+
+    pub fn set_cursor_image(&mut self, cursor: &mut Cursor) -> () {
+        unsafe { cbg_Mouse_SetCursorImage(self.self_ptr, cursor.self_ptr()) }
+    }
+
     /// マウスカーソルの座標を取得または設定します。
     pub fn get_position(&mut self) -> crate::math::Vector2<f32> {
         if let Some(value) = &self.position {
@@ -2591,10 +2776,9 @@ impl Mouse {
     }
 
     /// マウスカーソルの座標を取得または設定します。
-    pub fn set_position(&mut self, mut value: crate::math::Vector2<f32>) -> &mut Self {
+    pub fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
         unsafe { cbg_Mouse_SetPosition(self.self_ptr, value.clone()) }
         self.position = Some(value.clone());
-        self
     }
 
     /// カーソルのモードを取得または設定します。
@@ -2607,10 +2791,9 @@ impl Mouse {
     }
 
     /// カーソルのモードを取得または設定します。
-    pub fn set_cursor_mode(&mut self, value: CursorMode) -> &mut Self {
+    pub fn set_cursor_mode(&mut self, value: CursorMode) {
         unsafe { cbg_Mouse_SetCursorMode(self.self_ptr, value as i32) }
         self.cursor_mode = Some(value.clone());
-        self
     }
 
     /// マウスホイールの回転量を取得します。
@@ -2673,7 +2856,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `button_index` - 状態を検索するボタンのインデックス
 
-    pub fn get_button_state_by_index(
+    pub(crate) fn get_button_state_by_index(
         &mut self,
         joystick_index: i32,
         button_index: i32,
@@ -2689,7 +2872,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索するボタンの種類
 
-    pub fn get_button_state_by_type(
+    pub(crate) fn get_button_state_by_type(
         &mut self,
         joystick_index: i32,
         type_: JoystickButtonType,
@@ -2714,7 +2897,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `axis_index` - 状態を検索する軸のインデックス
 
-    pub fn get_axis_state_by_index(&mut self, joystick_index: i32, axis_index: i32) -> f32 {
+    pub(crate) fn get_axis_state_by_index(&mut self, joystick_index: i32, axis_index: i32) -> f32 {
         let ret =
             unsafe { cbg_Joystick_GetAxisStateByIndex(self.self_ptr, joystick_index, axis_index) };
         ret
@@ -2725,7 +2908,11 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索する軸の種類
 
-    pub fn get_axis_state_by_type(&mut self, joystick_index: i32, type_: JoystickAxisType) -> f32 {
+    pub(crate) fn get_axis_state_by_type(
+        &mut self,
+        joystick_index: i32,
+        type_: JoystickAxisType,
+    ) -> f32 {
         let ret =
             unsafe { cbg_Joystick_GetAxisStateByType(self.self_ptr, joystick_index, type_ as i32) };
         ret
@@ -2810,7 +2997,7 @@ impl Graphics {
     }
 
     /// 組み込みのシェーダを取得します。
-    pub fn get_builtin_shader(&mut self) -> Option<Rc<RefCell<BuiltinShader>>> {
+    pub(crate) fn get_builtin_shader(&mut self) -> Option<Rc<RefCell<BuiltinShader>>> {
         let ret = unsafe { cbg_Graphics_GetBuiltinShader(self.self_ptr) };
         {
             let ret = BuiltinShader::try_get_from_cache(ret)?;
@@ -2828,10 +3015,9 @@ impl Graphics {
     }
 
     /// クリア色を取得または設定します。
-    pub fn set_clear_color(&mut self, mut value: crate::structs::Color) -> &mut Self {
+    pub fn set_clear_color(&mut self, mut value: crate::structs::Color) {
         unsafe { cbg_Graphics_SetClearColor(self.self_ptr, value.clone()) }
         self.clear_color = Some(value.clone());
-        self
     }
 }
 
@@ -2999,7 +3185,7 @@ impl Texture2D {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub fn get_path(&mut self) -> String {
+    pub(crate) fn get_path(&mut self) -> String {
         let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
         decode_string(ret)
     }
@@ -3174,9 +3360,9 @@ impl Material {
         }
     }
 
-    /// 指定した名前を持つTexture2Dのインスタンスを取得する
+    /// 指定した名前を持つTextureBaseのインスタンスを取得する
     /// # Arguments
-    /// * `key` - 検索するTexture2Dのインスタンスの名前
+    /// * `key` - 検索するTextureBaseのインスタンスの名前
 
     pub fn get_texture(&mut self, key: &str) -> Option<Arc<Mutex<TextureBase>>> {
         let ret = unsafe { cbg_Material_GetTexture(self.self_ptr, encode_string(&key).as_ptr()) };
@@ -3186,10 +3372,10 @@ impl Material {
         }
     }
 
-    /// 指定した名前を持つTexture2Dの値を設定する
+    /// 指定した名前を持つTextureBaseの値を設定する
     /// # Arguments
-    /// * `key` - 検索するTexture2Dのインスタンスの名前
-    /// * `value` - 設定するTexture2Dのインスタンスの値
+    /// * `key` - 検索するTextureBaseのインスタンスの名前
+    /// * `value` - 設定するTextureBaseのインスタンスの値
 
     pub fn set_texture<T0: AsTextureBase>(&mut self, key: &str, value: &mut T0) -> () {
         unsafe {
@@ -3343,10 +3529,14 @@ impl CommandList {
     pub fn set_render_target(
         &mut self,
         target: &mut RenderTexture,
-        mut viewport: crate::structs::Rect<i32>,
+        mut render_pass_parameter: crate::structs::RenderPassParameter,
     ) -> () {
         unsafe {
-            cbg_CommandList_SetRenderTarget(self.self_ptr, target.self_ptr(), viewport.clone())
+            cbg_CommandList_SetRenderTarget(
+                self.self_ptr,
+                target.self_ptr(),
+                render_pass_parameter.clone(),
+            )
         }
     }
 
@@ -3378,7 +3568,9 @@ pub trait AsRendered: std::fmt::Debug + HasRawPtr {
     /// 変換行列を取得または設定します。
     fn get_transform(&mut self) -> crate::math::Matrix44<f32>;
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, value: crate::math::Matrix44<f32>);
+    fn set_transform(&mut self, value: crate::math::Matrix44<f32>);
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32;
 }
 impl AsRendered for Rendered {
     /// 変換行列を取得または設定します。
@@ -3391,9 +3583,15 @@ impl AsRendered for Rendered {
     }
 
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
+    fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
+    }
+
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32 {
+        let ret = unsafe { cbg_Rendered_GetId(self.self_ptr) };
+        ret
     }
 }
 impl Rendered {
@@ -3408,10 +3606,9 @@ impl Rendered {
     }
 
     /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
+    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
-        self
     }
 }
 
@@ -3448,9 +3645,15 @@ impl AsRendered for RenderedSprite {
     }
 
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
+    fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
+    }
+
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32 {
+        let ret = unsafe { cbg_Rendered_GetId(self.self_ptr) };
+        ret
     }
 }
 impl RenderedSprite {
@@ -3474,13 +3677,6 @@ impl RenderedSprite {
         RenderedSprite::cbg_create_raw(ret)
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
-        self.transform = Some(value.clone());
-        self
-    }
-
     /// テクスチャを取得または設定します。
     pub fn get_texture(&mut self) -> Option<Arc<Mutex<dyn AsTextureBase>>> {
         if let Some(value) = &self.texture {
@@ -3494,7 +3690,7 @@ impl RenderedSprite {
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, value: Arc<Mutex<T>>) -> &mut Self {
+    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, value: Arc<Mutex<T>>) {
         unsafe {
             cbg_RenderedSprite_SetTexture(
                 self.self_ptr,
@@ -3505,7 +3701,6 @@ impl RenderedSprite {
             )
         }
         self.texture = Some(value.clone());
-        self
     }
 
     /// 描画範囲を取得または設定します。
@@ -3518,10 +3713,9 @@ impl RenderedSprite {
     }
 
     /// 描画範囲を取得または設定します。
-    pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) -> &mut Self {
+    pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) {
         unsafe { cbg_RenderedSprite_SetSrc(self.self_ptr, value.clone()) }
         self.src = Some(value.clone());
-        self
     }
 
     /// マテリアルを取得または設定します。
@@ -3537,10 +3731,9 @@ impl RenderedSprite {
     }
 
     /// マテリアルを取得または設定します。
-    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
+    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         unsafe { cbg_RenderedSprite_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.material = Some(value.clone());
-        self
     }
 }
 
@@ -3579,9 +3772,15 @@ impl AsRendered for RenderedText {
     }
 
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
+    fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
+    }
+
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32 {
+        let ret = unsafe { cbg_Rendered_GetId(self.self_ptr) };
+        ret
     }
 }
 impl RenderedText {
@@ -3607,13 +3806,6 @@ impl RenderedText {
         RenderedText::cbg_create_raw(ret)
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
-        self.transform = Some(value.clone());
-        self
-    }
-
     /// マテリアルを取得または設定します。
     pub fn get_material(&mut self) -> Option<Rc<RefCell<Material>>> {
         if let Some(value) = &self.material {
@@ -3627,10 +3819,9 @@ impl RenderedText {
     }
 
     /// マテリアルを取得または設定します。
-    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
+    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         unsafe { cbg_RenderedText_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.material = Some(value.clone());
-        self
     }
 
     /// テキストを取得または設定します。
@@ -3643,10 +3834,9 @@ impl RenderedText {
     }
 
     /// テキストを取得または設定します。
-    pub fn set_text(&mut self, value: String) -> &mut Self {
+    pub fn set_text(&mut self, value: String) {
         unsafe { cbg_RenderedText_SetText(self.self_ptr, encode_string(&value).as_ptr()) }
         self.text = Some(value.clone());
-        self
     }
 
     /// フォントを取得または設定します。
@@ -3662,7 +3852,7 @@ impl RenderedText {
     }
 
     /// フォントを取得または設定します。
-    pub fn set_font(&mut self, value: Arc<Mutex<Font>>) -> &mut Self {
+    pub fn set_font(&mut self, value: Arc<Mutex<Font>>) {
         unsafe {
             cbg_RenderedText_SetFont(
                 self.self_ptr,
@@ -3670,7 +3860,6 @@ impl RenderedText {
             )
         }
         self.font = Some(value.clone());
-        self
     }
 
     /// 文字の太さを取得または設定します。(0 ~ 255)
@@ -3683,10 +3872,9 @@ impl RenderedText {
     }
 
     /// 文字の太さを取得または設定します。(0 ~ 255)
-    pub fn set_weight(&mut self, value: f32) -> &mut Self {
+    pub fn set_weight(&mut self, value: f32) {
         unsafe { cbg_RenderedText_SetWeight(self.self_ptr, value) }
         self.weight = Some(value.clone());
-        self
     }
 
     /// 色を取得または設定します。
@@ -3699,10 +3887,9 @@ impl RenderedText {
     }
 
     /// 色を取得または設定します。
-    pub fn set_color(&mut self, mut value: crate::structs::Color) -> &mut Self {
+    pub fn set_color(&mut self, mut value: crate::structs::Color) {
         unsafe { cbg_RenderedText_SetColor(self.self_ptr, value.clone()) }
         self.color = Some(value.clone());
-        self
     }
 }
 
@@ -3717,7 +3904,7 @@ impl Drop for RenderedText {
 pub(crate) struct RenderedPolygon {
     self_ptr: *mut RawPtr,
     vertexes: Option<Rc<RefCell<VertexArray>>>,
-    texture: Option<Arc<Mutex<Texture2D>>>,
+    texture: Option<Arc<Mutex<dyn AsTextureBase>>>,
     src: Option<crate::structs::Rect<f32>>,
     material: Option<Rc<RefCell<Material>>>,
     transform: Option<crate::math::Matrix44<f32>>,
@@ -3740,9 +3927,15 @@ impl AsRendered for RenderedPolygon {
     }
 
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
+    fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
+    }
+
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32 {
+        let ret = unsafe { cbg_Rendered_GetId(self.self_ptr) };
+        ret
     }
 }
 impl RenderedPolygon {
@@ -3773,13 +3966,6 @@ impl RenderedPolygon {
         unsafe { cbg_RenderedPolygon_SetVertexesByVector2F(self.self_ptr, vertexes.self_ptr()) }
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
-        self.transform = Some(value.clone());
-        self
-    }
-
     /// 頂点情報を取得または設定します。
     pub fn get_vertexes(&mut self) -> Option<Rc<RefCell<VertexArray>>> {
         if let Some(value) = &self.vertexes {
@@ -3793,37 +3979,35 @@ impl RenderedPolygon {
     }
 
     /// 頂点情報を取得または設定します。
-    pub fn set_vertexes(&mut self, value: Rc<RefCell<VertexArray>>) -> &mut Self {
+    pub fn set_vertexes(&mut self, value: Rc<RefCell<VertexArray>>) {
         unsafe { cbg_RenderedPolygon_SetVertexes(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.vertexes = Some(value.clone());
-        self
     }
 
     /// テクスチャを取得または設定します。
-    pub fn get_texture(&mut self) -> Option<Arc<Mutex<Texture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<dyn AsTextureBase>>> {
         if let Some(value) = &self.texture {
             return Some(value.clone());
         }
         let ret = unsafe { cbg_RenderedPolygon_GetTexture(self.self_ptr) };
         {
-            let ret = Texture2D::try_get_from_cache(ret)?;
+            let ret = TextureBase::try_get_from_cache(ret)?;
             Some(ret)
         }
     }
 
     /// テクスチャを取得または設定します。
-    pub fn set_texture(&mut self, value: Arc<Mutex<Texture2D>>) -> &mut Self {
+    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, value: Arc<Mutex<T>>) {
         unsafe {
             cbg_RenderedPolygon_SetTexture(
                 self.self_ptr,
                 value
                     .lock()
-                    .expect("Failed to get lock of Texture2D")
+                    .expect("Failed to get lock of TextureBase")
                     .self_ptr(),
             )
         }
         self.texture = Some(value.clone());
-        self
     }
 
     /// 描画範囲を取得または設定します。
@@ -3836,10 +4020,9 @@ impl RenderedPolygon {
     }
 
     /// 描画範囲を取得または設定します。
-    pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) -> &mut Self {
+    pub fn set_src(&mut self, mut value: crate::structs::Rect<f32>) {
         unsafe { cbg_RenderedPolygon_SetSrc(self.self_ptr, value.clone()) }
         self.src = Some(value.clone());
-        self
     }
 
     /// マテリアルを取得または設定します。
@@ -3855,10 +4038,9 @@ impl RenderedPolygon {
     }
 
     /// マテリアルを取得または設定します。
-    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) -> &mut Self {
+    pub fn set_material(&mut self, value: Rc<RefCell<Material>>) {
         unsafe { cbg_RenderedPolygon_SetMaterial(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.material = Some(value.clone());
-        self
     }
 }
 
@@ -3894,9 +4076,15 @@ impl AsRendered for RenderedCamera {
     }
 
     /// 変換行列を取得または設定します。
-    fn base_set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
+    fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) {
         unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
         self.transform = Some(value.clone());
+    }
+
+    /// BaseObjectのIdを取得します
+    fn get_id(&mut self) -> i32 {
+        let ret = unsafe { cbg_Rendered_GetId(self.self_ptr) };
+        ret
     }
 }
 impl RenderedCamera {
@@ -3919,13 +4107,6 @@ impl RenderedCamera {
         RenderedCamera::cbg_create_raw(ret)
     }
 
-    /// 変換行列を取得または設定します。
-    pub fn set_transform(&mut self, mut value: crate::math::Matrix44<f32>) -> &mut Self {
-        unsafe { cbg_Rendered_SetTransform(self.self_ptr, value.clone()) }
-        self.transform = Some(value.clone());
-        self
-    }
-
     /// CenterOffsetを取得または設定します。
     pub fn get_center_offset(&mut self) -> crate::math::Vector2<f32> {
         if let Some(value) = &self.center_offset {
@@ -3936,10 +4117,9 @@ impl RenderedCamera {
     }
 
     /// CenterOffsetを取得または設定します。
-    pub fn set_center_offset(&mut self, mut value: crate::math::Vector2<f32>) -> &mut Self {
+    pub fn set_center_offset(&mut self, mut value: crate::math::Vector2<f32>) {
         unsafe { cbg_RenderedCamera_SetCenterOffset(self.self_ptr, value.clone()) }
         self.center_offset = Some(value.clone());
-        self
     }
 
     /// TargetTextureを取得または設定します。
@@ -3955,10 +4135,9 @@ impl RenderedCamera {
     }
 
     /// TargetTextureを取得または設定します。
-    pub fn set_target_texture(&mut self, value: Rc<RefCell<RenderTexture>>) -> &mut Self {
+    pub fn set_target_texture(&mut self, value: Rc<RefCell<RenderTexture>>) {
         unsafe { cbg_RenderedCamera_SetTargetTexture(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.target_texture = Some(value.clone());
-        self
     }
 }
 
@@ -4433,6 +4612,61 @@ impl Font {
 impl Drop for Font {
     fn drop(&mut self) {
         unsafe { cbg_Font_Release(self.self_ptr) };
+    }
+}
+
+/// カリングのクラス
+#[derive(Debug)]
+pub(crate) struct CullingSystem {
+    self_ptr: *mut RawPtr,
+}
+
+impl HasRawPtr for CullingSystem {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl CullingSystem {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Self> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(CullingSystem { self_ptr })
+    }
+
+    /// インスタンスを取得します。
+
+    pub(crate) fn get_instance() -> Option<CullingSystem> {
+        let ret = unsafe { cbg_CullingSystem_GetInstance() };
+        CullingSystem::cbg_create_raw(ret)
+    }
+
+    /// RenderedのAABBを更新します
+
+    pub(crate) fn update_aabb(&mut self) -> () {
+        unsafe { cbg_CullingSystem_UpdateAABB(self.self_ptr) }
+    }
+
+    /// 描画されているRenderedの個数を取得する
+    pub fn get_drawing_rendered_count(&mut self) -> i32 {
+        let ret = unsafe { cbg_CullingSystem_GetDrawingRenderedCount(self.self_ptr) };
+        ret
+    }
+
+    /// 描画されているRenderedのIdの配列を取得する
+    pub fn get_drawing_rendered_ids(&mut self) -> Option<Rc<RefCell<Int32Array>>> {
+        let ret = unsafe { cbg_CullingSystem_GetDrawingRenderedIds(self.self_ptr) };
+        {
+            let ret = Int32Array::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+}
+
+impl Drop for CullingSystem {
+    fn drop(&mut self) {
+        unsafe { cbg_CullingSystem_Release(self.self_ptr) };
     }
 }
 
@@ -5302,7 +5536,7 @@ impl StreamFile {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub fn get_path(&mut self) -> String {
+    pub(crate) fn get_path(&mut self) -> String {
         let ret = unsafe { cbg_StreamFile_GetPath(self.self_ptr) };
         decode_string(ret)
     }
@@ -5607,10 +5841,9 @@ impl Sound {
     }
 
     /// ループ開始地点(秒)を取得または設定します。
-    pub fn set_loop_starting_point(&mut self, value: f32) -> &mut Self {
+    pub fn set_loop_starting_point(&mut self, value: f32) {
         unsafe { cbg_Sound_SetLoopStartingPoint(self.self_ptr, value) }
         self.loop_starting_point = Some(value.clone());
-        self
     }
 
     /// ループ終了地点(秒)を取得または設定します。
@@ -5623,10 +5856,9 @@ impl Sound {
     }
 
     /// ループ終了地点(秒)を取得または設定します。
-    pub fn set_loop_end_point(&mut self, value: f32) -> &mut Self {
+    pub fn set_loop_end_point(&mut self, value: f32) {
         unsafe { cbg_Sound_SetLoopEndPoint(self.self_ptr, value) }
         self.loop_end_point = Some(value.clone());
-        self
     }
 
     /// ループするかどうかを取得または設定します。
@@ -5639,10 +5871,9 @@ impl Sound {
     }
 
     /// ループするかどうかを取得または設定します。
-    pub fn set_is_looping_mode(&mut self, value: bool) -> &mut Self {
+    pub fn set_is_looping_mode(&mut self, value: bool) {
         unsafe { cbg_Sound_SetIsLoopingMode(self.self_ptr, value) }
         self.is_looping_mode = Some(value.clone());
-        self
     }
 
     /// 音源の長さ(秒)を取得します。
@@ -5652,13 +5883,13 @@ impl Sound {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub fn get_path(&mut self) -> String {
+    pub(crate) fn get_path(&mut self) -> String {
         let ret = unsafe { cbg_Sound_GetPath(self.self_ptr) };
         decode_string(ret)
     }
 
     /// 音源を解凍するかどうかを取得する
-    pub fn get_is_decompressed(&mut self) -> bool {
+    pub(crate) fn get_is_decompressed(&mut self) -> bool {
         let ret = unsafe { cbg_Sound_GetIsDecompressed(self.self_ptr) };
         ret
     }
@@ -6047,10 +6278,9 @@ impl Window {
     }
 
     /// ウィンドウに表示するタイトルを取得または設定します
-    pub fn set_title(&mut self, value: String) -> &mut Self {
+    pub fn set_title(&mut self, value: String) {
         unsafe { cbg_Window_SetTitle(self.self_ptr, encode_string(&value).as_ptr()) }
         self.title = Some(value.clone());
-        self
     }
 
     /// ウィンドウサイズを取得します
@@ -6063,5 +6293,481 @@ impl Window {
 impl Drop for Window {
     fn drop(&mut self) {
         unsafe { cbg_Window_Release(self.self_ptr) };
+    }
+}
+
+/// コライダの抽象基本クラスです
+#[derive(Debug)]
+pub struct Collider {
+    self_ptr: *mut RawPtr,
+    position: Option<crate::math::Vector2<f32>>,
+    rotation: Option<f32>,
+}
+
+impl HasRawPtr for Collider {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+pub trait AsCollider: std::fmt::Debug + HasRawPtr {
+    /// 指定したコライダとの衝突判定を行います。
+
+    fn get_is_collided_with<T0: AsCollider>(&mut self, collider: &mut T0) -> bool;
+    /// コライダの位置情報を取得または設定します。
+    fn get_position(&mut self) -> crate::math::Vector2<f32>;
+    /// コライダの位置情報を取得または設定します。
+    fn set_position(&mut self, value: crate::math::Vector2<f32>);
+    /// コライダの回転情報を取得または設定します。
+    fn get_rotation(&mut self) -> f32;
+    /// コライダの回転情報を取得または設定します。
+    fn set_rotation(&mut self, value: f32);
+}
+impl AsCollider for Collider {
+    /// 指定したコライダとの衝突判定を行います。
+
+    fn get_is_collided_with<T0: AsCollider>(&mut self, collider: &mut T0) -> bool {
+        let ret = unsafe { cbg_Collider_GetIsCollidedWith(self.self_ptr, collider.self_ptr()) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn get_position(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.position {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetPosition(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_Collider_SetPosition(self.self_ptr, value.clone()) }
+        self.position = Some(value.clone());
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn get_rotation(&mut self) -> f32 {
+        if let Some(value) = &self.rotation {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetRotation(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn set_rotation(&mut self, value: f32) {
+        unsafe { cbg_Collider_SetRotation(self.self_ptr, value) }
+        self.rotation = Some(value.clone());
+    }
+}
+impl Collider {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(Collider {
+            self_ptr,
+            position: None,
+            rotation: None,
+        })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static COLLIDER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<Collider>>>> = RefCell::new(HashMap::new());
+        }
+        COLLIDER_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    pub(crate) fn new() -> Option<Rc<RefCell<Collider>>> {
+        Self::cbg_create_raw(unsafe { cbg_Collider_Constructor_0() })
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    pub fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_Collider_SetPosition(self.self_ptr, value.clone()) }
+        self.position = Some(value.clone());
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    pub fn set_rotation(&mut self, value: f32) {
+        unsafe { cbg_Collider_SetRotation(self.self_ptr, value) }
+        self.rotation = Some(value.clone());
+    }
+}
+
+impl Drop for Collider {
+    fn drop(&mut self) {
+        unsafe { cbg_Collider_Release(self.self_ptr) };
+    }
+}
+
+/// 円形コライダのクラス
+#[derive(Debug)]
+pub struct CircleCollider {
+    self_ptr: *mut RawPtr,
+    radius: Option<f32>,
+    position: Option<crate::math::Vector2<f32>>,
+    rotation: Option<f32>,
+}
+
+impl HasRawPtr for CircleCollider {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsCollider for CircleCollider {
+    /// 指定したコライダとの衝突判定を行います。
+
+    fn get_is_collided_with<T0: AsCollider>(&mut self, collider: &mut T0) -> bool {
+        let ret = unsafe { cbg_Collider_GetIsCollidedWith(self.self_ptr, collider.self_ptr()) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn get_position(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.position {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetPosition(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_Collider_SetPosition(self.self_ptr, value.clone()) }
+        self.position = Some(value.clone());
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn get_rotation(&mut self) -> f32 {
+        if let Some(value) = &self.rotation {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetRotation(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn set_rotation(&mut self, value: f32) {
+        unsafe { cbg_Collider_SetRotation(self.self_ptr, value) }
+        self.rotation = Some(value.clone());
+    }
+}
+impl CircleCollider {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(CircleCollider {
+            self_ptr,
+            radius: None,
+            position: None,
+            rotation: None,
+        })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static CIRCLECOLLIDER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<CircleCollider>>>> = RefCell::new(HashMap::new());
+        }
+        CIRCLECOLLIDER_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    /// 円形コライダの半径を取得または設定します。
+    pub fn get_radius(&mut self) -> f32 {
+        if let Some(value) = &self.radius {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_CircleCollider_GetRadius(self.self_ptr) };
+        ret
+    }
+
+    /// 円形コライダの半径を取得または設定します。
+    pub fn set_radius(&mut self, value: f32) {
+        unsafe { cbg_CircleCollider_SetRadius(self.self_ptr, value) }
+        self.radius = Some(value.clone());
+    }
+}
+
+impl Drop for CircleCollider {
+    fn drop(&mut self) {
+        unsafe { cbg_CircleCollider_Release(self.self_ptr) };
+    }
+}
+
+/// 矩形コライダのクラス
+#[derive(Debug)]
+pub struct RectangleCollider {
+    self_ptr: *mut RawPtr,
+    size: Option<crate::math::Vector2<f32>>,
+    center_position: Option<crate::math::Vector2<f32>>,
+    position: Option<crate::math::Vector2<f32>>,
+    rotation: Option<f32>,
+}
+
+impl HasRawPtr for RectangleCollider {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsCollider for RectangleCollider {
+    /// 指定したコライダとの衝突判定を行います。
+
+    fn get_is_collided_with<T0: AsCollider>(&mut self, collider: &mut T0) -> bool {
+        let ret = unsafe { cbg_Collider_GetIsCollidedWith(self.self_ptr, collider.self_ptr()) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn get_position(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.position {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetPosition(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_Collider_SetPosition(self.self_ptr, value.clone()) }
+        self.position = Some(value.clone());
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn get_rotation(&mut self) -> f32 {
+        if let Some(value) = &self.rotation {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetRotation(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn set_rotation(&mut self, value: f32) {
+        unsafe { cbg_Collider_SetRotation(self.self_ptr, value) }
+        self.rotation = Some(value.clone());
+    }
+}
+impl RectangleCollider {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(RectangleCollider {
+            self_ptr,
+            size: None,
+            center_position: None,
+            position: None,
+            rotation: None,
+        })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static RECTANGLECOLLIDER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<RectangleCollider>>>> = RefCell::new(HashMap::new());
+        }
+        RECTANGLECOLLIDER_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    /// 矩形コライダの幅・高さを取得または設定します。
+    pub fn get_size(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.size {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_RectangleCollider_GetSize(self.self_ptr) };
+        ret
+    }
+
+    /// 矩形コライダの幅・高さを取得または設定します。
+    pub fn set_size(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_RectangleCollider_SetSize(self.self_ptr, value.clone()) }
+        self.size = Some(value.clone());
+    }
+
+    /// 矩形コライダの中心の位置を取得または設定します。
+    pub fn get_center_position(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.center_position {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_RectangleCollider_GetCenterPosition(self.self_ptr) };
+        ret
+    }
+
+    /// 矩形コライダの中心の位置を取得または設定します。
+    pub fn set_center_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_RectangleCollider_SetCenterPosition(self.self_ptr, value.clone()) }
+        self.center_position = Some(value.clone());
+    }
+}
+
+impl Drop for RectangleCollider {
+    fn drop(&mut self) {
+        unsafe { cbg_RectangleCollider_Release(self.self_ptr) };
+    }
+}
+
+/// 多角形コライダのクラス
+#[derive(Debug)]
+pub struct PolygonCollider {
+    self_ptr: *mut RawPtr,
+    vertexes: Option<Rc<RefCell<Vector2FArray>>>,
+    position: Option<crate::math::Vector2<f32>>,
+    rotation: Option<f32>,
+}
+
+impl HasRawPtr for PolygonCollider {
+    fn self_ptr(&mut self) -> *mut RawPtr {
+        self.self_ptr.clone()
+    }
+}
+
+impl AsCollider for PolygonCollider {
+    /// 指定したコライダとの衝突判定を行います。
+
+    fn get_is_collided_with<T0: AsCollider>(&mut self, collider: &mut T0) -> bool {
+        let ret = unsafe { cbg_Collider_GetIsCollidedWith(self.self_ptr, collider.self_ptr()) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn get_position(&mut self) -> crate::math::Vector2<f32> {
+        if let Some(value) = &self.position {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetPosition(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの位置情報を取得または設定します。
+    fn set_position(&mut self, mut value: crate::math::Vector2<f32>) {
+        unsafe { cbg_Collider_SetPosition(self.self_ptr, value.clone()) }
+        self.position = Some(value.clone());
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn get_rotation(&mut self) -> f32 {
+        if let Some(value) = &self.rotation {
+            return value.clone();
+        }
+        let ret = unsafe { cbg_Collider_GetRotation(self.self_ptr) };
+        ret
+    }
+
+    /// コライダの回転情報を取得または設定します。
+    fn set_rotation(&mut self, value: f32) {
+        unsafe { cbg_Collider_SetRotation(self.self_ptr, value) }
+        self.rotation = Some(value.clone());
+    }
+}
+impl PolygonCollider {
+    fn cbg_create_raw(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        if self_ptr == NULLPTR {
+            return None;
+        }
+        Some(Rc::new(RefCell::new(PolygonCollider {
+            self_ptr,
+            vertexes: None,
+            position: None,
+            rotation: None,
+        })))
+    }
+
+    fn try_get_from_cache(self_ptr: *mut RawPtr) -> Option<Rc<RefCell<Self>>> {
+        thread_local! {
+            static POLYGONCOLLIDER_CACHE: RefCell<HashMap<RawPtrStorage, rc::Weak<RefCell<PolygonCollider>>>> = RefCell::new(HashMap::new());
+        }
+        POLYGONCOLLIDER_CACHE.with(|hash_map| {
+            let mut hash_map = hash_map.borrow_mut();
+            let storage = RawPtrStorage(self_ptr);
+            if let Some(x) = hash_map.get(&storage) {
+                match x.upgrade() {
+                    Some(o) => {
+                        return Some(o);
+                    }
+                    None => {
+                        hash_map.remove(&storage);
+                    }
+                }
+            }
+            let o = Self::cbg_create_raw(self_ptr)?;
+            hash_map.insert(storage, Rc::downgrade(&o));
+            Some(o)
+        })
+    }
+
+    /// 多角形コライダの頂点の座標を取得または設定します
+    pub(crate) fn get_vertexes(&mut self) -> Option<Rc<RefCell<Vector2FArray>>> {
+        if let Some(value) = &self.vertexes {
+            return Some(value.clone());
+        }
+        let ret = unsafe { cbg_PolygonCollider_GetVertexes(self.self_ptr) };
+        {
+            let ret = Vector2FArray::try_get_from_cache(ret)?;
+            Some(ret)
+        }
+    }
+
+    /// 多角形コライダの頂点の座標を取得または設定します
+    pub(crate) fn set_vertexes(&mut self, value: Rc<RefCell<Vector2FArray>>) {
+        unsafe { cbg_PolygonCollider_SetVertexes(self.self_ptr, value.borrow_mut().self_ptr()) }
+        self.vertexes = Some(value.clone());
+    }
+}
+
+impl Drop for PolygonCollider {
+    fn drop(&mut self) {
+        unsafe { cbg_PolygonCollider_Release(self.self_ptr) };
     }
 }

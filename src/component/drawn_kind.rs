@@ -4,7 +4,7 @@ use crate::{
 };
 
 use crate::auto_generated_core_binding::{
-    AsTextureBase, Font, RenderedPolygon, RenderedSprite, RenderedText, Texture2D, Vector2FArray,
+    AsRendered, AsTextureBase, Font, RenderedPolygon, RenderedSprite, RenderedText, Vector2FArray,
     VertexArray,
 };
 
@@ -104,12 +104,9 @@ impl Sprite {
     /// テクスチャを設定します。
     pub fn set_texture<T: AsTextureBase + 'static>(&mut self, texture: Arc<Mutex<T>>) -> &mut Self {
         let size = texture.lock().unwrap().get_size();
-        self.instance.set_texture(texture).set_src(Rect::new(
-            0.0,
-            0.0,
-            size.x as f32,
-            size.y as f32,
-        ));
+        self.instance.set_texture(texture);
+        self.instance
+            .set_src(Rect::new(0.0, 0.0, size.x as f32, size.y as f32));
         self
     }
 
@@ -227,24 +224,21 @@ impl Polygon {
     }
 
     /// テクスチャを取得します。
-    pub fn get_texture(&mut self) -> Option<Arc<Mutex<Texture2D>>> {
+    pub fn get_texture(&mut self) -> Option<Arc<Mutex<dyn AsTextureBase>>> {
         self.instance.get_texture()
     }
 
     /// テクスチャを設定します。
-    pub fn set_texture(&mut self, texture: Arc<Mutex<Texture2D>>) -> &mut Self {
+    pub fn set_texture<T: AsTextureBase + 'static>(&mut self, texture: Arc<Mutex<T>>) -> &mut Self {
         let size = texture.lock().unwrap().get_size();
-        self.instance.set_texture(texture).set_src(Rect::new(
-            0.0,
-            0.0,
-            size.x as f32,
-            size.y as f32,
-        ));
+        self.instance.set_texture(texture);
+        self.instance
+            .set_src(Rect::new(0.0, 0.0, size.x as f32, size.y as f32));
         self
     }
 
     /// テクスチャを設定します。
-    pub fn with_texture(mut self, texture: Arc<Mutex<Texture2D>>) -> Self {
+    pub fn with_texture<T: AsTextureBase + 'static>(mut self, texture: Arc<Mutex<T>>) -> Self {
         self.set_texture(texture);
         self
     }

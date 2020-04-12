@@ -1,9 +1,10 @@
+use crate::auto_generated_core_binding::RenderTargetCareType;
 use crate::math::*;
 use std::os::raw::c_uchar;
 
 /// 矩形を表します。
 #[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Rect<T> {
     pub x: T,
     pub y: T,
@@ -43,7 +44,7 @@ pub struct Vertex {
 
 /// 色を表します。
 #[repr(C)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Color {
     pub r: c_uchar,
     pub g: c_uchar,
@@ -58,5 +59,23 @@ impl Color {
 
     pub fn new3(r: u8, g: u8, b: u8) -> Color {
         Color { r, g, b, a: 255 }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct RenderPassParameter {
+    clear_color: Color,
+    color_care: RenderTargetCareType,
+    depth_care: RenderTargetCareType,
+}
+
+impl Default for RenderPassParameter {
+    fn default() -> RenderPassParameter {
+        RenderPassParameter {
+            clear_color: Color::default(),
+            color_care: RenderTargetCareType::Clear,
+            depth_care: RenderTargetCareType::Clear,
+        }
     }
 }

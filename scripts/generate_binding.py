@@ -31,6 +31,7 @@ bindingGenerator.structsReplaceMap = {
     math.RectI: "crate::structs::Rect<i32>",
     math.Matrix44F: "crate::math::Matrix44<f32>",
     math.Matrix44I: "crate::math::Matrix44<i32>",
+    graphics.RenderPassParameter: "crate::structs::RenderPassParameter",
 }
 bindingGenerator.bitFlags = {
     tool.ToolTreeNode,
@@ -63,6 +64,7 @@ no_cache_classes = [
     graphics.RenderedPolygon,
     graphics.RenderedSprite,
     graphics.RenderedText,
+    graphics.CullingSystem
 ]
 
 for class_ in no_cache_classes:

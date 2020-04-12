@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::retain_mut::RetainMut;
 
 use super::{
@@ -6,7 +8,7 @@ use super::{
     Component, Entity, Memoried,
 };
 
-use crate::auto_generated_core_binding::{Graphics, RenderedCamera, Renderer};
+use crate::auto_generated_core_binding::{CullingSystem, Graphics, RenderedCamera, Renderer};
 
 use crate::error::*;
 
@@ -61,6 +63,7 @@ impl CameraComponent {
         _: &mut DrawnStorage,
         graphics: &mut Graphics,
         renderer: &mut Renderer,
+        culling: &mut CullingSystem,
     ) -> AltseedResult<()> {
         let group = self.group();
 
@@ -107,16 +110,29 @@ impl CameraComponent {
                 }
 
                 self.group.update();
+            }
 
-                // カメラの指定
-                renderer.set_camera(&mut self.instance);
+            // カメラの指定
+            renderer.set_camera(&mut self.instance);
 
-                // 描画
-                for e in self.drawn_entities.iter() {
-                    let d = storage.get_mut(*e).unwrap();
+            let culling_ids: HashSet<i32> = culling
+                .get_drawing_rendered_ids()
+                .unwrap()
+                .borrow_mut()
+                .to_vec()
+                .into_iter()
+                .collect();
+
+            // 描画
+            for e in self.drawn_entities.iter() {
+                let d = storage.get_mut(*e).unwrap();
+                if culling_ids.contains(&d.culling_id()) {
                     d.draw(graphics, renderer)?;
                 }
             }
+
+            renderer.render();
+
             Ok(())
         })
     }

@@ -18,12 +18,12 @@ fn rendered_sprite() {
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
 
-    x1.set_texture(t1.clone())
-        .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
+    x1.set_texture(t1.clone());
+    x1.set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
 
-    x2.set_texture(t2)
-        .set_transform(Matrix44::translation(200.0, 200.0, 0.0))
-        .set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
+    x2.set_texture(t2);
+    x2.set_transform(Matrix44::translation(200.0, 200.0, 0.0));
+    x2.set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
 
     let mut core = Core::get_instance().unwrap();
     let mut graphics = Graphics::get_instance().unwrap();
@@ -66,15 +66,15 @@ fn rendered_text() {
     let mut x1 = RenderedText::create().unwrap();
     let mut x2 = RenderedText::create().unwrap();
 
-    x1.set_font(font)
-        .set_text("Hello, world! こんにちは".to_owned())
-        .set_color(Color::new3(0, 0, 255))
-        .set_transform(Matrix44::translation(0.0, 0.0, 0.0));
+    x1.set_font(font);
+    x1.set_text("Hello, world! こんにちは".to_owned());
+    x1.set_color(Color::new3(0, 0, 255));
+    x1.set_transform(Matrix44::translation(0.0, 0.0, 0.0));
 
-    x2.set_font(imagefont)
-        .set_text("Altseed〇Altseed".to_owned())
-        .set_color(Color::new3(0, 0, 0))
-        .set_transform(Matrix44::translation(0.0, 150.0, 0.0));
+    x2.set_font(imagefont);
+    x2.set_text("Altseed〇Altseed".to_owned());
+    x2.set_color(Color::new3(0, 0, 0));
+    x2.set_transform(Matrix44::translation(0.0, 150.0, 0.0));
 
     let mut core = Core::get_instance().unwrap();
     let mut graphics = Graphics::get_instance().unwrap();
@@ -111,12 +111,12 @@ fn rendered_camera() {
     let mut x1 = RenderedSprite::create().unwrap();
     let mut x2 = RenderedSprite::create().unwrap();
 
-    x1.set_texture(t1.clone())
-        .set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
+    x1.set_texture(t1.clone());
+    x1.set_src(Rect::new(0.0, 0.0, 128.0, 128.0));
 
-    x2.set_texture(t2)
-        .set_transform(Matrix44::translation(128.0, 128.0, 0.0))
-        .set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
+    x2.set_texture(t2);
+    x2.set_transform(Matrix44::translation(128.0, 128.0, 0.0));
+    x2.set_src(Rect::new(128.0, 128.0, 256.0, 256.0));
 
     let mut camera = RenderedCamera::create().unwrap();
     camera.set_transform(Matrix44::translation(-100.0, -100.0, 0.0));

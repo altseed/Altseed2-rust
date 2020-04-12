@@ -31,7 +31,7 @@ use crate::component::{camera::*, drawn::*, Entity};
 
 use crate::error::*;
 use std::{
-    collections::VecDeque,
+    collections::{HashSet, VecDeque},
     future::Future,
     marker::PhantomData,
     pin::Pin,
@@ -54,6 +54,8 @@ pub struct Engine {
     window: Window,
     graphics: Graphics,
     renderer: Renderer,
+    culling: CullingSystem,
+
     file: File,
     keyboard: Keyboard,
     mouse: Mouse,
@@ -62,6 +64,8 @@ pub struct Engine {
     log: crate::log::Log,
     tool: Option<Tool>,
     loader: Loader,
+
+    default_camera: RenderedCamera,
 
     drawn_storage: DrawnStorage,
     camera_storage: CameraStorage,
@@ -93,15 +97,18 @@ impl Engine {
     fn initialize_core(title: &str, width: i32, height: i32, config: Config) -> Option<Engine> {
         let mut configuration = Configuration::new().unwrap();
         match config.log_filename {
-            Some(filename) => configuration
-                .set_file_logging_enabled(true)
-                .set_log_file_name(filename),
-            _ => configuration.set_file_logging_enabled(false),
+            Some(filename) => {
+                configuration.set_file_logging_enabled(true);
+                configuration.set_log_file_name(filename);
+            }
+            _ => {
+                configuration.set_file_logging_enabled(false);
+            }
         }
-        .set_is_fullscreen(config.fullscreen)
-        .set_is_resizable(config.resizable)
-        .set_console_logging_enabled(config.log_console)
-        .set_tool_enabled(config.tool);
+        configuration.set_is_fullscreen(config.fullscreen);
+        configuration.set_is_resizable(config.resizable);
+        configuration.set_console_logging_enabled(config.log_console);
+        configuration.set_tool_enabled(config.tool);
 
         if Core::initialize(title, width, height, &mut configuration) {
             lazy_static! {
@@ -114,6 +121,8 @@ impl Engine {
                 window: Window::get_instance()?,
                 graphics: Graphics::get_instance()?,
                 renderer: Renderer::get_instance()?,
+                culling: CullingSystem::get_instance()?,
+
                 file: File::get_instance()?,
                 keyboard: Keyboard::get_instance()?,
                 mouse: Mouse::get_instance()?,
@@ -124,6 +133,8 @@ impl Engine {
                 loader: Loader {
                     phantom: PhantomData,
                 },
+
+                default_camera: RenderedCamera::create()?,
 
                 drawn_storage: DrawnStorage::new(),
                 camera_storage: CameraStorage::new(),
@@ -230,6 +241,8 @@ impl Engine {
     }
 
     fn update_graphics(
+        default_camera: &mut RenderedCamera,
+        culling: &mut CullingSystem,
         graphics: &mut Graphics,
         renderer: &mut Renderer,
         drawn_storage: &mut DrawnStorage,
@@ -240,46 +253,65 @@ impl Engine {
             camera_storage.borrow_mut().update();
         });
 
-        // カメラをリセット
-        renderer.reset_camera();
-        // スクリーンへ描画
         let mut memoried_updated_drawns: Vec<Entity> = Vec::new();
 
-        // 削除の反映, 必要があればソート, 描画処理
-        {
-            let updater = |e: &Entity, d: &mut DrawnComponent| {
-                d.on_drawing(*e, camera_storage);
+        let mut screen_target_drawns = Vec::new();
 
-                if d.camera_group() == 0 {
+        // 削除の反映, 必要があればソート後にupdaterを実行
+        DRAWN_STORAGE.with(|drawn_storage| {
+            drawn_storage.borrow_mut().update_with::<AltseedError, _>(
+                |e: &Entity, d: &mut DrawnComponent| {
+                    d.on_drawing(*e, camera_storage);
+
+                    if d.camera_group() == 0 {
+                        screen_target_drawns.push(e.clone());
+                    }
+
+                    if d.camera_group.is_updated() {
+                        memoried_updated_drawns.push(e.clone());
+                    }
+
+                    Ok(())
+                },
+            )
+        })?;
+
+        // カリング用AABBの更新
+        culling.update_aabb();
+
+        // カメラをリセット
+        renderer.set_camera(default_camera);
+        // スクリーンへ描画
+        DRAWN_STORAGE.with::<_, AltseedResult<()>>(|drawn_storage| {
+            let culling_ids: HashSet<i32> = culling
+                .get_drawing_rendered_ids()
+                .unwrap()
+                .borrow_mut()
+                .to_vec()
+                .into_iter()
+                .collect();
+
+            let mut drawn_storage = drawn_storage.borrow_mut();
+            for e in screen_target_drawns.into_iter() {
+                // screen_target_drawnsへの追加はcomponent削除の反映後なのでunwrap
+                let d = drawn_storage.get_mut(e).unwrap();
+                if culling_ids.contains(&d.culling_id()) {
                     d.draw(graphics, renderer)?;
                 }
-
-                if d.camera_group.is_updated() {
-                    memoried_updated_drawns.push(e.clone());
-                }
-
-                Ok(())
-            };
-
-            DRAWN_STORAGE.with(|drawn_storage| {
-                drawn_storage
-                    .borrow_mut()
-                    .update_with::<AltseedError, _>(updater)
-            })?
-        }
-
+            }
+            Ok(())
+        })?;
         renderer.render();
 
         // カメラへ描画
         CAMERA_STORAGE.with::<_, AltseedResult<()>>(|camera_storage| {
             for (_, c) in camera_storage.borrow_mut().iter_mut() {
-                c.draw(drawn_storage, graphics, renderer)?;
-                renderer.render();
+                c.draw(drawn_storage, graphics, renderer, culling)?;
             }
             Ok(())
         })?;
 
-        // z_orderとcamera_groupを更新
+        // z_orderとcamera_groupを更新状態をリセット
         DRAWN_STORAGE.with(|drawn_storage| {
             let mut storage = drawn_storage.borrow_mut();
             for e in memoried_updated_drawns.into_iter() {
@@ -296,6 +328,8 @@ impl Engine {
         self.update_task()?;
 
         Self::update_graphics(
+            &mut self.default_camera,
+            &mut self.culling,
             &mut self.graphics,
             &mut self.renderer,
             &mut self.drawn_storage,
