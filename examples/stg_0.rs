@@ -134,7 +134,7 @@ impl Player {
             diff += Vector2::new(0.0, 1.0);
         }
 
-        if diff != Zero::zero() {
+        if !diff.is_zero() {
             self.pos += diff * PLAYER_SPEED * engine.get_delta_second();
 
             // 描画の反映
