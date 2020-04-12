@@ -46,12 +46,14 @@ impl ColliderStorage {
     }
 
     /// IDに対応するColliderComponentへの参照を取得します。
+    #[inline]
     pub fn with<T, F: FnOnce(&ColliderComponent) -> T>(&self, id: &ColliderID, f: F) -> T {
         // ColliderIDが存在を保証しているのでunwrapして良い
         COLLIDER_STORAGE.with(|s| f(s.borrow().get(id.entity).unwrap()))
     }
 
     /// IDに対応するColliderComponentへの可変参照を取得します。
+    #[inline]
     pub fn with_mut<T, F: FnOnce(&mut ColliderComponent) -> T>(
         &mut self,
         id: &ColliderID,

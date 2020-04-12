@@ -362,6 +362,7 @@ impl Engine {
     }
 
     /// 毎フレーム実行する関数を指定してメインループを実行します。
+    #[inline]
     pub fn run_with<F: FnMut(&mut Engine) -> AltseedResult<()>>(
         mut self,
         mut on_updating: F,

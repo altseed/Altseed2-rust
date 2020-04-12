@@ -175,12 +175,14 @@ impl CameraStorage {
     }
 
     /// IDに対応するCameraComponentへの参照を取得します。
+    #[inline]
     pub fn with<T, F: FnOnce(&CameraComponent) -> T>(&self, id: &CameraID, f: F) -> T {
         // CameraIDが存在を保証しているのでunwrapして良い
         CAMERA_STORAGE.with(|s| f(s.borrow().get(id.entity).unwrap()))
     }
 
     /// IDに対応するCameraComponentへの可変参照を取得します。
+    #[inline]
     pub fn with_mut<T, F: FnOnce(&mut CameraComponent) -> T>(&mut self, id: &CameraID, f: F) -> T {
         // CameraIDが存在を保証しているのでunwrapして良い
         CAMERA_STORAGE.with(|s| f(s.borrow_mut().get_mut(id.entity).unwrap()))

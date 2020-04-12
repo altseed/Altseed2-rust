@@ -181,12 +181,14 @@ impl DrawnStorage {
     }
 
     /// IDに対応するDrawnComponentへの参照を取得します。
+    #[inline]
     pub fn with<T, F: FnOnce(&DrawnComponent) -> T>(&self, id: &DrawnID, f: F) -> T {
         // DrawnIDが存在を保証しているのでunwrapして良い
         DRAWN_STORAGE.with(|s| f(s.borrow().get(id.entity).unwrap()))
     }
 
     /// IDに対応するDrawnComponentへの可変参照を取得します。
+    #[inline]
     pub fn with_mut<T, F: FnOnce(&mut DrawnComponent) -> T>(&mut self, id: &DrawnID, f: F) -> T {
         // DrawnIDが存在を保証しているのでunwrapして良い
         DRAWN_STORAGE.with(|s| f(s.borrow_mut().get_mut(id.entity).unwrap()))

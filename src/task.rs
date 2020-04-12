@@ -65,6 +65,7 @@ impl Cont {
         Ok(Cont::Fin)
     }
 
+    #[inline]
     pub fn then<F: FnOnce(&mut Engine) -> AltseedResult<()> + 'static, E>(f: F) -> Result<Cont, E> {
         Ok(Cont::Then(Box::new(f)))
     }
