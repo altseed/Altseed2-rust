@@ -26,14 +26,14 @@ pub struct SoundMixer {
 impl SoundMixer {
     pub(crate) fn new() -> Option<Self> {
         Some(SoundMixer {
-            instance: CoreMixer::get_instance()?,
+            instance: CoreMixer::__get_instance()?,
         })
     }
 
     /// 音を再生します。
     pub fn play(&mut self, sound: &mut Sound) -> AltseedResult<SoundID> {
         SoundID::new(self.instance.play(sound))
-            .ok_or(AltseedError::FailedToPlaySound(sound.get_path()))
+            .ok_or(AltseedError::FailedToPlaySound(sound.__get_path()))
     }
 
     /// 指定した音が再生中であるかを取得します。
@@ -156,7 +156,7 @@ impl SoundMixer {
     pub fn spectrum(&mut self, id: SoundID, window: FFTWindow) -> Vec<f32> {
         let vec = FloatArray::create(8192).unwrap();
         let mut v = vec.borrow_mut();
-        self.instance.get_spectrum_data(id.value, &mut v, window);
+        self.instance.__get_spectrum_data(id.value, &mut v, window);
         v.to_vec()
     }
 }

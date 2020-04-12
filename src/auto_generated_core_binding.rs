@@ -2704,7 +2704,7 @@ impl Keyboard {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Keyboard> {
+    pub(crate) fn __get_instance() -> Option<Keyboard> {
         let ret = unsafe { cbg_Keyboard_GetInstance() };
         Keyboard::cbg_create_raw(ret)
     }
@@ -2744,7 +2744,7 @@ impl Mouse {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Mouse> {
+    pub(crate) fn __get_instance() -> Option<Mouse> {
         let ret = unsafe { cbg_Mouse_GetInstance() };
         Mouse::cbg_create_raw(ret)
     }
@@ -2831,7 +2831,7 @@ impl Joystick {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Joystick> {
+    pub(crate) fn __get_instance() -> Option<Joystick> {
         let ret = unsafe { cbg_Joystick_GetInstance() };
         Joystick::cbg_create_raw(ret)
     }
@@ -2856,7 +2856,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `button_index` - 状態を検索するボタンのインデックス
 
-    pub(crate) fn get_button_state_by_index(
+    pub(crate) fn __get_button_state_by_index(
         &mut self,
         joystick_index: i32,
         button_index: i32,
@@ -2872,7 +2872,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索するボタンの種類
 
-    pub(crate) fn get_button_state_by_type(
+    pub(crate) fn __get_button_state_by_type(
         &mut self,
         joystick_index: i32,
         type_: JoystickButtonType,
@@ -2897,7 +2897,11 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `axis_index` - 状態を検索する軸のインデックス
 
-    pub(crate) fn get_axis_state_by_index(&mut self, joystick_index: i32, axis_index: i32) -> f32 {
+    pub(crate) fn __get_axis_state_by_index(
+        &mut self,
+        joystick_index: i32,
+        axis_index: i32,
+    ) -> f32 {
         let ret =
             unsafe { cbg_Joystick_GetAxisStateByIndex(self.self_ptr, joystick_index, axis_index) };
         ret
@@ -2908,7 +2912,7 @@ impl Joystick {
     /// * `joystick_index` - 検索するジョイスティックのインデックス
     /// * `type_` - 状態を検索する軸の種類
 
-    pub(crate) fn get_axis_state_by_type(
+    pub(crate) fn __get_axis_state_by_type(
         &mut self,
         joystick_index: i32,
         type_: JoystickAxisType,
@@ -3169,7 +3173,7 @@ impl Texture2D {
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub(crate) fn load(path: &str) -> Option<Arc<Mutex<Texture2D>>> {
+    pub(crate) fn __load(path: &str) -> Option<Arc<Mutex<Texture2D>>> {
         let ret = unsafe { cbg_Texture2D_Load(encode_string(&path).as_ptr()) };
         {
             let ret = Texture2D::try_get_from_cache(ret)?;
@@ -3185,7 +3189,7 @@ impl Texture2D {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub(crate) fn get_path(&mut self) -> String {
+    pub(crate) fn __get_path(&mut self) -> String {
         let ret = unsafe { cbg_Texture2D_GetPath(self.self_ptr) };
         decode_string(ret)
     }
@@ -4194,7 +4198,7 @@ impl BuiltinShader {
     /// # Arguments
     /// * `type_` - シェーダの種類
 
-    pub(crate) fn create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
+    pub(crate) fn __create(&mut self, type_: BuiltinShaderType) -> Option<Rc<RefCell<Shader>>> {
         let ret = unsafe { cbg_BuiltinShader_Create(self.self_ptr, type_ as i32) };
         {
             let ret = Shader::try_get_from_cache(ret)?;
@@ -4438,7 +4442,7 @@ impl Font {
     /// * `path` - 読み込むフォントのパス
     /// * `size` - フォントのサイズ
 
-    pub(crate) fn load_dynamic_font(path: &str, size: i32) -> Option<Arc<Mutex<Font>>> {
+    pub(crate) fn __load_dynamic_font(path: &str, size: i32) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadDynamicFont(encode_string(&path).as_ptr(), size) };
         {
             let ret = Font::try_get_from_cache(ret)?;
@@ -4450,7 +4454,7 @@ impl Font {
     /// # Arguments
     /// * `path` - 読み込むフォントのパス
 
-    pub(crate) fn load_static_font(path: &str) -> Option<Arc<Mutex<Font>>> {
+    pub(crate) fn __load_static_font(path: &str) -> Option<Arc<Mutex<Font>>> {
         let ret = unsafe { cbg_Font_LoadStaticFont(encode_string(&path).as_ptr()) };
         {
             let ret = Font::try_get_from_cache(ret)?;
@@ -4556,7 +4560,7 @@ impl Font {
     /// * `character` - 文字
     /// * `texture` - テクスチャ
 
-    pub(crate) fn add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
+    pub(crate) fn __add_image_glyph(&mut self, character: i32, texture: &mut Texture2D) -> () {
         unsafe { cbg_Font_AddImageGlyph(self.self_ptr, character, texture.self_ptr()) }
     }
 
@@ -4689,7 +4693,7 @@ impl Tool {
         Some(Tool { self_ptr })
     }
 
-    pub(crate) fn get_instance() -> Option<Tool> {
+    pub(crate) fn __get_instance() -> Option<Tool> {
         let ret = unsafe { cbg_Tool_GetInstance() };
         Tool::cbg_create_raw(ret)
     }
@@ -4715,13 +4719,13 @@ impl Tool {
 
     ///
 
-    pub(crate) fn new_frame(&mut self) -> () {
+    pub(crate) fn __new_frame(&mut self) -> () {
         unsafe { cbg_Tool_NewFrame(self.self_ptr) }
     }
 
     ///
 
-    pub(crate) fn render(&mut self) -> () {
+    pub(crate) fn __render(&mut self) -> () {
         unsafe { cbg_Tool_Render(self.self_ptr) }
     }
 
@@ -5477,7 +5481,7 @@ impl StreamFile {
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
+    pub(crate) fn __create(path: &str) -> Option<Arc<Mutex<StreamFile>>> {
         let ret = unsafe { cbg_StreamFile_Create(encode_string(&path).as_ptr()) };
         {
             let ret = StreamFile::try_get_from_cache(ret)?;
@@ -5496,7 +5500,7 @@ impl StreamFile {
 
     /// 現在読み込んでいるファイルのデータを取得します。
 
-    pub(crate) fn get_temp_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
+    pub(crate) fn __get_temp_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StreamFile_GetTempBuffer(self.self_ptr) };
         {
             let ret = Int8Array::try_get_from_cache(ret)?;
@@ -5536,7 +5540,7 @@ impl StreamFile {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub(crate) fn get_path(&mut self) -> String {
+    pub(crate) fn __get_path(&mut self) -> String {
         let ret = unsafe { cbg_StreamFile_GetPath(self.self_ptr) };
         decode_string(ret)
     }
@@ -5597,7 +5601,7 @@ impl StaticFile {
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
 
-    pub(crate) fn create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
+    pub(crate) fn __create(path: &str) -> Option<Arc<Mutex<StaticFile>>> {
         let ret = unsafe { cbg_StaticFile_Create(encode_string(&path).as_ptr()) };
         {
             let ret = StaticFile::try_get_from_cache(ret)?;
@@ -5607,7 +5611,7 @@ impl StaticFile {
 
     /// 読み込んだファイルのデータを取得します。
 
-    pub(crate) fn get_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
+    pub(crate) fn __get_buffer(&mut self) -> Option<Rc<RefCell<Int8Array>>> {
         let ret = unsafe { cbg_StaticFile_GetBuffer(self.self_ptr) };
         {
             let ret = Int8Array::try_get_from_cache(ret)?;
@@ -5669,7 +5673,7 @@ impl File {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<File> {
+    pub(crate) fn __get_instance() -> Option<File> {
         let ret = unsafe { cbg_File_GetInstance() };
         File::cbg_create_raw(ret)
     }
@@ -5823,7 +5827,7 @@ impl Sound {
     /// * `path` - 読み込む音声ファイルのパス
     /// * `is_decompressed` - 音を再生する前にデータを全て解凍するか?
 
-    pub(crate) fn load(path: &str, is_decompressed: bool) -> Option<Arc<Mutex<Sound>>> {
+    pub(crate) fn __load(path: &str, is_decompressed: bool) -> Option<Arc<Mutex<Sound>>> {
         let ret = unsafe { cbg_Sound_Load(encode_string(&path).as_ptr(), is_decompressed) };
         {
             let ret = Sound::try_get_from_cache(ret)?;
@@ -5883,13 +5887,13 @@ impl Sound {
     }
 
     /// 読み込んだファイルのパスを取得します。
-    pub(crate) fn get_path(&mut self) -> String {
+    pub(crate) fn __get_path(&mut self) -> String {
         let ret = unsafe { cbg_Sound_GetPath(self.self_ptr) };
         decode_string(ret)
     }
 
     /// 音源を解凍するかどうかを取得する
-    pub(crate) fn get_is_decompressed(&mut self) -> bool {
+    pub(crate) fn __get_is_decompressed(&mut self) -> bool {
         let ret = unsafe { cbg_Sound_GetIsDecompressed(self.self_ptr) };
         ret
     }
@@ -5921,7 +5925,7 @@ impl SoundMixer {
         Some(SoundMixer { self_ptr })
     }
 
-    pub(crate) fn get_instance() -> Option<SoundMixer> {
+    pub(crate) fn __get_instance() -> Option<SoundMixer> {
         let ret = unsafe { cbg_SoundMixer_GetInstance() };
         SoundMixer::cbg_create_raw(ret)
     }
@@ -6095,7 +6099,7 @@ impl SoundMixer {
     /// * `spectrums` - 音のスペクトル情報を格納するための配列
     /// * `window` - フーリエ変換に用いる窓関数
 
-    pub(crate) fn get_spectrum_data(
+    pub(crate) fn __get_spectrum_data(
         &mut self,
         id: i32,
         spectrums: &mut FloatArray,
@@ -6135,7 +6139,7 @@ impl Log {
 
     /// インスタンスを取得します。
 
-    pub(crate) fn get_instance() -> Option<Log> {
+    pub(crate) fn __get_instance() -> Option<Log> {
         let ret = unsafe { cbg_Log_GetInstance() };
         Log::cbg_create_raw(ret)
     }
@@ -6748,7 +6752,7 @@ impl PolygonCollider {
     }
 
     /// 多角形コライダの頂点の座標を取得または設定します
-    pub(crate) fn get_vertexes(&mut self) -> Option<Rc<RefCell<Vector2FArray>>> {
+    pub(crate) fn __get_vertexes(&mut self) -> Option<Rc<RefCell<Vector2FArray>>> {
         if let Some(value) = &self.vertexes {
             return Some(value.clone());
         }
@@ -6760,7 +6764,7 @@ impl PolygonCollider {
     }
 
     /// 多角形コライダの頂点の座標を取得または設定します
-    pub(crate) fn set_vertexes(&mut self, value: Rc<RefCell<Vector2FArray>>) {
+    pub(crate) fn __set_vertexes(&mut self, value: Rc<RefCell<Vector2FArray>>) {
         unsafe { cbg_PolygonCollider_SetVertexes(self.self_ptr, value.borrow_mut().self_ptr()) }
         self.vertexes = Some(value.clone());
     }

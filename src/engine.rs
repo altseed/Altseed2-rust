@@ -123,13 +123,13 @@ impl Engine {
                 renderer: Renderer::get_instance()?,
                 culling: CullingSystem::get_instance()?,
 
-                file: File::get_instance()?,
-                keyboard: Keyboard::get_instance()?,
-                mouse: Mouse::get_instance()?,
-                joystick: Joystick::get_instance()?,
+                file: File::__get_instance()?,
+                keyboard: Keyboard::__get_instance()?,
+                mouse: Mouse::__get_instance()?,
+                joystick: Joystick::__get_instance()?,
                 sound: crate::sound::SoundMixer::new()?,
                 log: crate::log::Log::new()?,
-                tool: Tool::get_instance(),
+                tool: Tool::__get_instance(),
                 loader: Loader {
                     phantom: PhantomData,
                 },
@@ -209,7 +209,7 @@ impl Engine {
             }
 
             if let Some(tool) = &mut self.tool {
-                tool.new_frame();
+                tool.__new_frame();
             }
 
             self.called_begin = true;
@@ -279,29 +279,32 @@ impl Engine {
         // カリング用AABBの更新
         culling.update_aabb();
 
-        // カメラをリセット
-        renderer.set_camera(default_camera);
-        // スクリーンへ描画
-        DRAWN_STORAGE.with::<_, AltseedResult<()>>(|drawn_storage| {
-            let culling_ids: HashSet<i32> = culling
+        
+        if !screen_target_drawns.is_empty() {
+            // カメラをリセット
+            renderer.set_camera(default_camera);
+            // スクリーンへ描画
+            DRAWN_STORAGE.with::<_, AltseedResult<()>>(|drawn_storage| {
+                let culling_ids: HashSet<i32> = culling
                 .get_drawing_rendered_ids()
                 .unwrap()
                 .borrow_mut()
                 .to_vec()
                 .into_iter()
                 .collect();
-
-            let mut drawn_storage = drawn_storage.borrow_mut();
-            for e in screen_target_drawns.into_iter() {
-                // screen_target_drawnsへの追加はcomponent削除の反映後なのでunwrap
-                let d = drawn_storage.get_mut(e).unwrap();
-                if culling_ids.contains(&d.culling_id()) {
-                    d.draw(graphics, renderer)?;
+                
+                let mut drawn_storage = drawn_storage.borrow_mut();
+                for e in screen_target_drawns.into_iter() {
+                    // screen_target_drawnsへの追加はcomponent削除の反映後なのでunwrap
+                    let d = drawn_storage.get_mut(e).unwrap();
+                    if culling_ids.contains(&d.culling_id()) {
+                        d.draw(graphics, renderer)?;
+                    }
                 }
-            }
-            Ok(())
-        })?;
-        renderer.render();
+                Ok(())
+            })?;
+            renderer.render();
+        }
 
         // カメラへ描画
         CAMERA_STORAGE.with::<_, AltseedResult<()>>(|camera_storage| {
@@ -337,7 +340,7 @@ impl Engine {
         )?;
 
         if let Some(tool) = &mut self.tool {
-            tool.render();
+            tool.__render();
         }
 
         if !self.graphics.end_frame() {
@@ -502,7 +505,7 @@ impl Engine {
 impl Loader {
     /// 指定したファイルからテクスチャを読み込みます。
     pub fn load_texture2d(&self, path: &str) -> AltseedResult<Arc<Mutex<Texture2D>>> {
-        Texture2D::load(path).ok_or(AltseedError::FailedToCreateResource(
+        Texture2D::__load(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Texture2D,
             path.to_owned(),
         ))
@@ -510,7 +513,7 @@ impl Loader {
 
     /// 指定したファイルから動的にフォントを生成します。
     pub fn load_dynamic_font(&self, path: &str, size: i32) -> AltseedResult<Arc<Mutex<Font>>> {
-        Font::load_dynamic_font(path, size).ok_or(AltseedError::FailedToCreateResource(
+        Font::__load_dynamic_font(path, size).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Font,
             path.to_owned(),
         ))
@@ -518,7 +521,7 @@ impl Loader {
 
     /// 指定したファイルから静的にフォントを生成します。
     pub fn load_static_font(&self, path: &str) -> AltseedResult<Arc<Mutex<Font>>> {
-        Font::load_static_font(path).ok_or(AltseedError::FailedToCreateResource(
+        Font::__load_static_font(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Font,
             path.to_owned(),
         ))
@@ -532,7 +535,7 @@ impl Loader {
         path: &str,
         is_decompressed: bool,
     ) -> AltseedResult<Arc<Mutex<Sound>>> {
-        Sound::load(path, is_decompressed).ok_or(AltseedError::FailedToCreateResource(
+        Sound::__load(path, is_decompressed).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::Sound,
             path.to_owned(),
         ))
@@ -542,7 +545,7 @@ impl Loader {
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
     pub fn create_static_file(&self, path: &str) -> AltseedResult<Arc<Mutex<StaticFile>>> {
-        StaticFile::create(path).ok_or(AltseedError::FailedToCreateResource(
+        StaticFile::__create(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::StaticFile,
             path.to_owned(),
         ))
@@ -552,7 +555,7 @@ impl Loader {
     /// # Arguments
     /// * `path` - 読み込むファイルのパス
     pub fn create_stream_file(&self, path: &str) -> AltseedResult<Arc<Mutex<StreamFile>>> {
-        StreamFile::create(path).ok_or(AltseedError::FailedToCreateResource(
+        StreamFile::__create(path).ok_or(AltseedError::FailedToCreateResource(
             ResourceType::StreamFile,
             path.to_owned(),
         ))

@@ -9,7 +9,7 @@ pub struct Log {
 impl Log {
     pub(crate) fn new() -> Option<Self> {
         Some(Log {
-            instance: CoreLog::get_instance()?,
+            instance: CoreLog::__get_instance()?,
         })
     }
 
