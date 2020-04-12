@@ -55,3 +55,4 @@ pub mod camera;
 pub mod drawn;
 pub mod drawn_kind;
 pub mod sorted;
+pub mod storage;

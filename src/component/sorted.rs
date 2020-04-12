@@ -48,6 +48,7 @@ impl<'a, T: Component> std::iter::Iterator for IterMut<'a, T> {
 
 use std::marker::PhantomData;
 
+/// 更新時まで遅延されてまとめてソートされるComponent Storage
 #[derive(Debug)]
 pub struct SortedStorage<T, U>
 where
@@ -93,8 +94,8 @@ where
         }
     }
 
-    pub fn len(&self) -> u32 {
-        self.indexes.len() as u32 - self.removed_entities.len() as u32
+    pub fn len(&self) -> usize {
+        self.indexes.len() - self.removed_entities.len()
     }
 
     pub fn get(&self, entity: Entity) -> Option<&T> {
@@ -163,12 +164,11 @@ where
 
     /// 全ての要素を削除します。
     pub fn clear(&mut self) {
-        for x in self.components.iter() {
+        while let Some(x) = self.components.pop() {
             if let Some((e, _)) = x {
-                self.removed_entities.push(*e);
+                self.removed_entities.push(e);
             }
         }
-        self.components.clear();
     }
 
     /// 更新してソートが行われたかどうかを返す

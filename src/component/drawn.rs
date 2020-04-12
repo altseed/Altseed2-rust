@@ -220,7 +220,7 @@ impl DrawnStorage {
     }
 
     /// 現在の要素数を取得します。
-    pub fn len(&self) -> u32 {
+    pub fn len(&self) -> usize {
         DRAWN_STORAGE.with(|s| s.borrow().len())
     }
 }
